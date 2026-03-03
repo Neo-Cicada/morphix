@@ -49,15 +49,15 @@
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(0.1 0 0); /* Pure black for cinema */
+  --background: #0a0a0a; /* Pure black for cinema */
   --foreground: oklch(0.985 0 0); /* White */
   --card: oklch(0.12 0 0);
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.12 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.6 0.25 260); /* Electric Blue */
+  --primary: #3b82f6; /* Electric Blue */
   --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.2 0.05 280); /* Deep Violet tint */
+  --secondary: #7c3aed; /* Deep Violet tint */
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.15 0 0);
   --muted-foreground: oklch(0.7 0 0);

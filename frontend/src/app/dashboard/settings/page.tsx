@@ -1,7 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { User, Lock, AlertTriangle, Camera } from 'lucide-react';
+import { useUser } from '@/contexts/UserContext';
+import { api } from '@/lib/api';
 
 /* Shared card wrapper — matches landing page card style */
 function SectionCard({
@@ -75,6 +77,29 @@ function Field({ label, ...props }: { label: string } & React.InputHTMLAttribute
 
 export default function SettingsPage() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const { user, refresh } = useUser();
+  const [fullName, setFullName] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [saveMsg, setSaveMsg] = useState('');
+
+  useEffect(() => {
+    if (user?.full_name) setFullName(user.full_name);
+  }, [user]);
+
+  async function handleSaveProfile() {
+    setSaving(true);
+    setSaveMsg('');
+    try {
+      await api.patch('/users/me', { full_name: fullName });
+      await refresh();
+      setSaveMsg('Saved!');
+    } catch {
+      setSaveMsg('Failed to save.');
+    } finally {
+      setSaving(false);
+      setTimeout(() => setSaveMsg(''), 2500);
+    }
+  }
 
   return (
     <div className="px-6 py-10 lg:px-8 max-w-2xl">
@@ -118,17 +143,27 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          <Field label="Full Name" type="text" defaultValue="Neo Barnachea" />
+          <Field
+            label="Full Name"
+            type="text"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+          />
           <div>
-            <Field label="Email" type="email" defaultValue="neo@morphix.ai" disabled />
+            <Field label="Email" type="email" defaultValue={user?.email ?? ''} disabled />
             <p className="text-xs mt-1.5 text-[#444444]">Contact support to change your email.</p>
           </div>
 
-          <button
-            className="btn-gradient rounded-xl px-5 py-2.5 text-sm font-semibold text-white transition-all duration-200 cursor-pointer"
-          >
-            Save Changes
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleSaveProfile}
+              disabled={saving}
+              className="btn-gradient rounded-xl px-5 py-2.5 text-sm font-semibold text-white transition-all duration-200 cursor-pointer disabled:opacity-50"
+            >
+              {saving ? 'Saving…' : 'Save Changes'}
+            </button>
+            {saveMsg && <span className="text-xs text-[#888888]">{saveMsg}</span>}
+          </div>
         </div>
       </SectionCard>
 

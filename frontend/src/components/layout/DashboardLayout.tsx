@@ -3,11 +3,13 @@
 import { useState } from 'react';
 import { Sidebar } from './Sidebar';
 import { Topbar } from './Topbar';
+import { UserProvider } from '@/contexts/UserContext';
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
+    <UserProvider>
     <div
       className="flex h-screen text-white overflow-hidden antialiased selection:bg-blue-500/30"
       style={{ background: '#080808', fontFamily: 'var(--font-geist-sans, system-ui, sans-serif)' }}
@@ -24,5 +26,6 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         </main>
       </div>
     </div>
+    </UserProvider>
   );
 }

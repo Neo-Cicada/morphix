@@ -1,0 +1,106 @@
+import { Response, NextFunction } from 'express';
+import { AuthenticatedRequest } from '../middleware/auth';
+import { prisma } from '../lib/prisma';
+import { z } from 'zod';
+
+const createVideoSchema = z.object({
+    app_name: z.string().min(1).max(100),
+    description: z.string().min(1).max(2000),
+    audience: z.array(z.string()).min(1),
+    cta_goal: z.string().min(1).max(200),
+    features: z.string().max(2000).optional(),
+    video_length: z.union([z.literal(30), z.literal(60), z.literal(90)]),
+    tone: z.string().min(1).max(100),
+    music_vibe: z.string().min(1).max(100),
+});
+
+export async function listVideos(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+        const videos = await prisma.videoJob.findMany({
+            where: { user_id: req.user!.id },
+            orderBy: { created_at: 'desc' },
+            select: {
+                id: true,
+                app_name: true,
+                status: true,
+                credits_used: true,
+                output_url: true,
+                created_at: true,
+            },
+        });
+
+        res.json(videos);
+    } catch (err) {
+        next(err);
+    }
+}
+
+export async function getStats(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+        const userId = req.user!.id;
+
+        const startOfMonth = new Date();
+        startOfMonth.setDate(1);
+        startOfMonth.setHours(0, 0, 0, 0);
+
+        const [total, thisMonth, user] = await Promise.all([
+            prisma.videoJob.count({ where: { user_id: userId } }),
+            prisma.videoJob.count({
+                where: { user_id: userId, created_at: { gte: startOfMonth } },
+            }),
+            prisma.user.findUnique({
+                where: { id: userId },
+                select: { credit_balance: true },
+            }),
+        ]);
+
+        res.json({
+            total_videos: total,
+            this_month: thisMonth,
+            credit_balance: user?.credit_balance ?? 0,
+        });
+    } catch (err) {
+        next(err);
+    }
+}
+
+export async function createVideo(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+        const parsed = createVideoSchema.safeParse(req.body);
+        if (!parsed.success) {
+            res.status(400).json({ status: 'error', message: parsed.error.issues[0].message });
+            return;
+        }
+
+        const user = await prisma.user.findUnique({ where: { id: req.user!.id } });
+        if (!user || user.credit_balance < 1) {
+            res.status(402).json({ status: 'error', message: 'Insufficient credits' });
+            return;
+        }
+
+        const [video] = await prisma.$transaction([
+            prisma.videoJob.create({
+                data: {
+                    user_id: req.user!.id,
+                    app_name: parsed.data.app_name,
+                    description: parsed.data.description,
+                    audience: parsed.data.audience,
+                    cta_goal: parsed.data.cta_goal,
+                    features: parsed.data.features,
+                    video_length: parsed.data.video_length,
+                    tone: parsed.data.tone,
+                    music_vibe: parsed.data.music_vibe,
+                    credits_used: 1,
+                },
+            }),
+            prisma.user.update({
+                where: { id: req.user!.id },
+                data: { credit_balance: { decrement: 1 } },
+            }),
+        ]);
+
+        res.status(201).json(video);
+    } catch (err) {
+        next(err);
+    }
+}

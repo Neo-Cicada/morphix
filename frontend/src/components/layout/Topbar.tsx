@@ -3,6 +3,9 @@
 import { Menu, LogOut, User as UserIcon, CreditCard, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useRef, useEffect } from 'react';
+import { useUser } from '@/contexts/UserContext';
+import { createClient } from '@/utils/supabase/client';
+import { useRouter } from 'next/navigation';
 
 interface TopbarProps {
   onMenuClick: () => void;
@@ -11,6 +14,8 @@ interface TopbarProps {
 export function Topbar({ onMenuClick }: TopbarProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const { user } = useUser();
+  const router = useRouter();
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -21,6 +26,15 @@ export function Topbar({ onMenuClick }: TopbarProps) {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  async function handleSignOut() {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push('/login');
+  }
+
+  const displayName = user?.full_name || user?.email?.split('@')[0] || '—';
+  const credits = user?.credit_balance ?? '—';
 
   return (
     <header
@@ -43,7 +57,7 @@ export function Topbar({ onMenuClick }: TopbarProps) {
 
       {/* Right: Credits + Avatar */}
       <div className="flex items-center gap-3">
-        {/* Credits pill — matches landing CTA style */}
+        {/* Credits pill */}
         <Link
           href="/dashboard/billing"
           className="group flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium text-zinc-400 transition-all duration-200 hover:text-white hover:border-white/[0.15] cursor-pointer"
@@ -53,7 +67,7 @@ export function Topbar({ onMenuClick }: TopbarProps) {
           }}
         >
           <Zap className="h-3 w-3 text-[#3b82f6] group-hover:text-[#60a5fa] transition-colors" />
-          <span>3 Credits</span>
+          <span>{credits} Credits</span>
         </Link>
 
         {/* Avatar dropdown */}
@@ -83,8 +97,8 @@ export function Topbar({ onMenuClick }: TopbarProps) {
             >
               {/* User info */}
               <div className="px-4 py-3" style={{ borderBottom: '1px solid #1e1e1e' }}>
-                <p className="text-sm font-semibold text-white">Neo Barnachea</p>
-                <p className="text-xs text-[#555555] truncate mt-0.5">neo@morphix.ai</p>
+                <p className="text-sm font-semibold text-white">{displayName}</p>
+                <p className="text-xs text-[#555555] truncate mt-0.5">{user?.email ?? ''}</p>
               </div>
 
               <div className="py-1">
@@ -107,7 +121,7 @@ export function Topbar({ onMenuClick }: TopbarProps) {
                 <div className="my-1 mx-3" style={{ borderTop: '1px solid #1e1e1e' }} />
                 <button
                   className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-red-400 transition-colors hover:bg-red-500/10 hover:text-red-300 text-left cursor-pointer"
-                  onClick={() => setDropdownOpen(false)}
+                  onClick={handleSignOut}
                 >
                   <LogOut className="h-4 w-4 text-red-400/60" />
                   Sign out

@@ -6,6 +6,8 @@ import dotenv from 'dotenv';
 import { apiLimiter } from './middleware/rateLimiter';
 import { errorHandler } from './middleware/errorHandler';
 import healthRoutes from './routes/health';
+import userRoutes from './routes/users';
+import videoRoutes from './routes/videos';
 
 dotenv.config();
 
@@ -24,6 +26,8 @@ app.use(apiLimiter);
 
 // Routes
 app.use('/api/v1/health', healthRoutes);
+app.use('/api/v1/users', userRoutes);
+app.use('/api/v1/videos', videoRoutes);
 
 // Error Handling
 app.use(errorHandler);

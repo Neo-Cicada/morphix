@@ -1,8 +1,10 @@
 'use client';
 
 import { VideoFormData } from '@/types/video';
-import { Zap, PlayCircle, Film, Sparkles } from 'lucide-react';
+import { Zap, PlayCircle, Film, Sparkles, AlertCircle } from 'lucide-react';
 import { useState } from 'react';
+import { api } from '@/lib/api';
+import { useRouter } from 'next/navigation';
 
 interface Step3FormProps {
   formData: VideoFormData;
@@ -11,7 +13,9 @@ interface Step3FormProps {
 }
 
 export function Step3Form({ formData, onChange, onBack }: Step3FormProps) {
-  const [showToast, setShowToast] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const router = useRouter();
 
   const videoLengthOptions = [
     { value: 30, title: '30 seconds', subtitle: 'Perfect for Twitter/X and ads', icon: Zap },
@@ -31,30 +35,35 @@ export function Step3Form({ formData, onChange, onBack }: Step3FormProps) {
     { value: 'Minimal & Ambient', emoji: '🌊', subtitle: 'Calm, focused, understated' },
   ];
 
-  const handleGenerate = () => {
-    console.log('--- FINAL FORM PAYLOAD ---', {
-      appName: formData.appName,
-      description: formData.description,
-      audience: formData.audience,
-      ctaGoal: formData.ctaGoal,
-      features: formData.features,
-      screenshots: formData.screenshots,
-      screenshotLabels: formData.screenshotLabels,
-      videoLength: formData.videoLength,
-      tone: formData.tone,
-      musicVibe: formData.musicVibe,
-    });
-    setShowToast(true);
-    setTimeout(() => setShowToast(false), 4000);
+  const handleGenerate = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      await api.post('/videos', {
+        app_name: formData.appName,
+        description: formData.description,
+        audience: formData.audience,
+        cta_goal: formData.ctaGoal,
+        features: formData.features,
+        video_length: formData.videoLength,
+        tone: formData.tone,
+        music_vibe: formData.musicVibe,
+      });
+      router.push('/dashboard/videos');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="morphix-card rounded-2xl border border-[#222222] bg-[#161616] flex flex-col w-full relative">
-      {/* Toast Notification */}
-      {showToast && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-[#0d1829] border border-[#3b82f6] text-white px-6 py-3 rounded-xl shadow-2xl z-50 flex items-center gap-3" style={{ boxShadow: '0 0 30px rgba(59, 130, 246, 0.2)' }}>
-          <Sparkles className="h-5 w-5 text-[#3b82f6]" />
-          <span className="font-semibold text-sm">Video generation coming soon!</span>
+      {/* Error notification */}
+      {error && (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-[#1a0a0a] border border-red-500/40 text-white px-6 py-3 rounded-xl shadow-2xl z-50 flex items-center gap-3">
+          <AlertCircle className="h-5 w-5 text-red-400 shrink-0" />
+          <span className="font-semibold text-sm text-red-300">{error}</span>
         </div>
       )}
 
@@ -160,10 +169,11 @@ export function Step3Form({ formData, onChange, onBack }: Step3FormProps) {
         <span className="text-[#666666] font-medium text-sm">Step 3 of 3</span>
         <button
           onClick={handleGenerate}
-          className="btn-gradient-pulse text-white px-8 py-3 rounded-xl font-semibold flex items-center gap-2"
+          disabled={loading}
+          className="btn-gradient-pulse text-white px-8 py-3 rounded-xl font-semibold flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
         >
           <Sparkles className="h-5 w-5" />
-          Generate Video
+          {loading ? 'Submitting…' : 'Generate Video'}
         </button>
       </div>
     </div>

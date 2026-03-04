@@ -1,9 +1,17 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { PlusCircle, Play } from 'lucide-react';
 import Link from 'next/link';
 import { VideoCard } from '@/components/dashboard/VideoCard';
+import { api } from '@/lib/api';
+
+interface VideoSummary {
+  id: string;
+  app_name: string;
+  status: 'pending' | 'processing' | 'done' | 'failed';
+  created_at: string;
+}
 
 const FILTERS = [
   { id: 'all', label: 'All' },
@@ -14,8 +22,13 @@ const FILTERS = [
 
 export default function MyVideosPage() {
   const [activeFilter, setActiveFilter] = useState<string>('all');
-  const sampleVideos: { title: string; status: 'pending' | 'processing' | 'done' | 'failed'; date: string }[] = [];
-  const filtered = activeFilter === 'all' ? sampleVideos : sampleVideos.filter((v) => v.status === activeFilter);
+  const [videos, setVideos] = useState<VideoSummary[]>([]);
+
+  useEffect(() => {
+    api.get<VideoSummary[]>('/videos').then(setVideos).catch(() => {});
+  }, []);
+
+  const filtered = activeFilter === 'all' ? videos : videos.filter((v) => v.status === activeFilter);
 
   return (
     <div className="px-6 py-10 lg:px-8">
@@ -39,7 +52,7 @@ export default function MyVideosPage() {
         </Link>
       </div>
 
-      {/* Filter Bar — landing pill style */}
+      {/* Filter Bar */}
       <div
         className="inline-flex items-center gap-1 rounded-xl p-1 mb-8"
         style={{ background: '#0d0d0d', border: '1px solid #1e1e1e' }}
@@ -62,27 +75,28 @@ export default function MyVideosPage() {
 
       {filtered.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtered.map((video, i) => (
-            <VideoCard key={i} {...video} />
+          {filtered.map((v) => (
+            <VideoCard
+              key={v.id}
+              title={v.app_name}
+              status={v.status}
+              date={new Date(v.created_at).toLocaleDateString()}
+            />
           ))}
         </div>
       ) : (
-        /* Empty State */
         <div
           className="rounded-2xl p-8 sm:p-12 flex flex-col items-center justify-center text-center"
           style={{ background: '#0d0d0d', border: '1px solid #1e1e1e' }}
         >
-          {/* Cinematic thumbnail mockup — matches hero floating card */}
           <div
             className="relative w-full max-w-lg aspect-video rounded-2xl overflow-hidden mb-8"
             style={{ background: '#080808', border: '1px solid #1e1e1e' }}
           >
-            {/* Radial gradient */}
             <div
               className="absolute inset-0"
               style={{ background: 'radial-gradient(ellipse at center, rgba(59,130,246,0.1) 0%, rgba(168,85,247,0.05) 50%, transparent 70%)' }}
             />
-            {/* Dot grid */}
             <div
               className="absolute inset-0"
               style={{
@@ -90,7 +104,6 @@ export default function MyVideosPage() {
                 backgroundSize: '28px 28px',
               }}
             />
-            {/* Play button */}
             <div className="absolute inset-0 flex items-center justify-center z-10">
               <div
                 className="play-button-pulse size-16 rounded-full flex items-center justify-center"
@@ -103,13 +116,9 @@ export default function MyVideosPage() {
                 <Play className="h-7 w-7 text-[#3b82f6] ml-0.5" />
               </div>
             </div>
-            {/* Progress bar bottom */}
             <div className="absolute bottom-0 left-0 right-0 px-4 py-2" style={{ background: 'rgba(0,0,0,0.4)' }}>
               <div className="h-[1px] bg-[#1a1a1a] rounded-full overflow-hidden">
-                <div
-                  className="h-full w-[0%] rounded-full"
-                  style={{ background: 'linear-gradient(90deg, #3b82f6, #a855f7)' }}
-                />
+                <div className="h-full w-[0%] rounded-full" style={{ background: 'linear-gradient(90deg, #3b82f6, #a855f7)' }} />
               </div>
             </div>
           </div>

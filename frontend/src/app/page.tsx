@@ -394,7 +394,7 @@ export default function LandingPage() {
               }`}
             >
               {/* Eyebrow pill */}
-              <div className="hero-child inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/10 bg-white/[0.04] backdrop-blur-sm mb-8">
+              <div className="hero-child hide inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/10 bg-white/[0.04] backdrop-blur-sm mb-8">
                 <span className="size-1.5 rounded-full bg-[#3b82f6] block" />
                 <span className="text-xs font-semibold uppercase tracking-widest text-zinc-300">
                   AI Video Marketing · $20 per video

@@ -2,12 +2,11 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Video, Plus, CreditCard, Settings, X, Droplet } from 'lucide-react';
+import { Home, PlaySquare, PlusCircle, CreditCard, Settings, X, Droplet } from 'lucide-react';
 
 const navItems = [
-  { name: 'Dashboard', href: '/dashboard', icon: Home },
-  { name: 'My Videos', href: '/dashboard/videos', icon: Video },
-  { name: 'New Video', href: '/dashboard/new', icon: Plus },
+  { name: 'Home', href: '/dashboard', icon: Home },
+  { name: 'My Videos', href: '/dashboard/videos', icon: PlaySquare },
   { name: 'Billing', href: '/dashboard/billing', icon: CreditCard },
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },
 ];
@@ -25,52 +24,78 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
       {/* Mobile Backdrop */}
       {isOpen && (
         <div 
-          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden transition-opacity duration-300"
           onClick={() => setIsOpen(false)}
         />
       )}
 
       {/* Sidebar */}
       <aside 
-        className={`fixed inset-y-0 left-0 z-50 w-64 transform bg-[#111111] border-r border-white/5 transition-transform duration-200 ease-in-out lg:static lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 w-[240px] transform bg-[#111111] border-r border-white/[0.06] transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 flex flex-col ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="flex h-16 items-center justify-between px-6 lg:px-6 border-b border-white/5">
-          <Link href="/dashboard" className="flex items-center gap-2 text-white hover:opacity-80 transition-opacity">
-            <Droplet className="h-6 w-6 text-blue-500 fill-blue-500" />
-            <span className="text-xl font-bold tracking-tight">Morphix</span>
+        {/* Logo */}
+        <div className="flex h-16 items-center justify-between px-5 border-b border-white/[0.06]">
+          <Link href="/dashboard" className="flex items-center gap-2.5 text-white hover:opacity-80 transition-opacity">
+            <div className="size-8 rounded-lg bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
+              <Droplet className="h-4 w-4 text-blue-500 fill-blue-500" />
+            </div>
+            <span className="text-lg font-bold tracking-tight">Morphix</span>
           </Link>
           <button 
-            className="lg:hidden text-gray-400 hover:text-white"
+            className="lg:hidden text-gray-500 hover:text-white transition-colors"
             onClick={() => setIsOpen(false)}
           >
-            <X className="h-6 w-6" />
+            <X className="h-5 w-5" />
           </button>
         </div>
 
-        <nav className="mt-6 flex flex-col gap-1.5 px-3">
+        {/* Navigation */}
+        <nav className="mt-4 flex flex-col gap-1 px-3 flex-1">
           {navItems.map((item) => {
-            const isActive = pathname === item.href || pathname?.startsWith(`${item.href}/`);
+            const isActive = item.href === '/dashboard' 
+              ? pathname === '/dashboard' 
+              : pathname?.startsWith(item.href);
             const Icon = item.icon;
-            
+
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 onClick={() => setIsOpen(false)}
-                className={`group flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all duration-200 ${
-                  isActive 
-                    ? 'bg-blue-600/10 text-white' 
-                    : 'text-gray-400 hover:bg-white/5 hover:text-gray-200'
+                className={`group relative flex items-center gap-3 rounded-lg px-3 py-2 text-[14px] font-medium transition-all duration-200 ${
+                  isActive
+                    ? 'bg-[#1a2744] text-[#3b82f6]'
+                    : 'bg-transparent text-[#888888] hover:bg-white/[0.04] hover:text-white'
                 }`}
               >
-                <Icon className={`h-4 w-4 transition-colors ${isActive ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-300'}`} />
+                {/* Active indicator bar */}
+                {isActive && (
+                  <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-[#3b82f6] rounded-r-full" />
+                )}
+                <Icon className={`h-5 w-5 transition-colors shrink-0 ${
+                  isActive 
+                    ? 'text-[#3b82f6]' 
+                    : 'text-[#888888] group-hover:text-white'
+                }`} />
                 {item.name}
               </Link>
             );
           })}
         </nav>
+
+        {/* Bottom section CTA */}
+        <div className="p-4 mt-auto">
+          <Link
+            href="/dashboard/new"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
+            onClick={() => setIsOpen(false)}
+          >
+            <PlusCircle className="h-5 w-5" />
+            New Video
+          </Link>
+        </div>
       </aside>
     </>
   );

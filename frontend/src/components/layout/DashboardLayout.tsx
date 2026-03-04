@@ -15,10 +15,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         <Topbar onMenuClick={() => setSidebarOpen(true)} />
         
         <main className="flex-1 overflow-y-auto overflow-x-hidden relative">
-          {/* Subtle background glow effect using exact colors from landing page */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-2xl h-[400px] bg-blue-600/10 blur-[120px] rounded-full point-events-none -z-10" />
-          
-          <div className="mx-auto max-w-7xl relative z-0">
+          <div className="mx-auto max-w-6xl relative z-0">
             {children}
           </div>
         </main>

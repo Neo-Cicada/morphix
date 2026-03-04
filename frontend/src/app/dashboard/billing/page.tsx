@@ -29,8 +29,8 @@ export default function BillingPage() {
     <div className="px-4 py-8 sm:px-6 lg:px-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold tracking-tight text-white">Billing</h1>
-        <p className="text-sm text-gray-500 mt-1">Manage your credits and view transaction history.</p>
+        <h1 className="page-title text-white">Billing</h1>
+        <p className="text-sm text-[#888888] mt-1">Manage your credits and view transaction history.</p>
       </div>
 
       {/* Current Balance Card */}
@@ -92,9 +92,10 @@ export default function BillingPage() {
               
               <button
                 disabled
-                className="w-full rounded-lg border border-[#222222] bg-white/[0.03] px-4 py-2 text-sm font-medium text-gray-500 cursor-not-allowed opacity-50 transition-all"
+                title="Payment integration coming soon"
+                className="w-full rounded-lg border border-[#222222] bg-white/[0.03] px-4 py-2 text-sm font-medium text-gray-500 cursor-not-allowed transition-all"
               >
-                Buy Now
+                Coming Soon
               </button>
             </div>
           ))}

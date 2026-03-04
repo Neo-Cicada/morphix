@@ -34,13 +34,13 @@ export function StatsCard({ icon: Icon, title, value, subtitle, color = 'blue' }
       <div className="relative z-10">
         <div className="flex items-center gap-3 mb-4">
           <div className={`size-9 rounded-lg ${colors.iconBg} flex items-center justify-center`}>
-            <Icon className={`h-4.5 w-4.5 ${colors.iconColor}`} />
+            <Icon className={`h-[18px] w-[18px] ${colors.iconColor}`} />
           </div>
-          <p className="text-xs font-medium text-[#666666] uppercase tracking-wider">{title}</p>
+          <p className="text-xs font-medium text-[#888888] uppercase tracking-wider">{title}</p>
         </div>
-        <p className="text-5xl font-bold text-white tracking-tight leading-none">{value}</p>
+        <p className="text-4xl font-bold text-white tracking-tight leading-none">{value}</p>
         {subtitle && (
-          <p className="text-xs text-[#666666] mt-2">{subtitle}</p>
+          <p className="text-xs text-[#888888] mt-2">{subtitle}</p>
         )}
       </div>
     </div>

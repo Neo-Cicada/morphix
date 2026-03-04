@@ -12,7 +12,7 @@ export default function MyVideosPage() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="page-title text-white">My Videos</h1>
-          <p className="text-sm text-[#666666] mt-1">All your generated marketing videos.</p>
+          <p className="text-sm text-[#888888] mt-1">All your generated marketing videos.</p>
         </div>
         <Link
           href="/dashboard/new"
@@ -55,7 +55,7 @@ export default function MyVideosPage() {
             </div>
 
             <h3 className="text-lg font-semibold text-white mb-2">Your first cinematic video is one click away</h3>
-            <p className="text-sm text-[#666666] mb-6 max-w-sm">
+            <p className="text-sm text-[#888888] mb-6 max-w-sm">
               Upload screenshots. We handle the rest.
             </p>
             <Link

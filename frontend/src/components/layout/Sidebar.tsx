@@ -7,6 +7,7 @@ import { Home, PlaySquare, PlusCircle, CreditCard, Settings, X, Clapperboard } f
 const navItems = [
   { name: 'Home', href: '/dashboard', icon: Home },
   { name: 'My Videos', href: '/dashboard/videos', icon: PlaySquare },
+  { name: 'New Video', href: '/dashboard/new', icon: PlusCircle },
   { name: 'Billing', href: '/dashboard/billing', icon: CreditCard },
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },
 ];
@@ -87,17 +88,6 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
           })}
         </nav>
 
-        {/* Bottom section CTA */}
-        <div className="p-4 mt-auto">
-          <Link
-            href="/dashboard/new"
-            className="btn-gradient flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold text-white"
-            onClick={() => setIsOpen(false)}
-          >
-            <PlusCircle className="h-5 w-5" />
-            New Video
-          </Link>
-        </div>
       </aside>
     </>
   );

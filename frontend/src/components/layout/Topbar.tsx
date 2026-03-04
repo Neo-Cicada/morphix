@@ -2,27 +2,15 @@
 
 import { Menu, LogOut, User as UserIcon, CreditCard, Zap } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import { useState, useRef, useEffect } from 'react';
 
 interface TopbarProps {
   onMenuClick: () => void;
 }
 
-const pageTitles: Record<string, string> = {
-  '/dashboard': 'Home',
-  '/dashboard/new': 'New Video',
-  '/dashboard/videos': 'My Videos',
-  '/dashboard/billing': 'Billing',
-  '/dashboard/settings': 'Settings',
-};
-
 export function Topbar({ onMenuClick }: TopbarProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const pathname = usePathname();
-
-  const pageTitle = pageTitles[pathname] || 'Dashboard';
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -38,14 +26,13 @@ export function Topbar({ onMenuClick }: TopbarProps) {
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-white/[0.06] bg-[#0a0a0a]/80 px-4 backdrop-blur-xl sm:px-6 lg:px-8">
       {/* Left: Mobile menu */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center">
         <button
           onClick={onMenuClick}
           className="text-gray-500 hover:text-white transition-colors focus:outline-none lg:hidden"
         >
           <Menu className="h-5 w-5" />
         </button>
-        <h1 className="text-base font-bold text-white tracking-tight" style={{ letterSpacing: '-0.02em' }}>{pageTitle}</h1>
       </div>
 
       {/* Right: Credits + Avatar */}
@@ -59,15 +46,18 @@ export function Topbar({ onMenuClick }: TopbarProps) {
         </Link>
         
         <div className="relative" ref={dropdownRef}>
-          <button 
+          <button
             className="flex h-8 w-8 items-center justify-center rounded-full bg-white/[0.05] border border-white/[0.08] text-gray-400 transition-all hover:bg-white/[0.08] hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/30"
             onClick={() => setDropdownOpen(!dropdownOpen)}
+            aria-haspopup="menu"
+            aria-expanded={dropdownOpen}
+            aria-label="User menu"
           >
             <UserIcon className="h-3.5 w-3.5" />
           </button>
 
           {dropdownOpen && (
-            <div className="absolute right-0 mt-2 w-52 origin-top-right overflow-hidden rounded-xl border border-white/[0.08] bg-[#161616] shadow-2xl shadow-black/50 animate-in fade-in zoom-in-95 duration-200">
+            <div role="menu" className="absolute right-0 mt-2 w-52 origin-top-right overflow-hidden rounded-xl border border-white/[0.08] bg-[#161616] shadow-2xl shadow-black/50 animate-in fade-in zoom-in-95 duration-200">
               <div className="px-4 py-3 border-b border-white/[0.06]">
                 <p className="text-sm font-medium text-white">Neo Barnachea</p>
                 <p className="text-xs text-gray-500 truncate mt-0.5">neo@morphix.ai</p>

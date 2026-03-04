@@ -49,15 +49,19 @@
 
 :root {
   --radius: 0.625rem;
-  --background: #0a0a0a; /* Pure black for cinema */
-  --foreground: oklch(0.985 0 0); /* White */
+  --background: #0a0a0a;
+  /* Pure black for cinema */
+  --foreground: oklch(0.985 0 0);
+  /* White */
   --card: oklch(0.12 0 0);
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.12 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: #3b82f6; /* Electric Blue */
+  --primary: #3b82f6;
+  /* Electric Blue */
   --primary-foreground: oklch(0.985 0 0);
-  --secondary: #7c3aed; /* Deep Violet tint */
+  --secondary: #7c3aed;
+  /* Deep Violet tint */
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.15 0 0);
   --muted-foreground: oklch(0.7 0 0);
@@ -86,6 +90,7 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
@@ -105,6 +110,7 @@
 .morphix-card {
   position: relative;
 }
+
 .morphix-card::after {
   content: '';
   position: absolute;
@@ -122,6 +128,7 @@
   box-shadow: 0 0 25px rgba(99, 102, 241, 0.25);
   transition: all 0.2s ease;
 }
+
 .btn-gradient:hover {
   box-shadow: 0 0 35px rgba(99, 102, 241, 0.4);
   transform: scale(1.02);
@@ -129,19 +136,24 @@
 
 /* Pulse Glow Animation for Generate Button */
 @keyframes pulse-glow {
-  0%, 100% {
+
+  0%,
+  100% {
     box-shadow: 0 0 25px rgba(99, 102, 241, 0.25);
   }
+
   50% {
     box-shadow: 0 0 40px rgba(99, 102, 241, 0.45);
   }
 }
+
 .btn-gradient-pulse {
   background: linear-gradient(135deg, #3b82f6, #7c3aed);
   box-shadow: 0 0 25px rgba(99, 102, 241, 0.25);
   animation: pulse-glow 2.5s ease-in-out infinite;
   transition: transform 0.2s ease;
 }
+
 .btn-gradient-pulse:hover {
   transform: scale(1.02);
 }
@@ -151,27 +163,28 @@
   0% {
     background-position: -200% 0;
   }
+
   100% {
     background-position: 200% 0;
   }
 }
+
 .hero-shimmer::before {
   content: '';
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(255, 255, 255, 0.03) 50%,
-    transparent 100%
-  );
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.03) 50%,
+      transparent 100%);
   background-size: 200% 100%;
   opacity: 0;
   transition: opacity 0.4s ease;
   pointer-events: none;
   z-index: 1;
 }
+
 .hero-shimmer:hover::before {
   opacity: 1;
   animation: shimmer 2s ease-in-out infinite;
@@ -201,6 +214,7 @@
   background-clip: padding-box;
   box-shadow: 0 0 15px rgba(59, 130, 246, 0.15), inset 0 0 12px rgba(59, 130, 246, 0.08);
 }
+
 .pill-selected::before {
   content: '';
   position: absolute;
@@ -219,10 +233,12 @@
   border-top: 2px solid transparent;
   border-image: linear-gradient(90deg, #3b82f6, transparent) 1;
 }
+
 .stats-border-purple {
   border-top: 2px solid transparent;
   border-image: linear-gradient(90deg, #7c3aed, transparent) 1;
 }
+
 .stats-border-green {
   border-top: 2px solid transparent;
   border-image: linear-gradient(90deg, #22c55e, transparent) 1;
@@ -230,13 +246,17 @@
 
 /* Mock Video Thumbnail Play Button */
 @keyframes play-pulse {
-  0%, 100% {
+
+  0%,
+  100% {
     box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4);
   }
+
   50% {
     box-shadow: 0 0 0 16px rgba(99, 102, 241, 0);
   }
 }
+
 .play-button-pulse {
   animation: play-pulse 2s ease-in-out infinite;
 }
@@ -245,9 +265,176 @@
 .stepper-connector-completed {
   background: linear-gradient(90deg, #22c55e, #3b82f6);
 }
+
 .stepper-connector-active {
   background: linear-gradient(90deg, #3b82f6, #333333);
 }
+
 .stepper-connector-upcoming {
   background: #222222;
+}
+
+/* ============================================
+   LANDING PAGE — ANIMATIONS
+   ============================================ */
+
+/* Hero dot grid background */
+.hero-dot-grid {
+  background-image: radial-gradient(circle,
+      rgba(255, 255, 255, 0.03) 1px,
+      transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* ── Hero stagger entrance ── */
+@keyframes hero-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hero-stagger .hero-child {
+  opacity: 0;
+  transform: translateY(28px);
+}
+
+.hero-stagger-visible .hero-child {
+  animation: hero-fade-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.hero-stagger-visible .hero-child:nth-child(1) {
+  animation-delay: 0ms;
+}
+
+.hero-stagger-visible .hero-child:nth-child(2) {
+  animation-delay: 100ms;
+}
+
+.hero-stagger-visible .hero-child:nth-child(3) {
+  animation-delay: 200ms;
+}
+
+.hero-stagger-visible .hero-child:nth-child(4) {
+  animation-delay: 300ms;
+}
+
+.hero-stagger-visible .hero-child:nth-child(5) {
+  animation-delay: 400ms;
+}
+
+/* ── Scroll reveal (fade up) ── */
+.reveal-item {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── Mobile menu slide down ── */
+@keyframes slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-down {
+  animation: slide-down 0.2s ease-out;
+}
+
+/* ── Pipeline connector animated dots ── */
+@keyframes pipeline-flow {
+  0% {
+    background-position: 0 0;
+  }
+
+  100% {
+    background-position: 24px 0;
+  }
+}
+
+.pipeline-connector {
+  background-image: repeating-linear-gradient(90deg,
+      #3b82f6 0px,
+      #3b82f6 4px,
+      transparent 4px,
+      transparent 8px);
+  background-size: 8px 1px;
+  animation: pipeline-flow 0.8s linear infinite;
+  height: 2px;
+}
+
+.pipeline-connector-delayed {
+  animation-delay: 0.4s;
+}
+
+/* ── Marquee infinite scroll ── */
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes marquee-reverse {
+  0% {
+    transform: translateX(-50%);
+  }
+
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.marquee-container {
+  overflow: hidden;
+  position: relative;
+  -webkit-mask-image: linear-gradient(90deg,
+      transparent 0%,
+      #000 8%,
+      #000 92%,
+      transparent 100%);
+  mask-image: linear-gradient(90deg,
+      transparent 0%,
+      #000 8%,
+      #000 92%,
+      transparent 100%);
+}
+
+.marquee-track {
+  display: flex;
+  gap: 1rem;
+  animation: marquee 40s linear infinite;
+  width: max-content;
+}
+
+.marquee-track-reverse {
+  display: flex;
+  gap: 1rem;
+  animation: marquee-reverse 40s linear infinite;
+  width: max-content;
+}
+
+.marquee-track:hover,
+.marquee-track-reverse:hover {
+  animation-play-state: paused;
 }

@@ -1,4 +1,4 @@
-import { Sparkles, Zap, Calendar, PlaySquare, PlusCircle } from 'lucide-react';
+import { Sparkles, PlaySquare, Zap, Calendar } from 'lucide-react';
 import Link from 'next/link';
 import { StatsCard } from '@/components/dashboard/StatsCard';
 
@@ -11,46 +11,76 @@ function getGreeting(): string {
 
 export default function DashboardPage() {
   return (
-    <div className="px-4 py-8 sm:px-6 lg:px-8">
-      {/* Welcome */}
-      <div className="mb-8">
-        <h1 className="page-title text-white">
-          {getGreeting()}, Neo
+    <div className="px-6 py-10 lg:px-8">
+
+      {/* Welcome Header — matches landing typography */}
+      <div className="mb-10">
+        <span className="text-xs font-semibold uppercase tracking-widest text-[#3b82f6] block mb-2">
+          {getGreeting()}
+        </span>
+        <h1 className="text-3xl font-extrabold tracking-tight text-white leading-tight">
+          Welcome back, Neo
         </h1>
-        <p className="text-sm text-[#888888] mt-1">Here&apos;s your dashboard overview.</p>
+        <p className="text-[#888888] mt-1.5 text-sm">
+          Your studio is ready. Let&apos;s make something cinematic.
+        </p>
       </div>
 
-      {/* Hero CTA Card */}
-      <div 
-        className="hero-shimmer morphix-card relative rounded-xl p-6 sm:p-8 mb-8 overflow-hidden"
+      {/* Hero CTA — matches landing card style */}
+      <div
+        className="relative rounded-2xl p-7 sm:p-9 mb-10 overflow-hidden cursor-pointer group hero-shimmer morphix-card"
         style={{
-          background: 'linear-gradient(135deg, #0d1829 0%, #1a0a2e 100%)',
-          border: '1px solid #2a3a5c',
+          background: '#0d0d0d',
+          border: '1px solid #1e1e1e',
         }}
       >
-        {/* Subtle gradient glow */}
-        <div className="absolute top-0 right-0 w-[300px] h-[200px] bg-purple-500/[0.08] blur-[80px] rounded-full pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-[200px] h-[150px] bg-blue-500/[0.06] blur-[60px] rounded-full pointer-events-none" />
-        
-        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        {/* Aurora gradient — same as landing hero */}
+        <div
+          className="absolute inset-0 rounded-2xl pointer-events-none"
+          style={{
+            background: 'radial-gradient(ellipse 80% 60% at 70% -10%, rgba(59,130,246,0.1) 0%, rgba(168,85,247,0.05) 40%, transparent 70%)',
+          }}
+        />
+        {/* Dot grid — same as landing */}
+        <div
+          className="absolute inset-0 rounded-2xl pointer-events-none"
+          style={{
+            backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.025) 1px, transparent 1px)',
+            backgroundSize: '28px 28px',
+          }}
+        />
+
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
           <div>
-            <h2 className="text-lg font-semibold text-white mb-1">Create your first video</h2>
-            <p className="text-sm text-gray-400 max-w-md">
-              Transform your product screenshots into cinematic marketing videos with AI.
+            {/* Section label — matches landing section labels */}
+            <div className="flex items-center gap-2 mb-3">
+              <span className="size-1.5 rounded-full bg-[#3b82f6] block" />
+              <span className="text-xs font-semibold uppercase tracking-widest text-zinc-400">
+                AI Video Studio
+              </span>
+            </div>
+            <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-white mb-2 leading-tight">
+              Transform screenshots into{' '}
+              <span className="bg-gradient-to-r from-[#3b82f6] via-[#818cf8] to-[#a855f7] bg-clip-text text-transparent">
+                cinematic marketing videos.
+              </span>
+            </h2>
+            <p className="text-sm text-[#666666] max-w-sm">
+              Upload your screenshots. Describe your vision. Walk away with a video that makes investors stop scrolling.
             </p>
           </div>
           <Link
             href="/dashboard/new"
-            className="btn-gradient inline-flex items-center justify-center gap-2 rounded-lg px-5 py-2.5 text-sm font-medium text-white shrink-0"
+            className="btn-gradient inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold text-white shrink-0 cursor-pointer"
           >
             <Sparkles className="h-4 w-4" />
-            New Video
+            Create New Video
           </Link>
         </div>
       </div>
 
       {/* Stats Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
         <StatsCard icon={PlaySquare} title="Total Videos" value={0} color="blue" />
         <StatsCard icon={Zap} title="Credits Left" value={3} subtitle="of 5 total" color="purple" />
         <StatsCard icon={Calendar} title="This Month" value={0} subtitle="videos generated" color="green" />
@@ -58,9 +88,46 @@ export default function DashboardPage() {
 
       {/* Recent Videos */}
       <div>
-        <h3 className="text-sm font-semibold text-white mb-4">Recent Videos</h3>
-        <div className="rounded-xl border border-[#222222] bg-[#161616] px-5 py-8 flex items-center justify-center text-center">
-          <p className="text-sm text-[#888888]">No videos yet — create one above to get started.</p>
+        <div className="flex items-center justify-between mb-5">
+          <div>
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-[#555555] block mb-1">
+              Library
+            </span>
+            <h3 className="text-base font-bold tracking-tight text-white">Recent Videos</h3>
+          </div>
+          <Link
+            href="/dashboard/videos"
+            className="text-xs font-medium text-[#3b82f6] hover:text-[#60a5fa] transition-colors cursor-pointer flex items-center gap-1"
+          >
+            View all →
+          </Link>
+        </div>
+
+        {/* Empty state — matches landing card empty states */}
+        <div
+          className="rounded-2xl p-10 flex flex-col items-center justify-center text-center"
+          style={{ background: '#0d0d0d', border: '1px solid #1e1e1e' }}
+        >
+          <div
+            className="size-12 rounded-xl flex items-center justify-center mb-4"
+            style={{
+              background: 'rgba(59,130,246,0.08)',
+              border: '1px solid rgba(59,130,246,0.15)',
+            }}
+          >
+            <PlaySquare className="h-5 w-5 text-[#3b82f6]" />
+          </div>
+          <p className="text-sm font-semibold text-white mb-1">No videos yet</p>
+          <p className="text-xs text-[#555555] mb-5 max-w-xs">
+            Your cinematic renders will appear here once you&apos;ve created your first video.
+          </p>
+          <Link
+            href="/dashboard/new"
+            className="inline-flex items-center gap-1.5 rounded-full px-5 py-2 text-xs font-semibold text-white transition-all duration-200 cursor-pointer btn-gradient"
+          >
+            <Sparkles className="h-3 w-3" />
+            Create your first video
+          </Link>
         </div>
       </div>
     </div>

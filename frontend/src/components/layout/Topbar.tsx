@@ -45,7 +45,7 @@ export function Topbar({ onMenuClick }: TopbarProps) {
         >
           <Menu className="h-5 w-5" />
         </button>
-        <h1 className="text-sm font-semibold text-white tracking-tight">{pageTitle}</h1>
+        <h1 className="text-base font-bold text-white tracking-tight" style={{ letterSpacing: '-0.02em' }}>{pageTitle}</h1>
       </div>
 
       {/* Right: Credits + Avatar */}

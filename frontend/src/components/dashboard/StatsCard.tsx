@@ -5,21 +5,44 @@ interface StatsCardProps {
   title: string;
   value: string | number;
   subtitle?: string;
+  color?: 'blue' | 'purple' | 'green';
 }
 
-export function StatsCard({ icon: Icon, title, value, subtitle }: StatsCardProps) {
+const colorMap = {
+  blue: {
+    iconBg: 'bg-blue-500/15',
+    iconColor: 'text-blue-400',
+    borderClass: 'stats-border-blue',
+  },
+  purple: {
+    iconBg: 'bg-purple-500/15',
+    iconColor: 'text-purple-400',
+    borderClass: 'stats-border-purple',
+  },
+  green: {
+    iconBg: 'bg-green-500/15',
+    iconColor: 'text-green-400',
+    borderClass: 'stats-border-green',
+  },
+};
+
+export function StatsCard({ icon: Icon, title, value, subtitle, color = 'blue' }: StatsCardProps) {
+  const colors = colorMap[color];
+
   return (
-    <div className="rounded-xl border border-[#222222] bg-[#161616] p-5 transition-colors hover:border-[#2a2a2a]">
-      <div className="flex items-center gap-3 mb-3">
-        <div className="size-8 rounded-lg bg-white/[0.04] flex items-center justify-center">
-          <Icon className="h-4 w-4 text-gray-400" />
+    <div className={`morphix-card rounded-xl border border-[#222222] bg-[#161616] p-5 transition-colors hover:border-[#2a2a2a] ${colors.borderClass}`}>
+      <div className="relative z-10">
+        <div className="flex items-center gap-3 mb-4">
+          <div className={`size-9 rounded-lg ${colors.iconBg} flex items-center justify-center`}>
+            <Icon className={`h-4.5 w-4.5 ${colors.iconColor}`} />
+          </div>
+          <p className="text-xs font-medium text-[#666666] uppercase tracking-wider">{title}</p>
         </div>
-        <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">{title}</p>
+        <p className="text-5xl font-bold text-white tracking-tight leading-none">{value}</p>
+        {subtitle && (
+          <p className="text-xs text-[#666666] mt-2">{subtitle}</p>
+        )}
       </div>
-      <p className="text-2xl font-bold text-white tracking-tight">{value}</p>
-      {subtitle && (
-        <p className="text-xs text-gray-500 mt-1">{subtitle}</p>
-      )}
     </div>
   );
 }

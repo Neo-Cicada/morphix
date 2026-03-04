@@ -13,7 +13,6 @@ export function Stepper({ steps, currentStep }: StepperProps) {
       {steps.map((step, index) => {
         const isCompleted = index < currentStep;
         const isCurrent = index === currentStep;
-        const isUpcoming = index > currentStep;
 
         return (
           <div key={step} className="flex items-center">
@@ -22,11 +21,18 @@ export function Stepper({ steps, currentStep }: StepperProps) {
               <div
                 className={`size-9 rounded-full flex items-center justify-center text-sm font-semibold transition-all border ${
                   isCompleted
-                    ? 'bg-blue-500 border-blue-500 text-white'
+                    ? 'bg-green-500 border-green-500 text-white'
                     : isCurrent
                       ? 'bg-blue-500/10 border-blue-500/50 text-blue-400'
                       : 'bg-white/[0.03] border-[#222222] text-gray-600'
                 }`}
+                style={
+                  isCompleted
+                    ? { boxShadow: '0 0 18px rgba(34, 197, 94, 0.4)' }
+                    : isCurrent
+                      ? { boxShadow: '0 0 20px rgba(59, 130, 246, 0.35), 0 0 8px rgba(59, 130, 246, 0.2)' }
+                      : undefined
+                }
               >
                 {isCompleted ? (
                   <Check className="h-4 w-4" />
@@ -39,7 +45,7 @@ export function Stepper({ steps, currentStep }: StepperProps) {
                   isCurrent
                     ? 'text-white'
                     : isCompleted
-                      ? 'text-blue-400'
+                      ? 'text-green-400'
                       : 'text-gray-600'
                 }`}
               >
@@ -50,8 +56,12 @@ export function Stepper({ steps, currentStep }: StepperProps) {
             {/* Connector line */}
             {index < steps.length - 1 && (
               <div
-                className={`w-16 sm:w-24 h-[2px] mx-3 mb-6 rounded-full transition-colors ${
-                  isCompleted ? 'bg-blue-500/50' : 'bg-[#222222]'
+                className={`w-16 sm:w-24 h-[2px] mx-3 mb-6 rounded-full ${
+                  isCompleted
+                    ? 'stepper-connector-completed'
+                    : isCurrent
+                      ? 'stepper-connector-active'
+                      : 'stepper-connector-upcoming'
                 }`}
               />
             )}

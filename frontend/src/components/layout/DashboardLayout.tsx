@@ -14,7 +14,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
       <div className="flex flex-1 flex-col overflow-hidden relative">
         <Topbar onMenuClick={() => setSidebarOpen(true)} />
         
-        <main className="flex-1 overflow-y-auto overflow-x-hidden relative">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden relative morphix-dot-grid">
           <div className="mx-auto max-w-6xl relative z-0">
             {children}
           </div>

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, PlaySquare, PlusCircle, CreditCard, Settings, X, Droplet } from 'lucide-react';
+import { Home, PlaySquare, PlusCircle, CreditCard, Settings, X, Clapperboard } from 'lucide-react';
 
 const navItems = [
   { name: 'Home', href: '/dashboard', icon: Home },
@@ -31,15 +31,16 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
 
       {/* Sidebar */}
       <aside 
-        className={`fixed inset-y-0 left-0 z-50 w-[240px] transform bg-[#111111] border-r border-white/[0.06] transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 flex flex-col ${
+        className={`fixed inset-y-0 left-0 z-50 w-[240px] transform border-r border-white/[0.06] transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 flex flex-col ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
+        style={{ background: 'linear-gradient(180deg, #111111 0%, #0d0d16 100%)' }}
       >
         {/* Logo */}
         <div className="flex h-16 items-center justify-between px-5 border-b border-white/[0.06]">
           <Link href="/dashboard" className="flex items-center gap-2.5 text-white hover:opacity-80 transition-opacity">
             <div className="size-8 rounded-lg bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
-              <Droplet className="h-4 w-4 text-blue-500 fill-blue-500" />
+              <Clapperboard className="h-4 w-4 text-blue-500" />
             </div>
             <span className="text-lg font-bold tracking-tight">Morphix</span>
           </Link>
@@ -69,10 +70,11 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
                     ? 'bg-[#1a2744] text-[#3b82f6]'
                     : 'bg-transparent text-[#888888] hover:bg-white/[0.04] hover:text-white'
                 }`}
+                style={isActive ? { boxShadow: '-4px 0 16px rgba(59, 130, 246, 0.3), inset 2px 0 8px rgba(59, 130, 246, 0.1)' } : undefined}
               >
                 {/* Active indicator bar */}
                 {isActive && (
-                  <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-[#3b82f6] rounded-r-full" />
+                  <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-[#3b82f6] rounded-r-full" style={{ boxShadow: '0 0 8px rgba(59, 130, 246, 0.6)' }} />
                 )}
                 <Icon className={`h-5 w-5 transition-colors shrink-0 ${
                   isActive 
@@ -89,7 +91,7 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
         <div className="p-4 mt-auto">
           <Link
             href="/dashboard/new"
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
+            className="btn-gradient flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold text-white"
             onClick={() => setIsOpen(false)}
           >
             <PlusCircle className="h-5 w-5" />

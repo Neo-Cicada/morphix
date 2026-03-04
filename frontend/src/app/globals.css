@@ -438,3 +438,226 @@
 .marquee-track-reverse:hover {
   animation-play-state: paused;
 }
+
+/* ============================================
+   LANDING PAGE v2 — CINEMATIC ADDITIONS
+   ============================================ */
+
+/* ── Aurora / gradient shift background ── */
+@keyframes aurora {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.aurora-bg {
+  background: radial-gradient(ellipse 80% 60% at 50% -20%,
+      rgba(59, 130, 246, 0.12) 0%,
+      rgba(168, 85, 247, 0.06) 40%,
+      transparent 70%);
+  pointer-events: none;
+}
+
+/* ── Orbiting hero ring ── */
+@keyframes orbit {
+  from {
+    transform: rotate(0deg) translateX(200px) rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg) translateX(200px) rotate(-360deg);
+  }
+}
+
+@keyframes orbit-reverse {
+  from {
+    transform: rotate(0deg) translateX(160px) rotate(0deg);
+  }
+
+  to {
+    transform: rotate(-360deg) translateX(160px) rotate(360deg);
+  }
+}
+
+.orbit-dot {
+  animation: orbit 8s linear infinite;
+}
+
+.orbit-dot-reverse {
+  animation: orbit-reverse 12s linear infinite;
+}
+
+/* ── Floating card ── */
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.float-card {
+  animation: float 4s ease-in-out infinite;
+}
+
+.float-card-delayed {
+  animation: float 4s ease-in-out infinite;
+  animation-delay: 2s;
+}
+
+/* ── Film grain / noise overlay ── */
+.noise-overlay {
+  position: relative;
+  isolation: isolate;
+}
+
+.noise-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.025;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Pricing featured card glow border ── */
+.pricing-card-featured {
+  position: relative;
+  background: #111111;
+}
+
+.pricing-card-featured::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, #3b82f6 0%, #a855f7 50%, #3b82f6 100%);
+  background-size: 200% 200%;
+  animation: aurora 4s ease infinite;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* ── FAQ accordion ── */
+.faq-answer {
+  overflow: hidden;
+  transition: max-height 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.3s ease;
+}
+
+/* ── Scan-line / CRT line on hero visual ── */
+@keyframes scan {
+  0% {
+    transform: translateY(-100%);
+  }
+
+  100% {
+    transform: translateY(100vh);
+  }
+}
+
+.scan-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.2), transparent);
+  animation: scan 6s linear infinite;
+  pointer-events: none;
+}
+
+/* ── Gradient text (cinema edition) ── */
+.gradient-text-cinema {
+  background: linear-gradient(135deg, #ffffff 0%, #a0a0a0 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Number ghost label ── */
+.ghost-number {
+  font-size: clamp(80px, 14vw, 160px);
+  font-weight: 900;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.025);
+  user-select: none;
+  letter-spacing: -0.04em;
+}
+
+/* ── CTA final section ── */
+@keyframes cta-pulse {
+
+  0%,
+  100% {
+    box-shadow: 0 0 30px rgba(59, 130, 246, 0.25), 0 0 60px rgba(168, 85, 247, 0.1);
+  }
+
+  50% {
+    box-shadow: 0 0 50px rgba(59, 130, 246, 0.45), 0 0 90px rgba(168, 85, 247, 0.2);
+  }
+}
+
+.cta-btn-primary {
+  background: linear-gradient(135deg, #3b82f6, #7c3aed);
+  animation: cta-pulse 3s ease-in-out infinite;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.cta-btn-primary:hover {
+  transform: scale(1.03);
+  opacity: 0.95;
+}
+
+/* ── Horizontal rule token ── */
+.section-divider {
+  border: none;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.06), transparent);
+}
+
+/* ── prefers-reduced-motion: disable ALL animations ── */
+@media (prefers-reduced-motion: reduce) {
+
+  .orbit-dot,
+  .orbit-dot-reverse,
+  .float-card,
+  .float-card-delayed,
+  .scan-line,
+  .cta-btn-primary,
+  .pricing-card-featured::before,
+  .marquee-track,
+  .marquee-track-reverse,
+  .pipeline-connector,
+  .btn-gradient-pulse {
+    animation: none !important;
+  }
+
+  .reveal-item {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+
+  .hero-stagger .hero-child {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+  }
+}

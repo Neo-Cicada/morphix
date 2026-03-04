@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Upload, Clapperboard, Check, Layers, Sparkles } from "lucide-react"
+import Link from "next/link"
 
 export default function LandingPage() {
   return (
@@ -17,9 +18,11 @@ export default function LandingPage() {
             <span className="font-medium text-[15px] tracking-tight text-zinc-100">Morphix</span>
           </div>
           <nav className="flex items-center gap-6">
-            <Button variant="ghost" className="text-sm font-medium text-zinc-400 hover:text-zinc-100 hover:bg-transparent">Log in</Button>
-            <Button className="h-9 px-5 text-sm font-medium bg-zinc-100 text-zinc-900 hover:bg-zinc-200 transition-colors rounded-full shadow-[0_0_15px_rgba(255,255,255,0.1)]">
-              Get Early Access
+            <Button asChild variant="ghost" className="text-sm font-medium text-zinc-400 hover:text-zinc-100 hover:bg-transparent cursor-pointer">
+              <Link href="/login">Log in</Link>
+            </Button>
+            <Button asChild className="h-9 px-5 text-sm font-medium bg-zinc-100 text-zinc-900 hover:bg-zinc-200 transition-colors rounded-full shadow-[0_0_15px_rgba(255,255,255,0.1)] cursor-pointer">
+              <Link href="/signup">Get Early Access</Link>
             </Button>
           </nav>
         </div>
@@ -48,8 +51,8 @@ export default function LandingPage() {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 w-full justify-center items-center">
-              <Button size="lg" className="h-12 px-8 text-[15px] font-medium bg-primary hover:bg-primary/90 text-white rounded-full shadow-[0_4px_20px_rgba(59,130,246,0.3)] transition-all hover:scale-[1.02]">
-                Start Creating Free
+              <Button asChild size="lg" className="h-12 px-8 text-[15px] font-medium bg-primary hover:bg-primary/90 text-white rounded-full shadow-[0_4px_20px_rgba(59,130,246,0.3)] transition-all hover:scale-[1.02] cursor-pointer">
+                <Link href="/signup">Start Creating Free</Link>
               </Button>
             </div>
 
@@ -133,7 +136,9 @@ export default function LandingPage() {
                     <li className="flex items-center gap-3"><Check className="size-4 text-primary" /> 4K Resolution</li>
                     <li className="flex items-center gap-3"><Check className="size-4 text-primary" /> Commercial Use</li>
                   </ul>
-                  <Button className="w-full bg-zinc-800 hover:bg-zinc-700 text-zinc-100">Get Started</Button>
+                  <Button asChild className="w-full bg-zinc-800 hover:bg-zinc-700 text-zinc-100 cursor-pointer">
+                    <Link href="/signup">Get Started</Link>
+                  </Button>
                 </CardContent>
               </Card>
 
@@ -155,7 +160,9 @@ export default function LandingPage() {
                     <li className="flex items-center gap-3"><Check className="size-4 text-primary" /> Priority processing</li>
                     <li className="flex items-center gap-3"><Check className="size-4 text-primary" /> Early access to features</li>
                   </ul>
-                  <Button className="w-full bg-primary hover:bg-primary/90 text-white shadow-[0_0_15px_rgba(59,130,246,0.2)]">Purchase Bundle</Button>
+                  <Button asChild className="w-full bg-primary hover:bg-primary/90 text-white shadow-[0_0_15px_rgba(59,130,246,0.2)] cursor-pointer">
+                    <Link href="/signup">Purchase Bundle</Link>
+                  </Button>
                 </CardContent>
               </Card>
 
@@ -173,7 +180,9 @@ export default function LandingPage() {
                     <li className="flex items-center gap-3"><Check className="size-4 text-primary" /> Dedicated VIP support</li>
                     <li className="flex items-center gap-3"><Check className="size-4 text-primary" /> Team collaboration</li>
                   </ul>
-                  <Button className="w-full bg-zinc-800 hover:bg-zinc-700 text-zinc-100">Contact Us</Button>
+                  <Button asChild className="w-full bg-zinc-800 hover:bg-zinc-700 text-zinc-100 cursor-pointer">
+                    <Link href="/contact">Contact Us</Link>
+                  </Button>
                 </CardContent>
               </Card>
             </div>

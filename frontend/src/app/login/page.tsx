@@ -14,8 +14,10 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
-  async function onSubmit(formData: FormData) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
     setError(null)
+    const formData = new FormData(e.currentTarget)
     startTransition(async () => {
       const result = await loginAction(formData)
       if (result?.error) {
@@ -51,7 +53,7 @@ export default function LoginPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form action={onSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-5">
               
               <div className="space-y-2.5">
                 <Label htmlFor="email" className="text-zinc-300 text-sm font-medium">Email</Label>

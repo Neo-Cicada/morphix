@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   Play, Pause, SkipBack, SkipForward, ChevronLeft, ChevronRight,
-  Send, Sparkles, Film, Type, Square, Trash2, Plus, Loader2,
+  Send, Sparkles, Film, Type, Square, Trash2, Plus, Loader2, Download,
 } from 'lucide-react';
 import { Player, type PlayerRef } from '@remotion/player';
 import { MorphixVideo } from '@/remotion/MorphixVideo';
@@ -320,8 +320,12 @@ export function EditorPage() {
   const [inputFocused, setInputFocused] = useState(false);
   const [attachedFiles, setAttachedFiles] = useState<string[]>([]);
   const [isAiLoading,  setIsAiLoading]   = useState(false);
+  const [renderStatus, setRenderStatus] = useState<'idle' | 'queued' | 'rendering' | 'done' | 'failed'>('idle');
+  const [outputUrl,    setOutputUrl]    = useState<string | null>(null);
+  const [jobId,        setJobId]        = useState<string>(() => crypto.randomUUID());
 
   const playerRef      = useRef<PlayerRef>(null);
+  const pollRef        = useRef<ReturnType<typeof setInterval> | null>(null);
   const clipAreaRef    = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const dragRef        = useRef<DragOp | null>(null);
@@ -361,6 +365,46 @@ export function EditorPage() {
 
   /* ── Chat scroll ──────────────────────────────────────────────────── */
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
+
+  /* ── Render ──────────────────────────────────────────────────────── */
+  const handleRender = useCallback(async () => {
+    if (renderStatus === 'queued' || renderStatus === 'rendering') return;
+
+    setRenderStatus('queued');
+    setOutputUrl(null);
+
+    try {
+      await api.post(`/videos/${jobId}/render`, { scene });
+
+      // Poll for status
+      pollRef.current = setInterval(async () => {
+        try {
+          const data = await api.get<{ render_status: string; output_url: string | null; render_error: string | null }>(
+            `/videos/${jobId}/render-status`,
+          );
+
+          if (data.render_status === 'rendering') {
+            setRenderStatus('rendering');
+          } else if (data.render_status === 'done') {
+            clearInterval(pollRef.current!);
+            setRenderStatus('done');
+            setOutputUrl(data.output_url);
+          } else if (data.render_status === 'failed') {
+            clearInterval(pollRef.current!);
+            setRenderStatus('failed');
+          }
+        } catch {
+          clearInterval(pollRef.current!);
+          setRenderStatus('failed');
+        }
+      }, 3000);
+    } catch {
+      setRenderStatus('failed');
+    }
+  }, [renderStatus, jobId, scene]);
+
+  // Cleanup poll on unmount
+  useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current); }, []);
 
   /* ── Global drag (timeline clips) ─────────────────────────────────── */
   useEffect(() => {
@@ -590,9 +634,27 @@ export function EditorPage() {
             <span className="font-bold text-[14px] tracking-tight text-white">Morphix</span>
           </div>
           <div className="flex-1" />
-          <button className="btn-gradient px-4 py-1.5 text-[13px] font-semibold text-white rounded-lg cursor-pointer border-0">
-            Render
-          </button>
+          {renderStatus === 'done' && outputUrl ? (
+            <a
+              href={`${outputUrl}?download=render.mp4`}
+              download="render.mp4"
+              className="btn-gradient px-4 py-1.5 text-[13px] font-semibold text-white rounded-lg border-0 flex items-center gap-1.5"
+            >
+              <Download className="size-[13px]" />
+              Download MP4
+            </a>
+          ) : (
+            <button
+              onClick={handleRender}
+              disabled={renderStatus === 'queued' || renderStatus === 'rendering'}
+              className="btn-gradient px-4 py-1.5 text-[13px] font-semibold text-white rounded-lg cursor-pointer border-0 flex items-center gap-1.5 disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {(renderStatus === 'queued' || renderStatus === 'rendering') && (
+                <Loader2 className="size-[13px] animate-spin" />
+              )}
+              {renderStatus === 'failed' ? 'Render Failed — Retry' : renderStatus === 'queued' || renderStatus === 'rendering' ? 'Rendering...' : 'Render'}
+            </button>
+          )}
         </div>
 
         {/* Preview — Remotion Player */}
@@ -689,8 +751,8 @@ export function EditorPage() {
         </div>
 
         {/* ── Timeline ─────────────────────────────────────────────────── */}
-        <div className="flex-shrink-0 flex overflow-hidden"
-          style={{ height: RULER_H + TRACK_H * scene.layers.length, minHeight: 168, maxHeight: 260 }}>
+        <div className="flex-shrink-0 flex overflow-y-auto"
+          style={{ minHeight: 168, maxHeight: 260 }}>
 
           {/* Label column */}
           <div className="flex-shrink-0 flex flex-col"
@@ -717,7 +779,7 @@ export function EditorPage() {
 
           {/* Scrollable clip area */}
           <div ref={clipAreaRef}
-            className="flex-1 overflow-x-auto overflow-y-hidden"
+            className="flex-1 overflow-x-auto"
             style={{ position: 'relative', cursor: 'default' }}
             onMouseDown={onTimelineMouseDown}>
             <div style={{ width: TOTAL_PX, minWidth: '100%', position: 'relative' }}>

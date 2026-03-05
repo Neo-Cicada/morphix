@@ -33,11 +33,17 @@ model VideoJob {
   music_vibe      String
   production_doc  Json?
   output_url      String?
-  credits_used    Int      @default(1)
-  created_at      DateTime @default(now())
-  updated_at      DateTime @updatedAt
+  credits_used          Int       @default(1)
+  render_status         String?
+  render_error          String?
+  render_started_at     DateTime?
+  render_completed_at   DateTime?
+  created_at            DateTime  @default(now())
+  updated_at            DateTime  @updatedAt
   user            User     @relation(fields: [user_id], references: [id])
   screenshots     Screenshot[]
+
+  @@map("video_jobs")
 }
 
 model Screenshot {

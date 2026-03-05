@@ -449,6 +449,8 @@ export function EditorPage() {
   const [outputUrl,    setOutputUrl]    = useState<string | null>(null);
   const [jobId,        setJobId]        = useState<string>(() => crypto.randomUUID());
   const [templatesOpen, setTemplatesOpen] = useState(false);
+  const [brandContext, setBrandContext] = useState('');
+  const [brandContextOpen, setBrandContextOpen] = useState(false);
 
   // Undo/Redo
   const [canUndo, setCanUndo] = useState(false);
@@ -811,6 +813,7 @@ export function EditorPage() {
         scene,
         message: fullText,
         history: chatHistory,
+        ...(brandContext.trim() ? { brandContext: brandContext.trim() } : {}),
       });
 
       // Apply the updated scene (with undo support)
@@ -1194,6 +1197,39 @@ export function EditorPage() {
             <p className="text-[13px] font-semibold text-white leading-none">AI Editor</p>
             <p className="text-[10px] mt-1" style={{ color: '#555' }}>Powered by Claude</p>
           </div>
+        </div>
+
+        {/* Brand context */}
+        <div className="flex-shrink-0" style={{ borderBottom: '1px solid #111' }}>
+          <button
+            onClick={() => setBrandContextOpen(o => !o)}
+            className="w-full flex items-center justify-between px-3 py-2 cursor-pointer transition-colors hover:bg-white/[0.03]"
+            style={{ background: 'none', border: 'none', color: '#555' }}
+          >
+            <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+              Brand Context
+            </span>
+            <span style={{ fontSize: 11, transform: brandContextOpen ? 'rotate(180deg)' : 'none', transition: 'transform 200ms', display: 'inline-block' }}>▾</span>
+          </button>
+          {brandContextOpen && (
+            <div className="px-3 pb-3">
+              <textarea
+                rows={3}
+                value={brandContext}
+                onChange={e => setBrandContext(e.target.value)}
+                onFocus={() => setInputFocused(true)}
+                onBlur={() => setInputFocused(false)}
+                placeholder="Describe your product, audience & tone — e.g. 'Morphix, AI video tool for B2B marketers. Bold, dark, modern.'"
+                className="w-full text-[12px] text-white placeholder:text-[#383838] rounded-lg px-3 py-2 outline-none resize-none transition-all duration-150"
+                style={{
+                  background: '#0d0d0d',
+                  border: '1px solid #1e1e1e',
+                  color: '#bbb',
+                  lineHeight: 1.5,
+                }}
+              />
+            </div>
+          )}
         </div>
 
         <div className="flex-shrink-0 px-3 py-2.5" style={{ borderBottom: '1px solid #111' }}>

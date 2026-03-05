@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   Play, Pause, SkipBack, SkipForward, ChevronLeft, ChevronRight,
-  Send, Sparkles, Film, Type, Square, Trash2, Plus,
+  Send, Sparkles, Film, Type, Square, Trash2, Plus, Loader2,
 } from 'lucide-react';
 import { Player, type PlayerRef } from '@remotion/player';
 import { MorphixVideo } from '@/remotion/MorphixVideo';
@@ -11,6 +11,7 @@ import {
   type Scene, type Layer, type TextLayer, type ShapeLayer,
   type SceneKeyframe, DEFAULT_SCENE, getTrackColor,
 } from '@/remotion/schema';
+import { api } from '@/lib/api';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -318,6 +319,7 @@ export function EditorPage() {
   const [input,        setInput]        = useState('');
   const [inputFocused, setInputFocused] = useState(false);
   const [attachedFiles, setAttachedFiles] = useState<string[]>([]);
+  const [isAiLoading,  setIsAiLoading]   = useState(false);
 
   const playerRef      = useRef<PlayerRef>(null);
   const clipAreaRef    = useRef<HTMLDivElement>(null);
@@ -495,25 +497,55 @@ export function EditorPage() {
     setAttachedFiles(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleSend = () => {
+  const handleSend = async () => {
     const text = input.trim();
     const hasFiles = attachedFiles.length > 0;
-    if (!text && !hasFiles) return;
+    if ((!text && !hasFiles) || isAiLoading) return;
+
     const uid = Date.now();
     const parts: string[] = [];
     if (hasFiles) parts.push(`📎 ${attachedFiles.join(', ')}`);
     if (text) parts.push(text);
     const fullText = parts.join('\n');
+
+    // Show user message immediately
     setMessages(m => [...m, { id: uid, role: 'user', text: fullText }]);
     setInput('');
     setAttachedFiles([]);
-    const fileCount = attachedFiles.length;
-    setTimeout(() => setMessages(m => [...m, {
-      id: uid + 1, role: 'assistant',
-      text: hasFiles
-        ? `Got it! I've received ${fileCount === 1 ? `"${attachedFiles[0]}"` : `${fileCount} files`}${text ? ' along with your instructions' : ''}. (Full AI integration coming soon.)`
-        : "Got it! I'll apply that edit to your composition. (Full AI integration coming soon.)",
-    }]), 700);
+    setIsAiLoading(true);
+
+    try {
+      // Build history from recent messages (skip thinking indicators)
+      const chatHistory = messages
+        .filter(m => m.role === 'user' || m.role === 'assistant')
+        .slice(-10)
+        .map(m => ({ role: m.role, text: m.text }));
+
+      const result = await api.post<{ scene: Scene; reply: string }>('/ai/edit', {
+        scene,
+        message: fullText,
+        history: chatHistory,
+      });
+
+      // Apply the updated scene
+      if (result.scene) {
+        setScene(result.scene);
+      }
+
+      // Show Claude's reply
+      setMessages(m => [...m, {
+        id: uid + 1, role: 'assistant',
+        text: result.reply || 'Done! Scene updated.',
+      }]);
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : 'Something went wrong';
+      setMessages(m => [...m, {
+        id: uid + 1, role: 'assistant',
+        text: `⚠️ ${errMsg}`,
+      }]);
+    } finally {
+      setIsAiLoading(false);
+    }
   };
 
   /* ── Derived ─────────────────────────────────────────────────────── */
@@ -860,23 +892,25 @@ export function EditorPage() {
             <input value={input} onChange={e => setInput(e.target.value)}
               onFocus={() => setInputFocused(true)} onBlur={() => setInputFocused(false)}
               onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
-              placeholder={attachedFiles.length > 0 ? 'Add context or press Send…' : 'Describe an edit…'}
+              disabled={isAiLoading}
+              placeholder={isAiLoading ? 'AI is thinking…' : attachedFiles.length > 0 ? 'Add context or press Send…' : 'Describe an edit…'}
               className="flex-1 text-[13px] text-white placeholder:text-[#444] rounded-lg px-3 py-2 outline-none transition-all duration-150"
               style={{
                 background: '#0d0d0d',
                 border: `1px solid ${inputFocused ? 'rgba(59,130,246,0.4)' : '#1e1e1e'}`,
                 boxShadow: inputFocused ? '0 0 0 3px rgba(59,130,246,0.08)' : 'none',
+                opacity: isAiLoading ? 0.5 : 1,
               }} />
-            <button onClick={handleSend} disabled={!input.trim() && attachedFiles.length === 0}
+            <button onClick={handleSend} disabled={isAiLoading || (!input.trim() && attachedFiles.length === 0)}
               className="flex-shrink-0 flex items-center justify-center rounded-lg transition-all duration-150"
               style={{
                 width: 34, height: 34,
                 background: (input.trim() || attachedFiles.length > 0) ? 'rgba(168,85,247,0.15)' : 'rgba(255,255,255,0.04)',
                 border: `1px solid ${(input.trim() || attachedFiles.length > 0) ? 'rgba(168,85,247,0.3)' : '#1e1e1e'}`,
                 color: (input.trim() || attachedFiles.length > 0) ? '#a855f7' : '#333',
-                cursor: (input.trim() || attachedFiles.length > 0) ? 'pointer' : 'default',
+                cursor: (input.trim() || attachedFiles.length > 0) && !isAiLoading ? 'pointer' : 'default',
               }}>
-              <Send size={13} />
+              {isAiLoading ? <Loader2 size={13} className="animate-spin" /> : <Send size={13} />}
             </button>
           </div>
         </div>

@@ -8,6 +8,7 @@ import { errorHandler } from './middleware/errorHandler';
 import healthRoutes from './routes/health';
 import userRoutes from './routes/users';
 import videoRoutes from './routes/videos';
+import aiRoutes from './routes/ai';
 
 dotenv.config();
 
@@ -28,6 +29,7 @@ app.use(apiLimiter);
 app.use('/api/v1/health', healthRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/videos', videoRoutes);
+app.use('/api/v1/ai', aiRoutes);
 
 // Error Handling
 app.use(errorHandler);

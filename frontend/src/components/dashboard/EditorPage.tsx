@@ -535,6 +535,7 @@ export function EditorPage() {
   const [messages,     setMessages]     = useState<ChatMessage[]>(INITIAL_MESSAGES);
   const [input,        setInput]        = useState('');
   const [inputFocused, setInputFocused] = useState(false);
+  const [attachedFiles, setAttachedFiles] = useState<string[]>([]);
 
   const intervalRef    = useRef<ReturnType<typeof setInterval> | null>(null);
   const clipAreaRef    = useRef<HTMLDivElement>(null);
@@ -659,24 +660,33 @@ export function EditorPage() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []);
     if (!files.length) return;
-    const names = files.map(f => f.name).join(', ');
-    const uid = Date.now();
-    setMessages(m => [...m, { id: uid, role: 'user', text: `📎 ${names}` }]);
-    setTimeout(() => setMessages(m => [...m, {
-      id: uid + 1, role: 'assistant',
-      text: `Got it! I've received ${files.length === 1 ? `"${files[0].name}"` : `${files.length} files`}. (Full media processing coming soon.)`,
-    }]), 700);
+    const names = files.map(f => f.name);
+    setAttachedFiles(prev => [...prev, ...names]);
     e.target.value = '';
   };
 
+  const removeAttachment = (index: number) => {
+    setAttachedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
   const handleSend = () => {
-    const text = input.trim(); if (!text) return;
+    const text = input.trim();
+    const hasFiles = attachedFiles.length > 0;
+    if (!text && !hasFiles) return;
     const uid = Date.now();
-    setMessages(m => [...m, { id: uid, role: 'user', text }]);
+    const parts: string[] = [];
+    if (hasFiles) parts.push(`📎 ${attachedFiles.join(', ')}`);
+    if (text) parts.push(text);
+    const fullText = parts.join('\n');
+    setMessages(m => [...m, { id: uid, role: 'user', text: fullText }]);
     setInput('');
+    setAttachedFiles([]);
+    const fileCount = attachedFiles.length;
     setTimeout(() => setMessages(m => [...m, {
       id: uid + 1, role: 'assistant',
-      text: "Got it! I'll apply that edit to your composition. (Full AI integration coming soon.)",
+      text: hasFiles
+        ? `Got it! I've received ${fileCount === 1 ? `"${attachedFiles[0]}"` : `${fileCount} files`}${text ? ' along with your instructions' : ''}. (Full AI integration coming soon.)`
+        : "Got it! I'll apply that edit to your composition. (Full AI integration coming soon.)",
     }]), 700);
   };
 
@@ -973,43 +983,65 @@ export function EditorPage() {
           <div ref={messagesEndRef} />
         </div>
 
-        <div className="flex-shrink-0 flex gap-2 items-center px-3 py-3"
-          style={{ borderTop: '1px solid #1a1a1a' }}>
-          <input ref={fileInputRef} type="file" multiple accept="image/*,video/*,audio/*,.pdf,.txt"
-            className="hidden" onChange={handleFileChange} />
-          <button title="Add media or file" onClick={() => fileInputRef.current?.click()}
-            className="flex-shrink-0 flex items-center justify-center rounded-lg transition-all duration-150 cursor-pointer hover:bg-white/[0.06]"
-            style={{
-              width: 34, height: 34,
-              border: '1px solid #1e1e1e',
-              background: 'rgba(255,255,255,0.03)',
-              color: '#555',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.color = '#aaa'; }}
-            onMouseLeave={e => { e.currentTarget.style.color = '#555'; }}>
-            <Plus size={15} />
-          </button>
-          <input value={input} onChange={e => setInput(e.target.value)}
-            onFocus={() => setInputFocused(true)} onBlur={() => setInputFocused(false)}
-            onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
-            placeholder="Describe an edit…"
-            className="flex-1 text-[13px] text-white placeholder:text-[#444] rounded-lg px-3 py-2 outline-none transition-all duration-150"
-            style={{
-              background: '#0d0d0d',
-              border: `1px solid ${inputFocused ? 'rgba(59,130,246,0.4)' : '#1e1e1e'}`,
-              boxShadow: inputFocused ? '0 0 0 3px rgba(59,130,246,0.08)' : 'none',
-            }} />
-          <button onClick={handleSend} disabled={!input.trim()}
-            className="flex-shrink-0 flex items-center justify-center rounded-lg transition-all duration-150"
-            style={{
-              width: 34, height: 34,
-              background: input.trim() ? 'rgba(168,85,247,0.15)' : 'rgba(255,255,255,0.04)',
-              border: `1px solid ${input.trim() ? 'rgba(168,85,247,0.3)' : '#1e1e1e'}`,
-              color: input.trim() ? '#a855f7' : '#333',
-              cursor: input.trim() ? 'pointer' : 'default',
-            }}>
-            <Send size={13} />
-          </button>
+        <div className="flex-shrink-0" style={{ borderTop: '1px solid #1a1a1a' }}>
+          {/* Attached files chips */}
+          {attachedFiles.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 px-3 pt-2.5 pb-1">
+              {attachedFiles.map((name, i) => (
+                <div key={i} className="flex items-center gap-1.5 rounded-md text-[11px]"
+                  style={{
+                    padding: '3px 8px',
+                    background: 'rgba(168,85,247,0.1)',
+                    border: '1px solid rgba(168,85,247,0.2)',
+                    color: '#c4b5fd',
+                  }}>
+                  <span>📎 {name}</span>
+                  <button onClick={() => removeAttachment(i)}
+                    className="flex items-center justify-center cursor-pointer rounded-full transition-colors hover:bg-white/10"
+                    style={{ width: 14, height: 14, border: 'none', background: 'none', color: '#888', fontSize: 11, lineHeight: 1 }}>
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+          <div className="flex gap-2 items-center px-3 py-3">
+            <input ref={fileInputRef} type="file" multiple accept="image/*,video/*,audio/*,.pdf,.txt"
+              className="hidden" onChange={handleFileChange} />
+            <button title="Add media or file" onClick={() => fileInputRef.current?.click()}
+              className="flex-shrink-0 flex items-center justify-center rounded-lg transition-all duration-150 cursor-pointer hover:bg-white/[0.06]"
+              style={{
+                width: 34, height: 34,
+                border: '1px solid #1e1e1e',
+                background: 'rgba(255,255,255,0.03)',
+                color: '#555',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.color = '#aaa'; }}
+              onMouseLeave={e => { e.currentTarget.style.color = '#555'; }}>
+              <Plus size={15} />
+            </button>
+            <input value={input} onChange={e => setInput(e.target.value)}
+              onFocus={() => setInputFocused(true)} onBlur={() => setInputFocused(false)}
+              onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
+              placeholder={attachedFiles.length > 0 ? 'Add context or press Send…' : 'Describe an edit…'}
+              className="flex-1 text-[13px] text-white placeholder:text-[#444] rounded-lg px-3 py-2 outline-none transition-all duration-150"
+              style={{
+                background: '#0d0d0d',
+                border: `1px solid ${inputFocused ? 'rgba(59,130,246,0.4)' : '#1e1e1e'}`,
+                boxShadow: inputFocused ? '0 0 0 3px rgba(59,130,246,0.08)' : 'none',
+              }} />
+            <button onClick={handleSend} disabled={!input.trim() && attachedFiles.length === 0}
+              className="flex-shrink-0 flex items-center justify-center rounded-lg transition-all duration-150"
+              style={{
+                width: 34, height: 34,
+                background: (input.trim() || attachedFiles.length > 0) ? 'rgba(168,85,247,0.15)' : 'rgba(255,255,255,0.04)',
+                border: `1px solid ${(input.trim() || attachedFiles.length > 0) ? 'rgba(168,85,247,0.3)' : '#1e1e1e'}`,
+                color: (input.trim() || attachedFiles.length > 0) ? '#a855f7' : '#333',
+                cursor: (input.trim() || attachedFiles.length > 0) ? 'pointer' : 'default',
+              }}>
+              <Send size={13} />
+            </button>
+          </div>
         </div>
       </div>
     </div>

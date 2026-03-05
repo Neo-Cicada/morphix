@@ -4,14 +4,21 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   Play, Pause, SkipBack, SkipForward, ChevronLeft, ChevronRight,
   Send, Sparkles, Film, Type, Square, Trash2, Plus, Loader2, Download,
+  Undo2, Redo2, LayoutTemplate, Video, Music,
 } from 'lucide-react';
 import { Player, type PlayerRef } from '@remotion/player';
 import { MorphixVideo } from '@/remotion/MorphixVideo';
 import {
   type Scene, type Layer, type TextLayer, type ShapeLayer,
+  type VideoLayer, type AudioLayer,
   type SceneKeyframe, DEFAULT_SCENE, getTrackColor,
 } from '@/remotion/schema';
 import { api } from '@/lib/api';
+import { useUser } from '@/contexts/UserContext';
+import { uploadMedia } from '@/utils/uploadMedia';
+import { TemplateModal } from './TemplateModal';
+import { useWaveform } from '@/hooks/useWaveform';
+import { WaveformCanvas } from './WaveformCanvas';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -65,11 +72,13 @@ const P_SELECT: React.CSSProperties = {
 function r(v: number, d = 1) { return Math.round(v * 10 ** d) / 10 ** d; }
 
 function PropertiesPanel({
-  layer, onUpdate, onAdd, onDelete, onDeleteKeyframe,
+  layer, onUpdate, onAdd, onAddVideo, onAddAudio, onDelete, onDeleteKeyframe,
 }: {
   layer: Layer | null;
   onUpdate: (id: string, patch: Record<string, unknown>) => void;
   onAdd: (type: 'text' | 'shape') => void;
+  onAddVideo: () => void;
+  onAddAudio: () => void;
   onDelete: (id: string) => void;
   onDeleteKeyframe: (layerId: string, index: number) => void;
 }) {
@@ -110,6 +119,11 @@ function PropertiesPanel({
         .sort((a, b) => a.kf.frame - b.kf.frame)
     : [];
 
+  const btnStyle: React.CSSProperties = {
+    padding: '3px 6px', border: '1px solid #1e1e1e',
+    background: 'rgba(255,255,255,0.03)', color: '#666', borderRadius: 5,
+  };
+
   return (
     <div className="flex-shrink-0 flex flex-col overflow-hidden"
       style={{ width: 220, borderRight: '1px solid #1a1a1a', background: '#0a0a0a' }}>
@@ -123,15 +137,25 @@ function PropertiesPanel({
         <div className="flex gap-1">
           <button onClick={() => onAdd('text')} title="Add Text"
             className="flex items-center gap-1 rounded-md transition-colors duration-150 cursor-pointer hover:bg-white/[0.06]"
-            style={{ padding: '3px 7px', border: '1px solid #1e1e1e', background: 'rgba(255,255,255,0.03)', color: '#666' }}>
+            style={btnStyle}>
             <Type size={10} />
             <span style={{ fontSize: 10 }}>Text</span>
           </button>
           <button onClick={() => onAdd('shape')} title="Add Shape"
             className="flex items-center gap-1 rounded-md transition-colors duration-150 cursor-pointer hover:bg-white/[0.06]"
-            style={{ padding: '3px 7px', border: '1px solid #1e1e1e', background: 'rgba(255,255,255,0.03)', color: '#666' }}>
+            style={btnStyle}>
             <Square size={10} />
             <span style={{ fontSize: 10 }}>Shape</span>
+          </button>
+          <button onClick={onAddVideo} title="Add Video"
+            className="flex items-center gap-1 rounded-md transition-colors duration-150 cursor-pointer hover:bg-white/[0.06]"
+            style={btnStyle}>
+            <Video size={10} />
+          </button>
+          <button onClick={onAddAudio} title="Add Audio"
+            className="flex items-center gap-1 rounded-md transition-colors duration-150 cursor-pointer hover:bg-white/[0.06]"
+            style={btnStyle}>
+            <Music size={10} />
           </button>
         </div>
       </div>
@@ -183,19 +207,23 @@ function PropertiesPanel({
               </Field>
             </G2>
 
-            {/* ── Transform ───────────────────────────────────── */}
-            <Section label="Transform" />
-            <G2>
-              <Field label="X px">{num('x')}</Field>
-              <Field label="Y px">{num('y')}</Field>
-              <Field label="Scale">{num('scale', 0.01)}</Field>
-              <Field label="Rotation °">{num('rotation')}</Field>
-            </G2>
-            <Field label="Opacity">
-              <input type="number" step={0.01} min={0} max={1} style={P_IN}
-                value={r(layer.opacity, 2)}
-                onChange={e => onUpdate(layer.id, { opacity: Math.max(0, Math.min(1, parseFloat(e.target.value) || 0)) })} />
-            </Field>
+            {/* ── Transform (hide for audio) ───────────────────── */}
+            {layer.type !== 'audio' && (
+              <>
+                <Section label="Transform" />
+                <G2>
+                  <Field label="X px">{num('x')}</Field>
+                  <Field label="Y px">{num('y')}</Field>
+                  <Field label="Scale">{num('scale', 0.01)}</Field>
+                  <Field label="Rotation °">{num('rotation')}</Field>
+                </G2>
+                <Field label="Opacity">
+                  <input type="number" step={0.01} min={0} max={1} style={P_IN}
+                    value={r(layer.opacity, 2)}
+                    onChange={e => onUpdate(layer.id, { opacity: Math.max(0, Math.min(1, parseFloat(e.target.value) || 0)) })} />
+                </Field>
+              </>
+            )}
 
             {/* ── Appearance ──────────────────────────────────── */}
             {'color' in layer && (
@@ -271,35 +299,89 @@ function PropertiesPanel({
               </>
             )}
 
-            {/* ── Keyframes ────────────────────────────────────── */}
-            <Section label={`Keyframes (${layer.keyframes.length})`} />
-            {sortedKfs.length === 0 && (
-              <p style={{ fontSize: 10, color: '#333', fontStyle: 'italic' }}>No keyframes</p>
+            {/* ── Video fields ─────────────────────────────────── */}
+            {layer.type === 'video' && (
+              <>
+                <Section label="Video" />
+                <G2>
+                  <Field label="Width px">
+                    <input type="number" step={1} style={P_IN} value={r(layer.width)}
+                      onChange={e => onUpdate(layer.id, { width: parseFloat(e.target.value) || 1 })} />
+                  </Field>
+                  <Field label="Height px">
+                    <input type="number" step={1} style={P_IN} value={r(layer.height)}
+                      onChange={e => onUpdate(layer.id, { height: parseFloat(e.target.value) || 1 })} />
+                  </Field>
+                  <Field label="Volume">
+                    <input type="number" step={0.01} min={0} max={1} style={P_IN} value={r(layer.volume, 2)}
+                      onChange={e => onUpdate(layer.id, { volume: Math.max(0, Math.min(1, parseFloat(e.target.value) || 0)) })} />
+                  </Field>
+                  <Field label="Start f">
+                    <input type="number" step={1} min={0} style={P_IN} value={layer.startFrom}
+                      onChange={e => onUpdate(layer.id, { startFrom: Math.max(0, parseInt(e.target.value) || 0) })} />
+                  </Field>
+                  <Field label="Speed">
+                    <input type="number" step={0.1} min={0.1} max={4} style={P_IN} value={r(layer.playbackRate, 2)}
+                      onChange={e => onUpdate(layer.id, { playbackRate: Math.max(0.1, parseFloat(e.target.value) || 1) })} />
+                  </Field>
+                </G2>
+              </>
             )}
-            {sortedKfs.map(({ kf, i }) => (
-              <div key={i} className="flex items-center gap-1.5" style={{ marginBottom: 3 }}>
-                <span style={{ fontSize: 9, color: '#3b82f6', fontFamily: 'monospace', minWidth: 30 }}>
-                  f{kf.frame}
-                </span>
-                <span style={{ fontSize: 9, color: '#555', flex: 1, whiteSpace: 'nowrap', overflow: 'hidden' }}>
-                  {kf.prop}
-                </span>
-                <span style={{ fontSize: 9, color: '#666', minWidth: 34, textAlign: 'right', fontFamily: 'monospace' }}>
-                  {r(kf.value, 2)}
-                </span>
-                <button onClick={() => onDeleteKeyframe(layer.id, i)}
-                  className="flex items-center justify-center cursor-pointer rounded transition-colors"
-                  style={{
-                    width: 16, height: 16, flexShrink: 0, fontSize: 10,
-                    color: '#333', border: 'none', background: 'none',
-                  }}
-                  onMouseEnter={e => { e.currentTarget.style.color = '#ef4444'; }}
-                  onMouseLeave={e => { e.currentTarget.style.color = '#333'; }}
-                >
-                  ×
-                </button>
-              </div>
-            ))}
+
+            {/* ── Audio fields ─────────────────────────────────── */}
+            {layer.type === 'audio' && (
+              <>
+                <Section label="Audio" />
+                <G2>
+                  <Field label="Volume">
+                    <input type="number" step={0.01} min={0} max={1} style={P_IN} value={r(layer.volume, 2)}
+                      onChange={e => onUpdate(layer.id, { volume: Math.max(0, Math.min(1, parseFloat(e.target.value) || 0)) })} />
+                  </Field>
+                  <Field label="Start f">
+                    <input type="number" step={1} min={0} style={P_IN} value={layer.startFrom}
+                      onChange={e => onUpdate(layer.id, { startFrom: Math.max(0, parseInt(e.target.value) || 0) })} />
+                  </Field>
+                  <Field label="Speed">
+                    <input type="number" step={0.1} min={0.1} max={4} style={P_IN} value={r(layer.playbackRate, 2)}
+                      onChange={e => onUpdate(layer.id, { playbackRate: Math.max(0.1, parseFloat(e.target.value) || 1) })} />
+                  </Field>
+                </G2>
+              </>
+            )}
+
+            {/* ── Keyframes ────────────────────────────────────── */}
+            {layer.type !== 'audio' && (
+              <>
+                <Section label={`Keyframes (${layer.keyframes.length})`} />
+                {sortedKfs.length === 0 && (
+                  <p style={{ fontSize: 10, color: '#333', fontStyle: 'italic' }}>No keyframes</p>
+                )}
+                {sortedKfs.map(({ kf, i }) => (
+                  <div key={i} className="flex items-center gap-1.5" style={{ marginBottom: 3 }}>
+                    <span style={{ fontSize: 9, color: '#3b82f6', fontFamily: 'monospace', minWidth: 30 }}>
+                      f{kf.frame}
+                    </span>
+                    <span style={{ fontSize: 9, color: '#555', flex: 1, whiteSpace: 'nowrap', overflow: 'hidden' }}>
+                      {kf.prop}
+                    </span>
+                    <span style={{ fontSize: 9, color: '#666', minWidth: 34, textAlign: 'right', fontFamily: 'monospace' }}>
+                      {r(kf.value, 2)}
+                    </span>
+                    <button onClick={() => onDeleteKeyframe(layer.id, i)}
+                      className="flex items-center justify-center cursor-pointer rounded transition-colors"
+                      style={{
+                        width: 16, height: 16, flexShrink: 0, fontSize: 10,
+                        color: '#333', border: 'none', background: 'none',
+                      }}
+                      onMouseEnter={e => { e.currentTarget.style.color = '#ef4444'; }}
+                      onMouseLeave={e => { e.currentTarget.style.color = '#333'; }}
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </>
+            )}
           </>
         )}
       </div>
@@ -307,9 +389,52 @@ function PropertiesPanel({
   );
 }
 
+// ─── AudioTrackRow ────────────────────────────────────────────────────────────
+
+function AudioTrackRow({
+  layer, isSelected, onMove,
+}: {
+  layer: AudioLayer;
+  isSelected: boolean;
+  onMove: (e: React.MouseEvent, id: string) => void;
+}) {
+  const waveform = useWaveform(layer.src);
+  const clipW = layer.durationInFrames * PX_PER_FRAME;
+
+  return (
+    <div
+      className={`tl-clip absolute${isSelected ? ' selected' : ''}`}
+      style={{
+        top: 4, height: TRACK_H - 8,
+        left: layer.from * PX_PER_FRAME,
+        width: clipW,
+        background: isSelected ? '#22c55e35' : '#22c55e22',
+        border: `1px solid ${isSelected ? '#22c55eaa' : '#22c55e55'}`,
+        borderRadius: 5, cursor: 'grab', minWidth: 8, userSelect: 'none',
+        position: 'relative', overflow: 'hidden',
+      }}
+      onMouseDown={e => onMove(e, layer.id)}
+    >
+      {waveform.length > 0 && (
+        <WaveformCanvas waveform={waveform} color="#22c55e" width={clipW} height={TRACK_H - 8} />
+      )}
+      <span className="absolute pointer-events-none truncate select-none"
+        style={{
+          left: 8, right: 8, top: '50%', transform: 'translateY(-50%)',
+          fontSize: 10, color: '#22c55e', fontWeight: 600,
+          zIndex: 1,
+        }}>
+        {layer.label}
+      </span>
+    </div>
+  );
+}
+
 // ─── EditorPage ───────────────────────────────────────────────────────────────
 
 export function EditorPage() {
+  const { user } = useUser();
+
   /* ── State ──────────────────────────────────────────────────────────── */
   const [scene,        setScene]        = useState<Scene>(() => structuredClone(DEFAULT_SCENE));
   const [selectedId,   setSelectedId]   = useState<string | null>(null);
@@ -323,6 +448,13 @@ export function EditorPage() {
   const [renderStatus, setRenderStatus] = useState<'idle' | 'queued' | 'rendering' | 'done' | 'failed'>('idle');
   const [outputUrl,    setOutputUrl]    = useState<string | null>(null);
   const [jobId,        setJobId]        = useState<string>(() => crypto.randomUUID());
+  const [templatesOpen, setTemplatesOpen] = useState(false);
+
+  // Undo/Redo
+  const [canUndo, setCanUndo] = useState(false);
+  const [canRedo, setCanRedo] = useState(false);
+  const historyRef = useRef<Scene[]>([]);
+  const futureRef  = useRef<Scene[]>([]);
 
   const playerRef      = useRef<PlayerRef>(null);
   const pollRef        = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -331,10 +463,58 @@ export function EditorPage() {
   const dragRef        = useRef<DragOp | null>(null);
   const nextIdRef      = useRef(scene.layers.length + 1);
   const fileInputRef   = useRef<HTMLInputElement>(null);
+  const videoInputRef  = useRef<HTMLInputElement>(null);
+  const audioInputRef  = useRef<HTMLInputElement>(null);
+
+  // Keep sceneRef/frameRef in sync so callbacks can read current values without stale closure
+  const sceneRef = useRef<Scene>(scene);
+  sceneRef.current = scene;
+  const frameRef = useRef(frame);
+  frameRef.current = frame;
 
   const TOTAL_FRAMES = scene.durationInFrames;
   const FPS          = scene.fps;
   const TOTAL_PX     = TOTAL_FRAMES * PX_PER_FRAME;
+
+  /* ── History helpers ─────────────────────────────────────────────── */
+  const pushHistory = useCallback((snapshot: Scene) => {
+    historyRef.current = [...historyRef.current.slice(-49), structuredClone(snapshot)];
+    futureRef.current = [];
+    setCanUndo(true);
+    setCanRedo(false);
+  }, []);
+
+  const undo = useCallback(() => {
+    const prev = historyRef.current.pop();
+    if (!prev) return;
+    futureRef.current = [structuredClone(sceneRef.current), ...futureRef.current];
+    setScene(prev);
+    setCanUndo(historyRef.current.length > 0);
+    setCanRedo(true);
+  }, []);
+
+  const redo = useCallback(() => {
+    const next = futureRef.current.shift();
+    if (!next) return;
+    historyRef.current = [...historyRef.current, structuredClone(sceneRef.current)];
+    setScene(next);
+    setCanUndo(true);
+    setCanRedo(futureRef.current.length > 0);
+  }, []);
+
+  /* ── Keyboard shortcuts ──────────────────────────────────────────── */
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (inputFocused) return;
+      const mod = e.metaKey || e.ctrlKey;
+      if (!mod) return;
+      if (e.key === 'z' && !e.shiftKey) { e.preventDefault(); undo(); }
+      else if (e.key === 'z' && e.shiftKey) { e.preventDefault(); redo(); }
+      else if (e.key === 'y') { e.preventDefault(); redo(); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [inputFocused, undo, redo]);
 
   /* ── Sync frame from Player ──────────────────────────────────────── */
   useEffect(() => {
@@ -442,21 +622,23 @@ export function EditorPage() {
 
   /* ── Layer mutations ─────────────────────────────────────────────── */
   const updateLayer = useCallback((id: string, patch: Record<string, unknown>) => {
+    pushHistory(sceneRef.current);
     setScene(prev => ({
       ...prev,
       layers: prev.layers.map(l => l.id === id ? { ...l, ...patch } as Layer : l),
     }));
-  }, []);
+  }, [pushHistory]);
 
   const addLayer = useCallback((type: 'text' | 'shape') => {
+    pushHistory(sceneRef.current);
     const idx   = nextIdRef.current++;
     const id    = `layer-${idx}`;
     const color = getTrackColor(idx);
     const base = {
       id, label: type === 'text' ? `Text ${idx}` : `Shape ${idx}`,
       trackColor: color,
-      from: frame, durationInFrames: 90,
-      x: scene.width / 2, y: scene.height / 2,
+      from: frameRef.current, durationInFrames: 90,
+      x: sceneRef.current.width / 2, y: sceneRef.current.height / 2,
       scale: 1, rotation: 0, opacity: 1,
       keyframes: [] as SceneKeyframe[],
     };
@@ -465,21 +647,78 @@ export function EditorPage() {
       : { ...base, type: 'shape', shape: 'rect', width: 384, height: 108, color, blur: 0 };
     setScene(prev => ({ ...prev, layers: [...prev.layers, newLayer] }));
     setSelectedId(id);
-  }, [frame, scene.width, scene.height]);
+  }, [pushHistory]);
 
   const deleteLayer = useCallback((id: string) => {
+    pushHistory(sceneRef.current);
     setScene(prev => ({ ...prev, layers: prev.layers.filter(l => l.id !== id) }));
     setSelectedId(s => s === id ? null : s);
-  }, []);
+  }, [pushHistory]);
 
   const deleteKeyframe = useCallback((layerId: string, index: number) => {
+    pushHistory(sceneRef.current);
     setScene(prev => ({
       ...prev,
       layers: prev.layers.map(l =>
         l.id === layerId ? { ...l, keyframes: l.keyframes.filter((_, i) => i !== index) } : l,
       ),
     }));
-  }, []);
+  }, [pushHistory]);
+
+  /* ── Video / Audio layer add ──────────────────────────────────────── */
+  const addVideoLayer = useCallback(async (file: File) => {
+    if (!user) return;
+    const url = await uploadMedia(file, user.id);
+
+    // Get video dimensions via hidden element
+    const dims = await new Promise<{ w: number; h: number }>(resolve => {
+      const vid = document.createElement('video');
+      vid.src = url;
+      vid.onloadedmetadata = () => resolve({ w: vid.videoWidth || 1280, h: vid.videoHeight || 720 });
+      vid.onerror = () => resolve({ w: 1280, h: 720 });
+    });
+
+    const idx = nextIdRef.current++;
+    const id  = `layer-${idx}`;
+    const newLayer: VideoLayer = {
+      id, label: file.name.replace(/\.[^.]+$/, ''),
+      type: 'video',
+      trackColor: getTrackColor(idx),
+      from: 0, durationInFrames: 90,
+      x: sceneRef.current.width / 2, y: sceneRef.current.height / 2,
+      scale: 1, rotation: 0, opacity: 1,
+      keyframes: [],
+      src: url,
+      width: dims.w, height: dims.h,
+      volume: 1, startFrom: 0, playbackRate: 1,
+    };
+
+    pushHistory(sceneRef.current);
+    setScene(prev => ({ ...prev, layers: [...prev.layers, newLayer] }));
+    setSelectedId(id);
+  }, [user, pushHistory]);
+
+  const addAudioLayer = useCallback(async (file: File) => {
+    if (!user) return;
+    const url = await uploadMedia(file, user.id);
+
+    const idx = nextIdRef.current++;
+    const id  = `layer-${idx}`;
+    const newLayer: AudioLayer = {
+      id, label: file.name.replace(/\.[^.]+$/, ''),
+      type: 'audio',
+      trackColor: '#22c55e',
+      from: 0, durationInFrames: 90,
+      x: 0, y: 0, scale: 1, rotation: 0, opacity: 1,
+      keyframes: [],
+      src: url,
+      volume: 1, startFrom: 0, playbackRate: 1,
+    };
+
+    pushHistory(sceneRef.current);
+    setScene(prev => ({ ...prev, layers: [...prev.layers, newLayer] }));
+    setSelectedId(id);
+  }, [user, pushHistory]);
 
   /* ── Timeline interaction ─────────────────────────────────────────── */
   const xToFrame = useCallback((clientX: number): number => {
@@ -498,23 +737,26 @@ export function EditorPage() {
   const startMove = useCallback((e: React.MouseEvent, id: string) => {
     e.stopPropagation(); e.preventDefault();
     setSelectedId(id);
-    const c = scene.layers.find(x => x.id === id)!;
+    const c = sceneRef.current.layers.find(x => x.id === id)!;
+    pushHistory(sceneRef.current);
     dragRef.current = { kind: 'move', id, ox: e.clientX, os: c.from, ok: c.keyframes };
-  }, [scene.layers]);
+  }, [pushHistory]);
 
   const startResizeLeft = useCallback((e: React.MouseEvent, id: string) => {
     e.stopPropagation(); e.preventDefault();
     setSelectedId(id);
-    const c = scene.layers.find(x => x.id === id)!;
+    const c = sceneRef.current.layers.find(x => x.id === id)!;
+    pushHistory(sceneRef.current);
     dragRef.current = { kind: 'left', id, ox: e.clientX, os: c.from, od: c.durationInFrames };
-  }, [scene.layers]);
+  }, [pushHistory]);
 
   const startResizeRight = useCallback((e: React.MouseEvent, id: string) => {
     e.stopPropagation(); e.preventDefault();
     setSelectedId(id);
-    const c = scene.layers.find(x => x.id === id)!;
+    const c = sceneRef.current.layers.find(x => x.id === id)!;
+    pushHistory(sceneRef.current);
     dragRef.current = { kind: 'right', id, ox: e.clientX, od: c.durationInFrames };
-  }, [scene.layers]);
+  }, [pushHistory]);
 
   /* ── Transport controls ──────────────────────────────────────────── */
   const togglePlay = useCallback(() => {
@@ -571,8 +813,9 @@ export function EditorPage() {
         history: chatHistory,
       });
 
-      // Apply the updated scene
+      // Apply the updated scene (with undo support)
       if (result.scene) {
+        pushHistory(sceneRef.current);
         setScene(result.scene);
       }
 
@@ -598,6 +841,14 @@ export function EditorPage() {
   const scrubberPct   = `${(frame / (TOTAL_FRAMES - 1)) * 100}%`;
   const SECS          = Math.ceil(TOTAL_FRAMES / FPS);
 
+  const iconBtnStyle: React.CSSProperties = {
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    width: 28, height: 28, borderRadius: 6,
+    border: '1px solid #1e1e1e', background: 'rgba(255,255,255,0.03)',
+    cursor: 'pointer', color: '#555', flexShrink: 0,
+    transition: 'all 150ms',
+  };
+
   return (
     <div className="flex h-full overflow-hidden text-white" style={{ background: '#080808' }}>
 
@@ -614,11 +865,27 @@ export function EditorPage() {
         .tl-clip:hover .clip-handle,.tl-clip.selected .clip-handle{opacity:1;}
       `}</style>
 
+      {/* Hidden file inputs */}
+      <input ref={videoInputRef} type="file" accept="video/*" className="hidden"
+        onChange={e => { const f = e.target.files?.[0]; if (f) addVideoLayer(f); e.target.value = ''; }} />
+      <input ref={audioInputRef} type="file" accept="audio/*" className="hidden"
+        onChange={e => { const f = e.target.files?.[0]; if (f) addAudioLayer(f); e.target.value = ''; }} />
+
+      {/* Template modal */}
+      <TemplateModal
+        open={templatesOpen}
+        currentScene={scene}
+        onClose={() => setTemplatesOpen(false)}
+        onLoad={s => { pushHistory(sceneRef.current); setScene(s); setTemplatesOpen(false); }}
+      />
+
       {/* ─── PROPERTIES PANEL ────────────────────────────────────────────── */}
       <PropertiesPanel
         layer={selectedLayer}
         onUpdate={updateLayer}
         onAdd={addLayer}
+        onAddVideo={() => videoInputRef.current?.click()}
+        onAddAudio={() => audioInputRef.current?.click()}
         onDelete={deleteLayer}
         onDeleteKeyframe={deleteKeyframe}
       />
@@ -627,12 +894,41 @@ export function EditorPage() {
       <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
 
         {/* Toolbar */}
-        <div className="flex items-center flex-shrink-0 px-4 gap-0"
+        <div className="flex items-center flex-shrink-0 px-4 gap-2"
           style={{ height: 44, borderBottom: '1px solid #1a1a1a', background: '#0a0a0a' }}>
-          <div className="flex items-center gap-2 mr-5 select-none">
+          <div className="flex items-center gap-2 mr-3 select-none">
             <Film className="size-[15px] text-[#3b82f6]" />
             <span className="font-bold text-[14px] tracking-tight text-white">Morphix</span>
           </div>
+
+          {/* Undo / Redo */}
+          <button
+            title="Undo (⌘Z)" onClick={undo} disabled={!canUndo}
+            style={{ ...iconBtnStyle, opacity: canUndo ? 1 : 0.3 }}
+            onMouseEnter={e => { if (canUndo) e.currentTarget.style.color = '#aaa'; }}
+            onMouseLeave={e => { e.currentTarget.style.color = '#555'; }}
+          >
+            <Undo2 size={13} />
+          </button>
+          <button
+            title="Redo (⌘Y)" onClick={redo} disabled={!canRedo}
+            style={{ ...iconBtnStyle, opacity: canRedo ? 1 : 0.3 }}
+            onMouseEnter={e => { if (canRedo) e.currentTarget.style.color = '#aaa'; }}
+            onMouseLeave={e => { e.currentTarget.style.color = '#555'; }}
+          >
+            <Redo2 size={13} />
+          </button>
+
+          {/* Templates */}
+          <button
+            title="Scene Templates" onClick={() => setTemplatesOpen(true)}
+            style={iconBtnStyle}
+            onMouseEnter={e => { e.currentTarget.style.color = '#aaa'; }}
+            onMouseLeave={e => { e.currentTarget.style.color = '#555'; }}
+          >
+            <LayoutTemplate size={13} />
+          </button>
+
           <div className="flex-1" />
           {renderStatus === 'done' && outputUrl ? (
             <a
@@ -768,7 +1064,8 @@ export function EditorPage() {
                 onClick={() => setSelectedId(c.id === selectedId ? null : c.id)}>
                 <div style={{
                   width: 6, height: 6, borderRadius: '50%', flexShrink: 0,
-                  background: c.trackColor, boxShadow: `0 0 4px ${c.trackColor}99`,
+                  background: c.type === 'audio' ? '#22c55e' : c.trackColor,
+                  boxShadow: `0 0 4px ${c.type === 'audio' ? '#22c55e' : c.trackColor}99`,
                 }} />
                 <span className="truncate" style={{ fontSize: 11, color: c.id === selectedId ? '#aaa' : '#555', userSelect: 'none', maxWidth: 62 }}>
                   {c.label}
@@ -816,6 +1113,18 @@ export function EditorPage() {
               <div style={{ position: 'relative' }}>
                 {scene.layers.map((c, idx) => {
                   const isSelected = c.id === selectedId;
+
+                  if (c.type === 'audio') {
+                    return (
+                      <div key={c.id} style={{
+                        height: TRACK_H, position: 'relative', borderBottom: '1px solid #111',
+                        background: isSelected ? 'rgba(34,197,94,0.04)' : idx % 2 === 0 ? 'rgba(255,255,255,0.012)' : 'transparent',
+                      }}>
+                        <AudioTrackRow layer={c as AudioLayer} isSelected={isSelected} onMove={startMove} />
+                      </div>
+                    );
+                  }
+
                   return (
                     <div key={c.id} style={{
                       height: TRACK_H, position: 'relative', borderBottom: '1px solid #111',

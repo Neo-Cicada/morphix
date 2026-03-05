@@ -27,7 +27,7 @@ Each Layer has a base plus type-specific fields:
 \`\`\`ts
 interface LayerBase {
   id: string;               // e.g. "layer-5"
-  type: string;             // "text" | "shape" | "image"
+  type: string;             // "text" | "shape" | "image" | "video" | "audio"
   label: string;            // display name
   trackColor: string;       // hex color for timeline
   from: number;             // start frame (0-based)
@@ -64,6 +64,26 @@ interface ShapeLayer extends LayerBase {
   height: number;          // pixels
   color: string;           // hex
   blur: number;            // px, 0 = no blur
+}
+
+// Video layer
+interface VideoLayer extends LayerBase {
+  type: "video";
+  src: string;             // URL to video file
+  width: number;           // pixels
+  height: number;          // pixels
+  volume: number;          // 0-1
+  startFrom: number;       // trim start in frames
+  playbackRate: number;    // 1 = normal speed
+}
+
+// Audio layer
+interface AudioLayer extends LayerBase {
+  type: "audio";
+  src: string;             // URL to audio file
+  volume: number;          // 0-1
+  startFrom: number;       // trim start in frames
+  playbackRate: number;    // 1 = normal speed
 }
 \`\`\`
 

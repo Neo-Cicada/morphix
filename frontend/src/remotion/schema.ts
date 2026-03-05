@@ -52,7 +52,25 @@ export interface ImageLayer extends LayerBase {
     objectFit: 'cover' | 'contain';
 }
 
-export type Layer = TextLayer | ShapeLayer | ImageLayer;
+export interface VideoLayer extends LayerBase {
+    type: 'video';
+    src: string;
+    width: number;
+    height: number;
+    volume: number;       // 0–1
+    startFrom: number;    // trim in frames
+    playbackRate: number;
+}
+
+export interface AudioLayer extends LayerBase {
+    type: 'audio';
+    src: string;
+    volume: number;
+    startFrom: number;
+    playbackRate: number;
+}
+
+export type Layer = TextLayer | ShapeLayer | ImageLayer | VideoLayer | AudioLayer;
 
 // ─── Scene ────────────────────────────────────────────────────────────────────
 

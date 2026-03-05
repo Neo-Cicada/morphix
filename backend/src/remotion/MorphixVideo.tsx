@@ -4,6 +4,8 @@ import type { Scene } from './schema';
 import { TextLayerComponent } from './layers/TextLayer';
 import { ShapeLayerComponent } from './layers/ShapeLayer';
 import { ImageLayerComponent } from './layers/ImageLayer';
+import { VideoLayerComponent } from './layers/VideoLayer';
+import { AudioLayerComponent } from './layers/AudioLayer';
 
 interface MorphixVideoProps {
   scene: Scene;
@@ -23,6 +25,8 @@ export const MorphixVideo: React.FC<MorphixVideoProps> = ({ scene }) => {
             {layer.type === 'text' && <TextLayerComponent layer={layer} />}
             {layer.type === 'shape' && <ShapeLayerComponent layer={layer} />}
             {layer.type === 'image' && <ImageLayerComponent layer={layer} />}
+            {layer.type === 'video' && <VideoLayerComponent layer={layer} />}
+            {layer.type === 'audio' && <AudioLayerComponent layer={layer} />}
           </AbsoluteFill>
         </Sequence>
       ))}

@@ -1,16 +1,14 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
-import dotenv from 'dotenv';
 import { apiLimiter } from './middleware/rateLimiter';
 import { errorHandler } from './middleware/errorHandler';
 import healthRoutes from './routes/health';
 import userRoutes from './routes/users';
 import videoRoutes from './routes/videos';
 import aiRoutes from './routes/ai';
-
-dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 8000;

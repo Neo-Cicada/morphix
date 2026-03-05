@@ -18,16 +18,16 @@ export const requireAuth = (req: AuthenticatedRequest, res: Response, next: Next
     }
 
     const token = authHeader.slice(7);
-    const secret = process.env.SUPABASE_JWT_SECRET;
+    const publicKey = process.env.SUPABASE_JWT_PUBLIC_KEY?.replace(/\\n/g, '\n');
 
-    if (!secret) {
-        console.error('SUPABASE_JWT_SECRET is not set');
+    if (!publicKey) {
+        console.error('SUPABASE_JWT_PUBLIC_KEY is not set');
         res.status(500).json({ status: 'error', message: 'Server configuration error' });
         return;
     }
 
     try {
-        const payload = jwt.verify(token, secret) as jwt.JwtPayload;
+        const payload = jwt.verify(token, publicKey, { algorithms: ['ES256'] }) as jwt.JwtPayload;
 
         req.user = {
             id: payload.sub as string,

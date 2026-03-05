@@ -7,7 +7,8 @@ import { Topbar } from './Topbar';
 import { UserProvider } from '@/contexts/UserContext';
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen,     setSidebarOpen]     = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const pathname = usePathname();
   const isFullBleed = pathname === '/dashboard/editor';
 
@@ -17,7 +18,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
       className="flex h-screen text-white overflow-hidden antialiased selection:bg-blue-500/30"
       style={{ background: '#080808', fontFamily: 'var(--font-geist-sans, system-ui, sans-serif)' }}
     >
-      <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
+      <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} collapsed={sidebarCollapsed} setCollapsed={setSidebarCollapsed} />
 
       <div className="flex flex-1 flex-col overflow-hidden relative">
         <Topbar onMenuClick={() => setSidebarOpen(true)} />

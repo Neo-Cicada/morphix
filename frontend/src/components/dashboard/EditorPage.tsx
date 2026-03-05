@@ -5,250 +5,46 @@ import {
   Play, Pause, SkipBack, SkipForward, ChevronLeft, ChevronRight,
   Send, Sparkles, Film, Type, Square, Trash2, Plus,
 } from 'lucide-react';
+import { Player, type PlayerRef } from '@remotion/player';
+import { MorphixVideo } from '@/remotion/MorphixVideo';
+import {
+  type Scene, type Layer, type TextLayer, type ShapeLayer,
+  type SceneKeyframe, DEFAULT_SCENE, getTrackColor,
+} from '@/remotion/schema';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const FPS          = 30;
-const TOTAL_FRAMES = 300;
-const PX_PER_FRAME = 3;
-const TOTAL_PX     = TOTAL_FRAMES * PX_PER_FRAME;
-const SECS         = TOTAL_FRAMES / FPS;
+const PX_PER_FRAME = 5;
 const MIN_CLIP_F   = 10;
-const TRACK_H      = 44;
-const RULER_H      = 24;
 
-const TRACK_COLORS = [
-  '#3b82f6', '#a855f7', '#22c55e', '#f59e0b',
-  '#ef4444', '#06b6d4', '#ec4899', '#8b5cf6',
-];
-
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-interface Keyframe {
-  frame: number;
-  prop: 'x' | 'y' | 'scale' | 'rotation' | 'opacity';
-  value: number;
-}
-
-interface CompositionBase {
-  id: number;
-  label: string;
-  trackColor: string;
-  startFrame: number;
-  durationFrames: number;
-  x: number;        // 0–100 % of preview width  (center anchor)
-  y: number;        // 0–100 % of preview height (center anchor)
-  scale: number;
-  rotation: number;
-  opacity: number;
-  keyframes: Keyframe[];
-}
-
-interface TextComposition extends CompositionBase {
-  type: 'text';
-  content: string;
-  fontSize: number;
-  color: string;
-  fontWeight?: number;
-  letterSpacing?: number;
-}
-
-interface ShapeComposition extends CompositionBase {
-  type: 'shape';
-  shape: 'circle' | 'rect';
-  /** % of preview width */
-  width: number;
-  /** % of preview width — height in the same unit system as width */
-  height: number;
-  color: string;
-  blur?: number;
-}
-
-type Composition = TextComposition | ShapeComposition;
+// ─── Drag operation types ─────────────────────────────────────────────────────
 
 type DragOp =
-  | { kind: 'move';  id: number; ox: number; os: number; ok: Keyframe[] }
-  | { kind: 'left';  id: number; ox: number; os: number; od: number }
-  | { kind: 'right'; id: number; ox: number; od: number };
+  | { kind: 'move';  id: string; ox: number; os: number; ok: SceneKeyframe[] }
+  | { kind: 'left';  id: string; ox: number; os: number; od: number }
+  | { kind: 'right'; id: string; ox: number; od: number };
 
-// ─── Demo compositions ────────────────────────────────────────────────────────
-// 4 preloaded animations: title fade-in/out · subtitle scale-up · rotating rect · sliding circle
+// ─── Chat types ───────────────────────────────────────────────────────────────
 
-const INITIAL_COMPS: Composition[] = [
-  // 1 ── Title — fades in with upward slide, fades out at end ───────────────
-  {
-    id: 1, label: 'Title', trackColor: '#ffffff',
-    type: 'text',
-    startFrame: 0, durationFrames: 270,
-    x: 50, y: 44, scale: 1, rotation: 0, opacity: 0,
-    content: 'MORPHIX STUDIO', fontSize: 26, color: '#ffffff',
-    fontWeight: 800, letterSpacing: 8,
-    keyframes: [
-      { frame: 0,   prop: 'opacity', value: 0 },
-      { frame: 30,  prop: 'opacity', value: 1 },
-      { frame: 240, prop: 'opacity', value: 1 },
-      { frame: 270, prop: 'opacity', value: 0 },
-      // slide up on enter
-      { frame: 0,  prop: 'y', value: 56 },
-      { frame: 30, prop: 'y', value: 44 },
-    ],
-  },
+interface ChatMessage { id: number; role: 'user' | 'assistant'; text: string; }
 
-  // 2 ── Subtitle — scales up from 0, fades out ────────────────────────────
-  {
-    id: 2, label: 'Subtitle', trackColor: '#666666',
-    type: 'text',
-    startFrame: 45, durationFrames: 210,
-    x: 50, y: 62, scale: 0, rotation: 0, opacity: 0,
-    content: 'AI-Powered Video Creation', fontSize: 12, color: '#888888',
-    fontWeight: 400, letterSpacing: 3,
-    keyframes: [
-      { frame: 45, prop: 'scale',   value: 0 },
-      { frame: 80, prop: 'scale',   value: 1 },
-      { frame: 45, prop: 'opacity', value: 0 },
-      { frame: 80, prop: 'opacity', value: 1 },
-      { frame: 225, prop: 'opacity', value: 1 },
-      { frame: 255, prop: 'opacity', value: 0 },
-    ],
-  },
+const INITIAL_MESSAGES: ChatMessage[] = [{
+  id: 0, role: 'assistant',
+  text: 'Hi! I can help you edit your video. Try "trim the last 2 seconds" or "add a fade-in transition".',
+}];
 
-  // 3 ── Rotating rectangle — spins continuously ────────────────────────────
-  {
-    id: 3, label: 'Spin Rect', trackColor: '#a855f7',
-    type: 'shape', shape: 'rect',
-    startFrame: 60, durationFrames: 180,
-    x: 50, y: 50, scale: 1, rotation: 0, opacity: 0,
-    width: 22, height: 5, color: '#a855f7',
-    keyframes: [
-      { frame: 60,  prop: 'opacity',  value: 0   },
-      { frame: 90,  prop: 'opacity',  value: 0.8 },
-      { frame: 210, prop: 'opacity',  value: 0.8 },
-      { frame: 240, prop: 'opacity',  value: 0   },
-      // 4 equidistant keyframes → roughly linear rotation via smoothstep
-      { frame: 60,  prop: 'rotation', value: 0   },
-      { frame: 120, prop: 'rotation', value: 120 },
-      { frame: 180, prop: 'rotation', value: 240 },
-      { frame: 240, prop: 'rotation', value: 360 },
-    ],
-  },
-
-  // 4 ── Glow circle — slides in from left ──────────────────────────────────
-  {
-    id: 4, label: 'Glow Circle', trackColor: '#3b82f6',
-    type: 'shape', shape: 'circle',
-    startFrame: 30, durationFrames: 240,
-    x: 15, y: 50, scale: 0.5, rotation: 0, opacity: 0,
-    width: 42, height: 42, color: '#3b82f6', blur: 44,
-    keyframes: [
-      { frame: 30, prop: 'opacity', value: 0    },
-      { frame: 60, prop: 'opacity', value: 0.3  },
-      { frame: 240, prop: 'opacity', value: 0.25 },
-      { frame: 270, prop: 'opacity', value: 0   },
-      { frame: 30, prop: 'x',       value: 15  },
-      { frame: 90, prop: 'x',       value: 50  },
-      { frame: 30, prop: 'scale',   value: 0.5 },
-      { frame: 90, prop: 'scale',   value: 1   },
-    ],
-  },
-];
-
-// ─── Keyframe engine ──────────────────────────────────────────────────────────
-
-function smoothstep(t: number): number {
-  const c = Math.max(0, Math.min(1, t));
-  return c * c * (3 - 2 * c);
+function fmtTimecode(frame: number, fps: number): string {
+  const totalSec = Math.floor(frame / fps);
+  const mm = Math.floor(totalSec / 60);
+  const ss = totalSec % 60;
+  const ff = frame % fps;
+  return `${String(mm).padStart(2, '0')}:${String(ss).padStart(2, '0')}:${String(ff).padStart(2, '0')}`;
 }
 
-function interpolateKfs(kfs: Keyframe[], prop: Keyframe['prop'], frame: number): number | undefined {
-  const sorted = kfs.filter(k => k.prop === prop).sort((a, b) => a.frame - b.frame);
-  if (!sorted.length) return undefined;
-  if (frame <= sorted[0].frame) return sorted[0].value;
-  if (frame >= sorted[sorted.length - 1].frame) return sorted[sorted.length - 1].value;
-  for (let i = 0; i < sorted.length - 1; i++) {
-    const a = sorted[i], b = sorted[i + 1];
-    if (frame >= a.frame && frame <= b.frame) {
-      const t = (frame - a.frame) / (b.frame - a.frame);
-      return a.value + (b.value - a.value) * smoothstep(t);
-    }
-  }
-}
+// ─── Ruler heights / track sizes ──────────────────────────────────────────────
 
-const ANIMATABLE: ReadonlyArray<Keyframe['prop']> = ['x', 'y', 'scale', 'rotation', 'opacity'];
-
-interface ResolvedTransform { x: number; y: number; scale: number; rotation: number; opacity: number; }
-
-function resolveProps(comp: Composition, frame: number): ResolvedTransform {
-  const out: ResolvedTransform = {
-    x: comp.x, y: comp.y, scale: comp.scale, rotation: comp.rotation, opacity: comp.opacity,
-  };
-  for (const prop of ANIMATABLE) {
-    const v = interpolateKfs(comp.keyframes, prop, frame);
-    if (v !== undefined) out[prop] = v;
-  }
-  return out;
-}
-
-// ─── Composition renderer ─────────────────────────────────────────────────────
-
-function CompositionRenderer({
-  compositions, frame, selectedId,
-}: {
-  compositions: Composition[];
-  frame: number;
-  selectedId: number | null;
-}) {
-  const active = compositions.filter(c => frame >= c.startFrame && frame < c.startFrame + c.durationFrames);
-  return (
-    <div className="absolute inset-0 overflow-hidden" style={{ zIndex: 5 }}>
-      {active.map(comp => {
-        const { x, y, scale, rotation, opacity } = resolveProps(comp, frame);
-        const transform = `translate(-50%,-50%) scale(${scale}) rotate(${rotation}deg)`;
-        const isSelected = comp.id === selectedId;
-
-        if (comp.type === 'text') {
-          return (
-            <div key={comp.id} className="absolute select-none pointer-events-none whitespace-nowrap"
-              style={{
-                left: `${x}%`, top: `${y}%`, transform, opacity,
-                fontSize: comp.fontSize, color: comp.color,
-                fontWeight: comp.fontWeight ?? 400, letterSpacing: comp.letterSpacing ?? 0,
-                textShadow: isSelected
-                  ? '0 0 0 1px rgba(59,130,246,0.8), 0 2px 16px rgba(0,0,0,0.7)'
-                  : '0 2px 16px rgba(0,0,0,0.7)',
-                transformOrigin: 'center center',
-                fontFamily: 'var(--font-sans, system-ui)',
-                outline: isSelected ? '1px dashed rgba(59,130,246,0.5)' : undefined,
-              }}
-            >
-              {comp.content}
-            </div>
-          );
-        }
-
-        if (comp.type === 'shape') {
-          // height as % of preview-container height:
-          // comp.height is in "% of preview width" units
-          // preview h = preview_w * 9/16, so comp.height% of w = comp.height * 16/9 % of h
-          const cssH = `${(comp.height * 16) / 9}%`;
-          return (
-            <div key={comp.id} className="absolute pointer-events-none"
-              style={{
-                left: `${x}%`, top: `${y}%`,
-                width: `${comp.width}%`, height: cssH,
-                transform, opacity, background: comp.color,
-                borderRadius: comp.shape === 'circle' ? '50%' : '4px',
-                filter: comp.blur ? `blur(${comp.blur}px)` : undefined,
-                transformOrigin: 'center center',
-                outline: isSelected ? '1px dashed rgba(59,130,246,0.5)' : undefined,
-              }}
-            />
-          );
-        }
-        return null;
-      })}
-    </div>
-  );
-}
+const RULER_H = 32;
+const TRACK_H = 36;
 
 // ─── Properties panel ─────────────────────────────────────────────────────────
 
@@ -268,14 +64,13 @@ const P_SELECT: React.CSSProperties = {
 function r(v: number, d = 1) { return Math.round(v * 10 ** d) / 10 ** d; }
 
 function PropertiesPanel({
-  comp, frame, onUpdate, onAdd, onDelete, onDeleteKeyframe,
+  layer, onUpdate, onAdd, onDelete, onDeleteKeyframe,
 }: {
-  comp: Composition | null;
-  frame: number;
-  onUpdate: (id: number, patch: Record<string, unknown>) => void;
+  layer: Layer | null;
+  onUpdate: (id: string, patch: Record<string, unknown>) => void;
   onAdd: (type: 'text' | 'shape') => void;
-  onDelete: (id: number) => void;
-  onDeleteKeyframe: (compId: number, index: number) => void;
+  onDelete: (id: string) => void;
+  onDeleteKeyframe: (layerId: string, index: number) => void;
 }) {
   const Section = ({ label }: { label: string }) => (
     <p style={{
@@ -286,7 +81,7 @@ function PropertiesPanel({
     </p>
   );
 
-  const Field = ({ label, children, half }: { label: string; children: React.ReactNode; half?: boolean }) => (
+  const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
     <div style={{ minWidth: 0 }}>
       <p style={{ fontSize: 9, color: '#3d3d3d', marginBottom: 3, letterSpacing: 0.5, textTransform: 'uppercase' }}>{label}</p>
       {children}
@@ -299,17 +94,17 @@ function PropertiesPanel({
     </div>
   );
 
-  const num = (prop: keyof CompositionBase, step = 1) => (
+  const num = (prop: keyof Layer, step = 1) => (
     <input
       type="number" step={step} style={P_IN}
-      value={r(comp![prop] as number, step < 1 ? 2 : 0)}
-      onChange={e => onUpdate(comp!.id, { [prop]: parseFloat(e.target.value) || 0 })}
+      value={r(layer![prop] as number, step < 1 ? 2 : 0)}
+      onChange={e => onUpdate(layer!.id, { [prop]: parseFloat(e.target.value) || 0 })}
     />
   );
 
   // sorted keyframes for display, keeping original index for deletion
-  const sortedKfs = comp
-    ? comp.keyframes
+  const sortedKfs = layer
+    ? layer.keyframes
         .map((kf, i) => ({ kf, i }))
         .sort((a, b) => a.kf.frame - b.kf.frame)
     : [];
@@ -325,13 +120,13 @@ function PropertiesPanel({
           Properties
         </span>
         <div className="flex gap-1">
-          <button onClick={() => onAdd('text')} title="Add Text composition"
+          <button onClick={() => onAdd('text')} title="Add Text"
             className="flex items-center gap-1 rounded-md transition-colors duration-150 cursor-pointer hover:bg-white/[0.06]"
             style={{ padding: '3px 7px', border: '1px solid #1e1e1e', background: 'rgba(255,255,255,0.03)', color: '#666' }}>
             <Type size={10} />
             <span style={{ fontSize: 10 }}>Text</span>
           </button>
-          <button onClick={() => onAdd('shape')} title="Add Shape composition"
+          <button onClick={() => onAdd('shape')} title="Add Shape"
             className="flex items-center gap-1 rounded-md transition-colors duration-150 cursor-pointer hover:bg-white/[0.06]"
             style={{ padding: '3px 7px', border: '1px solid #1e1e1e', background: 'rgba(255,255,255,0.03)', color: '#666' }}>
             <Square size={10} />
@@ -342,8 +137,7 @@ function PropertiesPanel({
 
       {/* Body */}
       <div className="flex-1 overflow-y-auto" style={{ minHeight: 0, padding: '8px 12px 20px' }}>
-        {!comp ? (
-          /* Empty state */
+        {!layer ? (
           <div className="flex flex-col items-center justify-center h-full gap-3"
             style={{ opacity: 0.4, paddingTop: 48 }}>
             <div style={{ fontSize: 28, lineHeight: 1 }}>↖</div>
@@ -353,14 +147,14 @@ function PropertiesPanel({
           </div>
         ) : (
           <>
-            {/* Comp name + delete */}
+            {/* Layer name + delete */}
             <div className="flex items-center justify-between" style={{ marginBottom: 6 }}>
               <input
                 type="text" style={{ ...P_IN, flex: 1, marginRight: 6 }}
-                value={comp.label}
-                onChange={e => onUpdate(comp.id, { label: e.target.value })}
+                value={layer.label}
+                onChange={e => onUpdate(layer.id, { label: e.target.value })}
               />
-              <button onClick={() => onDelete(comp.id)} title="Delete composition"
+              <button onClick={() => onDelete(layer.id)} title="Delete layer"
                 className="flex items-center justify-center rounded cursor-pointer transition-colors"
                 style={{
                   width: 24, height: 24, flexShrink: 0,
@@ -378,102 +172,106 @@ function PropertiesPanel({
             <G2>
               <Field label="Start f">
                 <input type="number" step={1} style={P_IN}
-                  value={comp.startFrame}
-                  onChange={e => onUpdate(comp.id, { startFrame: Math.max(0, parseInt(e.target.value) || 0) })} />
+                  value={layer.from}
+                  onChange={e => onUpdate(layer.id, { from: Math.max(0, parseInt(e.target.value) || 0) })} />
               </Field>
               <Field label="Duration f">
                 <input type="number" step={1} style={P_IN}
-                  value={comp.durationFrames}
-                  onChange={e => onUpdate(comp.id, { durationFrames: Math.max(MIN_CLIP_F, parseInt(e.target.value) || MIN_CLIP_F) })} />
+                  value={layer.durationInFrames}
+                  onChange={e => onUpdate(layer.id, { durationInFrames: Math.max(MIN_CLIP_F, parseInt(e.target.value) || MIN_CLIP_F) })} />
               </Field>
             </G2>
 
             {/* ── Transform ───────────────────────────────────── */}
             <Section label="Transform" />
             <G2>
-              <Field label="X %">{num('x')}</Field>
-              <Field label="Y %">{num('y')}</Field>
+              <Field label="X px">{num('x')}</Field>
+              <Field label="Y px">{num('y')}</Field>
               <Field label="Scale">{num('scale', 0.01)}</Field>
               <Field label="Rotation °">{num('rotation')}</Field>
             </G2>
             <Field label="Opacity">
               <input type="number" step={0.01} min={0} max={1} style={P_IN}
-                value={r(comp.opacity, 2)}
-                onChange={e => onUpdate(comp.id, { opacity: Math.max(0, Math.min(1, parseFloat(e.target.value) || 0)) })} />
+                value={r(layer.opacity, 2)}
+                onChange={e => onUpdate(layer.id, { opacity: Math.max(0, Math.min(1, parseFloat(e.target.value) || 0)) })} />
             </Field>
 
             {/* ── Appearance ──────────────────────────────────── */}
-            <Section label="Appearance" />
-            <Field label="Color">
-              <div className="flex gap-2 items-center">
-                <input type="color" value={comp.color}
-                  onChange={e => onUpdate(comp.id, { color: e.target.value })}
-                  style={{
-                    width: 28, height: 24, borderRadius: 4, border: '1px solid #1a1a1a',
-                    background: 'none', padding: '1px 2px', cursor: 'pointer', flexShrink: 0,
-                  }} />
-                <input type="text" style={{ ...P_IN, flex: 1 }} value={comp.color}
-                  onChange={e => onUpdate(comp.id, { color: e.target.value })} />
-              </div>
-            </Field>
+            {'color' in layer && (
+              <>
+                <Section label="Appearance" />
+                <Field label="Color">
+                  <div className="flex gap-2 items-center">
+                    <input type="color" value={layer.color as string}
+                      onChange={e => onUpdate(layer.id, { color: e.target.value })}
+                      style={{
+                        width: 28, height: 24, borderRadius: 4, border: '1px solid #1a1a1a',
+                        background: 'none', padding: '1px 2px', cursor: 'pointer', flexShrink: 0,
+                      }} />
+                    <input type="text" style={{ ...P_IN, flex: 1 }} value={layer.color as string}
+                      onChange={e => onUpdate(layer.id, { color: e.target.value })} />
+                  </div>
+                </Field>
+              </>
+            )}
 
             {/* ── Text fields ──────────────────────────────────── */}
-            {comp.type === 'text' && (
+            {layer.type === 'text' && (
               <>
                 <Section label="Text" />
                 <Field label="Content">
-                  <input type="text" style={P_IN} value={comp.content}
-                    onChange={e => onUpdate(comp.id, { content: e.target.value })} />
+                  <input type="text" style={P_IN} value={layer.content}
+                    onChange={e => onUpdate(layer.id, { content: e.target.value })} />
                 </Field>
                 <G2>
                   <Field label="Font size">
-                    <input type="number" step={1} style={P_IN} value={comp.fontSize}
-                      onChange={e => onUpdate(comp.id, { fontSize: parseInt(e.target.value) || 12 })} />
+                    <input type="number" step={1} style={P_IN} value={layer.fontSize}
+                      onChange={e => onUpdate(layer.id, { fontSize: parseInt(e.target.value) || 12 })} />
                   </Field>
                   <Field label="Weight">
-                    <select style={P_SELECT} value={comp.fontWeight ?? 400}
-                      onChange={e => onUpdate(comp.id, { fontWeight: parseInt(e.target.value) })}>
+                    <select style={P_SELECT} value={layer.fontWeight}
+                      onChange={e => onUpdate(layer.id, { fontWeight: parseInt(e.target.value) })}>
                       {[300, 400, 500, 600, 700, 800].map(w => <option key={w} value={w}>{w}</option>)}
                     </select>
                   </Field>
                   <Field label="Spacing">
-                    <input type="number" step={0.5} style={P_IN} value={comp.letterSpacing ?? 0}
-                      onChange={e => onUpdate(comp.id, { letterSpacing: parseFloat(e.target.value) || 0 })} />
+                    <input type="number" step={0.5} style={P_IN} value={layer.letterSpacing}
+                      onChange={e => onUpdate(layer.id, { letterSpacing: parseFloat(e.target.value) || 0 })} />
                   </Field>
                 </G2>
               </>
             )}
 
             {/* ── Shape fields ─────────────────────────────────── */}
-            {comp.type === 'shape' && (
+            {layer.type === 'shape' && (
               <>
                 <Section label="Shape" />
                 <G2>
-                  <Field label="Width %">
-                    <input type="number" step={0.5} style={P_IN} value={r(comp.width)}
-                      onChange={e => onUpdate(comp.id, { width: parseFloat(e.target.value) || 1 })} />
+                  <Field label="Width px">
+                    <input type="number" step={1} style={P_IN} value={r(layer.width)}
+                      onChange={e => onUpdate(layer.id, { width: parseFloat(e.target.value) || 1 })} />
                   </Field>
-                  <Field label="Height %">
-                    <input type="number" step={0.5} style={P_IN} value={r(comp.height)}
-                      onChange={e => onUpdate(comp.id, { height: parseFloat(e.target.value) || 1 })} />
+                  <Field label="Height px">
+                    <input type="number" step={1} style={P_IN} value={r(layer.height)}
+                      onChange={e => onUpdate(layer.id, { height: parseFloat(e.target.value) || 1 })} />
                   </Field>
                   <Field label="Type">
-                    <select style={P_SELECT} value={comp.shape}
-                      onChange={e => onUpdate(comp.id, { shape: e.target.value })}>
+                    <select style={P_SELECT} value={layer.shape}
+                      onChange={e => onUpdate(layer.id, { shape: e.target.value })}>
                       <option value="rect">Rect</option>
                       <option value="circle">Circle</option>
                     </select>
                   </Field>
                   <Field label="Blur px">
-                    <input type="number" step={1} min={0} style={P_IN} value={comp.blur ?? 0}
-                      onChange={e => onUpdate(comp.id, { blur: parseInt(e.target.value) || 0 })} />
+                    <input type="number" step={1} min={0} style={P_IN} value={layer.blur}
+                      onChange={e => onUpdate(layer.id, { blur: parseInt(e.target.value) || 0 })} />
                   </Field>
                 </G2>
               </>
             )}
 
             {/* ── Keyframes ────────────────────────────────────── */}
-            <Section label={`Keyframes (${comp.keyframes.length})`} />
+            <Section label={`Keyframes (${layer.keyframes.length})`} />
             {sortedKfs.length === 0 && (
               <p style={{ fontSize: 10, color: '#333', fontStyle: 'italic' }}>No keyframes</p>
             )}
@@ -488,7 +286,7 @@ function PropertiesPanel({
                 <span style={{ fontSize: 9, color: '#666', minWidth: 34, textAlign: 'right', fontFamily: 'monospace' }}>
                   {r(kf.value, 2)}
                 </span>
-                <button onClick={() => onDeleteKeyframe(comp.id, i)}
+                <button onClick={() => onDeleteKeyframe(layer.id, i)}
                   className="flex items-center justify-center cursor-pointer rounded transition-colors"
                   style={{
                     width: 16, height: 16, flexShrink: 0, fontSize: 10,
@@ -508,155 +306,183 @@ function PropertiesPanel({
   );
 }
 
-// ─── Chat types + helpers ─────────────────────────────────────────────────────
-
-interface ChatMessage { id: number; role: 'user' | 'assistant'; text: string; }
-
-const INITIAL_MESSAGES: ChatMessage[] = [{
-  id: 0, role: 'assistant',
-  text: 'Hi! I can help you edit your video. Try "trim the last 2 seconds" or "add a fade-in transition".',
-}];
-
-function fmtTimecode(frame: number): string {
-  const totalSec = Math.floor(frame / FPS);
-  const mm = Math.floor(totalSec / 60);
-  const ss = totalSec % 60;
-  const ff = frame % FPS;
-  return `${String(mm).padStart(2, '0')}:${String(ss).padStart(2, '0')}:${String(ff).padStart(2, '0')}`;
-}
-
 // ─── EditorPage ───────────────────────────────────────────────────────────────
 
 export function EditorPage() {
-  const [isPlaying,    setIsPlaying]    = useState(false);
+  /* ── State ──────────────────────────────────────────────────────────── */
+  const [scene,        setScene]        = useState<Scene>(() => structuredClone(DEFAULT_SCENE));
+  const [selectedId,   setSelectedId]   = useState<string | null>(null);
   const [frame,        setFrame]        = useState(0);
-  const [comps,        setComps]        = useState<Composition[]>(INITIAL_COMPS);
-  const [selectedId,   setSelectedId]   = useState<number | null>(null);
+  const [isPlaying,    setIsPlaying]    = useState(false);
   const [messages,     setMessages]     = useState<ChatMessage[]>(INITIAL_MESSAGES);
   const [input,        setInput]        = useState('');
   const [inputFocused, setInputFocused] = useState(false);
   const [attachedFiles, setAttachedFiles] = useState<string[]>([]);
 
-  const intervalRef    = useRef<ReturnType<typeof setInterval> | null>(null);
+  const playerRef      = useRef<PlayerRef>(null);
   const clipAreaRef    = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const dragRef        = useRef<DragOp | null>(null);
-  const nextId         = useRef(INITIAL_COMPS.length + 1);
+  const nextIdRef      = useRef(scene.layers.length + 1);
   const fileInputRef   = useRef<HTMLInputElement>(null);
 
-  /* ── Playback ─────────────────────────────────────────────────────────── */
-  useEffect(() => {
-    if (isPlaying) {
-      intervalRef.current = setInterval(() => {
-        setFrame(f => { if (f >= TOTAL_FRAMES - 1) { setIsPlaying(false); return 0; } return f + 1; });
-      }, 1000 / FPS);
-    } else {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    }
-    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
-  }, [isPlaying]);
+  const TOTAL_FRAMES = scene.durationInFrames;
+  const FPS          = scene.fps;
+  const TOTAL_PX     = TOTAL_FRAMES * PX_PER_FRAME;
 
-  /* ── Chat scroll ──────────────────────────────────────────────────────── */
+  /* ── Sync frame from Player ──────────────────────────────────────── */
+  useEffect(() => {
+    const player = playerRef.current;
+    if (!player) return;
+
+    const onFrame = () => {
+      const f = player.getCurrentFrame();
+      setFrame(f);
+    };
+
+    const onPlay = () => setIsPlaying(true);
+    const onPause = () => setIsPlaying(false);
+    const onEnded = () => { setIsPlaying(false); setFrame(0); };
+
+    player.addEventListener('frameupdate', onFrame);
+    player.addEventListener('play', onPlay);
+    player.addEventListener('pause', onPause);
+    player.addEventListener('ended', onEnded);
+
+    return () => {
+      player.removeEventListener('frameupdate', onFrame);
+      player.removeEventListener('play', onPlay);
+      player.removeEventListener('pause', onPause);
+      player.removeEventListener('ended', onEnded);
+    };
+  }, []);
+
+  /* ── Chat scroll ──────────────────────────────────────────────────── */
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
 
-  /* ── Global drag ──────────────────────────────────────────────────────── */
+  /* ── Global drag (timeline clips) ─────────────────────────────────── */
   useEffect(() => {
     const onMove = (e: MouseEvent) => {
       const drag = dragRef.current;
       if (!drag) return;
       const delta = Math.round((e.clientX - drag.ox) / PX_PER_FRAME);
-      setComps(prev => prev.map(c => {
-        if (c.id !== drag.id) return c;
-        if (drag.kind === 'move') {
-          const newStart   = Math.max(0, Math.min(TOTAL_FRAMES - c.durationFrames, drag.os + delta));
-          const frameDelta = newStart - drag.os;
-          return { ...c, startFrame: newStart, keyframes: drag.ok.map(kf => ({ ...kf, frame: kf.frame + frameDelta })) };
-        }
-        if (drag.kind === 'left') {
-          const newStart    = Math.max(0, Math.min(drag.os + drag.od - MIN_CLIP_F, drag.os + delta));
-          const newDuration = drag.od - (newStart - drag.os);
-          return { ...c, startFrame: newStart, durationFrames: newDuration };
-        }
-        if (drag.kind === 'right') {
-          const newDuration = Math.max(MIN_CLIP_F, Math.min(TOTAL_FRAMES - c.startFrame, drag.od + delta));
-          return { ...c, durationFrames: newDuration };
-        }
-        return c;
+      setScene(prev => ({
+        ...prev,
+        layers: prev.layers.map(c => {
+          if (c.id !== drag.id) return c;
+          if (drag.kind === 'move') {
+            const newStart   = Math.max(0, Math.min(TOTAL_FRAMES - c.durationInFrames, drag.os + delta));
+            const frameDelta = newStart - drag.os;
+            return { ...c, from: newStart, keyframes: drag.ok.map(kf => ({ ...kf, frame: kf.frame + frameDelta })) };
+          }
+          if (drag.kind === 'left') {
+            const newStart    = Math.max(0, Math.min(drag.os + drag.od - MIN_CLIP_F, drag.os + delta));
+            const newDuration = drag.od - (newStart - drag.os);
+            return { ...c, from: newStart, durationInFrames: newDuration };
+          }
+          if (drag.kind === 'right') {
+            const newDuration = Math.max(MIN_CLIP_F, Math.min(TOTAL_FRAMES - c.from, drag.od + delta));
+            return { ...c, durationInFrames: newDuration };
+          }
+          return c;
+        }),
       }));
     };
     const onUp = () => { dragRef.current = null; };
     window.addEventListener('mousemove', onMove);
     window.addEventListener('mouseup',  onUp);
     return () => { window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp); };
+  }, [TOTAL_FRAMES]);
+
+  /* ── Layer mutations ─────────────────────────────────────────────── */
+  const updateLayer = useCallback((id: string, patch: Record<string, unknown>) => {
+    setScene(prev => ({
+      ...prev,
+      layers: prev.layers.map(l => l.id === id ? { ...l, ...patch } as Layer : l),
+    }));
   }, []);
 
-  /* ── Composition mutations ────────────────────────────────────────────── */
-  const updateComp = useCallback((id: number, patch: Record<string, unknown>) => {
-    setComps(prev => prev.map(c => c.id === id ? { ...c, ...patch } as Composition : c));
-  }, []);
-
-  const addComp = useCallback((type: 'text' | 'shape') => {
-    const id    = nextId.current++;
-    const color = TRACK_COLORS[id % TRACK_COLORS.length];
-    const base: CompositionBase = {
-      id, label: type === 'text' ? `Text ${id}` : `Shape ${id}`,
+  const addLayer = useCallback((type: 'text' | 'shape') => {
+    const idx   = nextIdRef.current++;
+    const id    = `layer-${idx}`;
+    const color = getTrackColor(idx);
+    const base = {
+      id, label: type === 'text' ? `Text ${idx}` : `Shape ${idx}`,
       trackColor: color,
-      startFrame: frame, durationFrames: 90,
-      x: 50, y: 50, scale: 1, rotation: 0, opacity: 1,
-      keyframes: [],
+      from: frame, durationInFrames: 90,
+      x: scene.width / 2, y: scene.height / 2,
+      scale: 1, rotation: 0, opacity: 1,
+      keyframes: [] as SceneKeyframe[],
     };
-    const newComp: Composition = type === 'text'
-      ? { ...base, type: 'text', content: 'New Text', fontSize: 20, color: '#ffffff', fontWeight: 600 }
-      : { ...base, type: 'shape', shape: 'rect', width: 20, height: 10, color };
-    setComps(prev => [...prev, newComp]);
+    const newLayer: Layer = type === 'text'
+      ? { ...base, type: 'text', content: 'New Text', fontSize: 48, color: '#ffffff', fontWeight: 600, fontFamily: 'var(--font-sans, system-ui)', letterSpacing: 0 }
+      : { ...base, type: 'shape', shape: 'rect', width: 384, height: 108, color, blur: 0 };
+    setScene(prev => ({ ...prev, layers: [...prev.layers, newLayer] }));
     setSelectedId(id);
-  }, [frame]);
+  }, [frame, scene.width, scene.height]);
 
-  const deleteComp = useCallback((id: number) => {
-    setComps(prev => prev.filter(c => c.id !== id));
+  const deleteLayer = useCallback((id: string) => {
+    setScene(prev => ({ ...prev, layers: prev.layers.filter(l => l.id !== id) }));
     setSelectedId(s => s === id ? null : s);
   }, []);
 
-  const deleteKeyframe = useCallback((compId: number, index: number) => {
-    setComps(prev => prev.map(c =>
-      c.id === compId ? { ...c, keyframes: c.keyframes.filter((_, i) => i !== index) } : c,
-    ));
+  const deleteKeyframe = useCallback((layerId: string, index: number) => {
+    setScene(prev => ({
+      ...prev,
+      layers: prev.layers.map(l =>
+        l.id === layerId ? { ...l, keyframes: l.keyframes.filter((_, i) => i !== index) } : l,
+      ),
+    }));
   }, []);
 
-  /* ── Timeline interaction ─────────────────────────────────────────────── */
+  /* ── Timeline interaction ─────────────────────────────────────────── */
   const xToFrame = useCallback((clientX: number): number => {
     if (!clipAreaRef.current) return 0;
     const rect   = clipAreaRef.current.getBoundingClientRect();
     const scroll = clipAreaRef.current.scrollLeft;
     return Math.max(0, Math.min(TOTAL_FRAMES - 1, Math.round((clientX - rect.left + scroll) / PX_PER_FRAME)));
-  }, []);
+  }, [TOTAL_FRAMES]);
 
   const onTimelineMouseDown = useCallback((e: React.MouseEvent) => {
-    setFrame(xToFrame(e.clientX));
+    const f = xToFrame(e.clientX);
+    setFrame(f);
+    playerRef.current?.seekTo(f);
   }, [xToFrame]);
 
-  const startMove = useCallback((e: React.MouseEvent, id: number) => {
+  const startMove = useCallback((e: React.MouseEvent, id: string) => {
     e.stopPropagation(); e.preventDefault();
     setSelectedId(id);
-    const c = comps.find(x => x.id === id)!;
-    dragRef.current = { kind: 'move', id, ox: e.clientX, os: c.startFrame, ok: c.keyframes };
-  }, [comps]);
+    const c = scene.layers.find(x => x.id === id)!;
+    dragRef.current = { kind: 'move', id, ox: e.clientX, os: c.from, ok: c.keyframes };
+  }, [scene.layers]);
 
-  const startResizeLeft = useCallback((e: React.MouseEvent, id: number) => {
+  const startResizeLeft = useCallback((e: React.MouseEvent, id: string) => {
     e.stopPropagation(); e.preventDefault();
     setSelectedId(id);
-    const c = comps.find(x => x.id === id)!;
-    dragRef.current = { kind: 'left', id, ox: e.clientX, os: c.startFrame, od: c.durationFrames };
-  }, [comps]);
+    const c = scene.layers.find(x => x.id === id)!;
+    dragRef.current = { kind: 'left', id, ox: e.clientX, os: c.from, od: c.durationInFrames };
+  }, [scene.layers]);
 
-  const startResizeRight = useCallback((e: React.MouseEvent, id: number) => {
+  const startResizeRight = useCallback((e: React.MouseEvent, id: string) => {
     e.stopPropagation(); e.preventDefault();
     setSelectedId(id);
-    const c = comps.find(x => x.id === id)!;
-    dragRef.current = { kind: 'right', id, ox: e.clientX, od: c.durationFrames };
-  }, [comps]);
+    const c = scene.layers.find(x => x.id === id)!;
+    dragRef.current = { kind: 'right', id, ox: e.clientX, od: c.durationInFrames };
+  }, [scene.layers]);
 
-  /* ── Chat ─────────────────────────────────────────────────────────────── */
+  /* ── Transport controls ──────────────────────────────────────────── */
+  const togglePlay = useCallback(() => {
+    const player = playerRef.current;
+    if (!player) return;
+    if (isPlaying) { player.pause(); } else { player.play(); }
+  }, [isPlaying]);
+
+  const seekTo = useCallback((f: number) => {
+    setFrame(f);
+    playerRef.current?.seekTo(f);
+  }, []);
+
+  /* ── Chat ─────────────────────────────────────────────────────────── */
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []);
     if (!files.length) return;
@@ -690,9 +516,11 @@ export function EditorPage() {
     }]), 700);
   };
 
-  const selectedComp = comps.find(c => c.id === selectedId) ?? null;
-  const playheadPx   = frame * PX_PER_FRAME;
-  const scrubberPct  = `${(frame / (TOTAL_FRAMES - 1)) * 100}%`;
+  /* ── Derived ─────────────────────────────────────────────────────── */
+  const selectedLayer = scene.layers.find(l => l.id === selectedId) ?? null;
+  const playheadPx    = frame * PX_PER_FRAME;
+  const scrubberPct   = `${(frame / (TOTAL_FRAMES - 1)) * 100}%`;
+  const SECS          = Math.ceil(TOTAL_FRAMES / FPS);
 
   return (
     <div className="flex h-full overflow-hidden text-white" style={{ background: '#080808' }}>
@@ -712,11 +540,10 @@ export function EditorPage() {
 
       {/* ─── PROPERTIES PANEL ────────────────────────────────────────────── */}
       <PropertiesPanel
-        comp={selectedComp}
-        frame={frame}
-        onUpdate={updateComp}
-        onAdd={addComp}
-        onDelete={deleteComp}
+        layer={selectedLayer}
+        onUpdate={updateLayer}
+        onAdd={addLayer}
+        onDelete={deleteLayer}
         onDeleteKeyframe={deleteKeyframe}
       />
 
@@ -736,27 +563,36 @@ export function EditorPage() {
           </button>
         </div>
 
-        {/* Preview */}
+        {/* Preview — Remotion Player */}
         <div className="flex-1 flex items-center justify-center overflow-hidden morphix-dot-grid"
           style={{ background: '#0d0d0d', padding: 24, minHeight: 0 }}>
           <div className="morphix-card noise-overlay relative rounded-lg overflow-hidden"
             style={{
-              width: '100%', maxWidth: 700, aspectRatio: '16/9', background: '#000',
+              width: '100%', maxWidth: 700, aspectRatio: '16/9',
               border: '1px solid #1e1e1e',
               boxShadow: '0 0 60px rgba(0,0,0,0.85), 0 0 0 1px rgba(255,255,255,0.03)',
             }}>
-            <div className="absolute inset-0" style={{ background: '#000' }} />
-            <CompositionRenderer compositions={comps} frame={frame} selectedId={selectedId} />
-            <div className="absolute top-0 inset-x-0 z-10" style={{ height: '9%', background: '#000' }} />
-            <div className="absolute bottom-0 inset-x-0 z-10" style={{ height: '9%', background: '#000' }} />
-            <div className="scan-line" style={{ zIndex: 20 }} />
+            <Player
+              ref={playerRef}
+              component={MorphixVideo}
+              inputProps={{ scene, selectedLayerId: selectedId }}
+              durationInFrames={Math.max(1, scene.durationInFrames)}
+              fps={scene.fps}
+              compositionWidth={scene.width}
+              compositionHeight={scene.height}
+              style={{ width: '100%', height: '100%' }}
+              controls={false}
+              autoPlay={false}
+              loop={false}
+            />
+            <div className="scan-line" style={{ zIndex: 20, position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, pointerEvents: 'none' }} />
             <div className="absolute select-none pointer-events-none"
               style={{
                 bottom: '11%', left: '50%', transform: 'translateX(-50%)', zIndex: 30,
                 fontFamily: 'var(--font-mono,monospace)', fontSize: 9, letterSpacing: 2,
                 color: 'rgba(255,255,255,0.18)',
               }}>
-              {fmtTimecode(frame)}
+              {fmtTimecode(frame, FPS)}
             </div>
           </div>
         </div>
@@ -767,8 +603,8 @@ export function EditorPage() {
 
           {/* Playback buttons */}
           {[
-            { icon: <SkipBack size={12} />,    title: 'Skip to start', fn: () => { setIsPlaying(false); setFrame(0); } },
-            { icon: <ChevronLeft size={13} />, title: 'Prev frame',    fn: () => setFrame(f => Math.max(0, f - 1)) },
+            { icon: <SkipBack size={12} />,    title: 'Skip to start', fn: () => seekTo(0) },
+            { icon: <ChevronLeft size={13} />, title: 'Prev frame',    fn: () => seekTo(Math.max(0, frame - 1)) },
           ].map((b, i) => (
             <button key={i} title={b.title} onClick={b.fn}
               className="flex items-center justify-center rounded-full text-[#666] hover:text-white hover:bg-white/[0.06] transition-all duration-150 cursor-pointer flex-shrink-0"
@@ -777,7 +613,7 @@ export function EditorPage() {
             </button>
           ))}
 
-          <button title={isPlaying ? 'Pause' : 'Play'} onClick={() => setIsPlaying(p => !p)}
+          <button title={isPlaying ? 'Pause' : 'Play'} onClick={togglePlay}
             className="flex items-center justify-center rounded-full text-[#3b82f6] transition-all duration-150 cursor-pointer flex-shrink-0"
             style={{
               width: 36, height: 36,
@@ -788,8 +624,8 @@ export function EditorPage() {
           </button>
 
           {[
-            { icon: <ChevronRight size={13} />, title: 'Next frame',  fn: () => setFrame(f => Math.min(TOTAL_FRAMES - 1, f + 1)) },
-            { icon: <SkipForward size={12} />,  title: 'Skip to end', fn: () => { setIsPlaying(false); setFrame(TOTAL_FRAMES - 1); } },
+            { icon: <ChevronRight size={13} />, title: 'Next frame',  fn: () => seekTo(Math.min(TOTAL_FRAMES - 1, frame + 1)) },
+            { icon: <SkipForward size={12} />,  title: 'Skip to end', fn: () => seekTo(TOTAL_FRAMES - 1) },
           ].map((b, i) => (
             <button key={i} title={b.title} onClick={b.fn}
               className="flex items-center justify-center rounded-full text-[#666] hover:text-white hover:bg-white/[0.06] transition-all duration-150 cursor-pointer flex-shrink-0"
@@ -804,7 +640,7 @@ export function EditorPage() {
           <div className="flex flex-1 items-center min-w-0">
             <input type="range" className="editor-scrubber"
               min={0} max={TOTAL_FRAMES - 1} value={frame}
-              onChange={e => { setIsPlaying(false); setFrame(Number(e.target.value)); }}
+              onChange={e => seekTo(Number(e.target.value))}
               style={{ '--sp': scrubberPct } as React.CSSProperties} />
           </div>
 
@@ -816,19 +652,19 @@ export function EditorPage() {
               fontFamily: 'var(--font-mono,monospace)', fontSize: 12,
               letterSpacing: 0.5, color: '#bbb', minWidth: 76, textAlign: 'right',
             }}>
-            {fmtTimecode(frame)}
+            {fmtTimecode(frame, FPS)}
           </span>
         </div>
 
         {/* ── Timeline ─────────────────────────────────────────────────── */}
         <div className="flex-shrink-0 flex overflow-hidden"
-          style={{ height: RULER_H + TRACK_H * comps.length, minHeight: 168, maxHeight: 260 }}>
+          style={{ height: RULER_H + TRACK_H * scene.layers.length, minHeight: 168, maxHeight: 260 }}>
 
           {/* Label column */}
           <div className="flex-shrink-0 flex flex-col"
             style={{ width: 96, borderRight: '1px solid #1a1a1a' }}>
             <div style={{ height: RULER_H, flexShrink: 0, borderBottom: '1px solid #1a1a1a', background: '#090909' }} />
-            {comps.map(c => (
+            {scene.layers.map(c => (
               <div key={c.id}
                 className="flex items-center gap-2 flex-shrink-0 cursor-pointer transition-colors duration-100"
                 style={{
@@ -884,21 +720,21 @@ export function EditorPage() {
 
               {/* Tracks */}
               <div style={{ position: 'relative' }}>
-                {comps.map(c => {
+                {scene.layers.map((c, idx) => {
                   const isSelected = c.id === selectedId;
                   return (
                     <div key={c.id} style={{
                       height: TRACK_H, position: 'relative', borderBottom: '1px solid #111',
                       background: isSelected
                         ? 'rgba(59,130,246,0.04)'
-                        : c.id % 2 === 0 ? 'rgba(255,255,255,0.012)' : 'transparent',
+                        : idx % 2 === 0 ? 'rgba(255,255,255,0.012)' : 'transparent',
                     }}>
                       <div
                         className={`tl-clip absolute${isSelected ? ' selected' : ''}`}
                         style={{
                           top: 6, height: TRACK_H - 12,
-                          left:  c.startFrame * PX_PER_FRAME,
-                          width: c.durationFrames * PX_PER_FRAME,
+                          left:  c.from * PX_PER_FRAME,
+                          width: c.durationInFrames * PX_PER_FRAME,
                           background: isSelected ? `${c.trackColor}35` : `${c.trackColor}22`,
                           border: `1px solid ${isSelected ? c.trackColor + 'aa' : c.trackColor + '55'}`,
                           borderRadius: 5, cursor: 'grab', minWidth: 8, userSelect: 'none',
@@ -975,6 +811,7 @@ export function EditorPage() {
                 background: msg.role === 'user' ? 'rgba(168,85,247,0.12)' : '#111',
                 border: `1px solid ${msg.role === 'user' ? 'rgba(168,85,247,0.22)' : '#1e1e1e'}`,
                 color: msg.role === 'user' ? '#c4b5fd' : '#888',
+                whiteSpace: 'pre-wrap',
               }}>
                 {msg.text}
               </div>

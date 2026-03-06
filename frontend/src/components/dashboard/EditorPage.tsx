@@ -49,7 +49,7 @@ export default function EditorPage() {
 
   // Chat state
   const [messages, setMessages] = useState<ChatMessage[]>([
-    { id: 0, role: 'assistant', text: "Hi! Describe an animation and I'll generate it for you. You can also follow up to refine it." },
+    { id: '0', role: 'assistant', text: "Hi! Describe an animation and I'll generate it for you. You can also follow up to refine it." },
   ]);
   const [input, setInput] = useState('');
   const chatEndRef = useRef<HTMLDivElement>(null);

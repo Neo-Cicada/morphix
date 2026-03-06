@@ -5,6 +5,10 @@ import React from 'react';
 import * as Remotion from 'remotion';
 import * as RemotionShapes from '@remotion/shapes';
 import * as RemotionTransitions from '@remotion/transitions';
+import * as THREE from 'three';
+import { useFrame, useThree, extend } from '@react-three/fiber';
+import * as DreiExports from '@react-three/drei';
+import { ThreeCanvas } from '@remotion/three';
 
 export interface CompileResult {
   Component: React.ComponentType | null;
@@ -17,6 +21,30 @@ const GLOBALS = {
   ...Remotion,
   RemotionShapes,
   RemotionTransitions,
+  THREE,
+  ThreeCanvas,
+  useFrame,
+  useThree,
+  extend,
+  // Drei geometry
+  Box: DreiExports.Box,
+  Sphere: DreiExports.Sphere,
+  Plane: DreiExports.Plane,
+  Torus: DreiExports.Torus,
+  Cylinder: DreiExports.Cylinder,
+  Cone: DreiExports.Cone,
+  RoundedBox: DreiExports.RoundedBox,
+  // Drei materials
+  MeshDistortMaterial: DreiExports.MeshDistortMaterial,
+  MeshWobbleMaterial: DreiExports.MeshWobbleMaterial,
+  // Drei scene
+  Environment: DreiExports.Environment,
+  Stars: DreiExports.Stars,
+  Float: DreiExports.Float,
+  Center: DreiExports.Center,
+  // Drei text/camera
+  Text: DreiExports.Text,
+  PerspectiveCamera: DreiExports.PerspectiveCamera,
 } as Record<string, unknown>;
 
 export function compile(code: string): CompileResult {

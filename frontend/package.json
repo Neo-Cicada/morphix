@@ -12,11 +12,14 @@
     "@ai-sdk/anthropic": "^3.0.58",
     "@babel/standalone": "^7.29.1",
     "@monaco-editor/react": "^4.7.0",
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.5.0",
     "@remotion/google-fonts": "^4.0.434",
     "@remotion/lambda": "^4.0.434",
     "@remotion/media-utils": "^4.0.434",
     "@remotion/player": "^4.0.434",
     "@remotion/shapes": "^4.0.434",
+    "@remotion/three": "^4.0.434",
     "@remotion/transitions": "^4.0.434",
     "@supabase/ssr": "^0.9.0",
     "@supabase/supabase-js": "^2.98.0",
@@ -30,7 +33,8 @@
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "remotion": "^4.0.434",
-    "tailwind-merge": "^3.5.0"
+    "tailwind-merge": "^3.5.0",
+    "three": "^0.178.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
@@ -38,6 +42,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/three": "^0.178.1",
     "babel-plugin-react-compiler": "1.0.0",
     "env-cmd": "^11.0.0",
     "eslint": "^9",

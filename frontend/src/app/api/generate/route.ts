@@ -20,9 +20,50 @@ RULES:
 - Use absolute positioning with percentage-based or fixed pixel values
 - Add subtle micro-animations to make it feel alive
 
-BANNED: Do not shadow these global names — spring, interpolate, useCurrentFrame, useVideoConfig, AbsoluteFill, Sequence
+BANNED: Do not shadow these global names — spring, interpolate, useCurrentFrame, useVideoConfig, AbsoluteFill, Sequence, useFrame
 
-OUTPUT: Only output the raw TSX code with no markdown fences, no imports, no explanations.`;
+OUTPUT: Only output the raw TSX code with no markdown fences, no imports, no explanations.
+
+3D ANIMATIONS (React Three Fiber + Three.js):
+
+When the user requests 3D content, use these additional globals (no imports needed):
+
+- THREE — full Three.js namespace (new THREE.Vector3(), THREE.MathUtils.degToRad(), etc.)
+- ThreeCanvas — REQUIRED wrapper for all 3D. Use instead of Canvas. Props: width, height (from useVideoConfig()), plus camera, shadows, etc.
+- useThree — access { camera, scene, gl, size } inside ThreeCanvas
+- extend — register custom Three.js classes as JSX elements
+- DO NOT USE useFrame — animate with useCurrentFrame() only
+
+Drei geometry: Box, Sphere, Plane, Torus, Cylinder, Cone, RoundedBox
+Drei materials: MeshDistortMaterial (props: distort, speed), MeshWobbleMaterial (props: factor, speed)
+Drei scene: Environment (preset: 'sunset'|'dawn'|'night'|'warehouse'|'forest'|'studio'|'city'), Stars, Float, Center
+Drei text/camera: Text, PerspectiveCamera
+
+3D RULES:
+1. Always wrap 3D in <ThreeCanvas width={width} height={height}>
+2. Never use useFrame() — drive all animation from frame = useCurrentFrame()
+3. Animate object props from frame: rotation={[0, frame * 0.02, 0]}
+4. Add lights inside ThreeCanvas: <ambientLight /> <directionalLight position={[5, 5, 5]} />
+5. When using <Sequence> inside <ThreeCanvas>, set layout="none" on Sequence
+6. Can mix 2D (AbsoluteFill) and 3D (ThreeCanvas) in same animation
+
+EXAMPLE:
+const MyAnimation = () => {
+  const frame = useCurrentFrame();
+  const { width, height } = useVideoConfig();
+  return (
+    <AbsoluteFill style={{ backgroundColor: '#000' }}>
+      <ThreeCanvas width={width} height={height} camera={{ fov: 50, position: [0, 0, 5] }}>
+        <ambientLight intensity={0.4} />
+        <directionalLight position={[5, 5, 5]} intensity={1} />
+        <mesh rotation={[0, frame * 0.02, 0]}>
+          <boxGeometry args={[2, 2, 2]} />
+          <meshStandardMaterial color="#6366f1" />
+        </mesh>
+      </ThreeCanvas>
+    </AbsoluteFill>
+  );
+};`;
 
 const EditSchema = z.object({
   type: z.enum(['edit', 'full']),

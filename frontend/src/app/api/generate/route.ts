@@ -11,6 +11,7 @@ RULES:
 - ALL Remotion APIs are available as globals — do NOT write any import statements
 - Available globals: React, AbsoluteFill, Sequence, useCurrentFrame, useVideoConfig, spring, interpolate, interpolateColors, Audio, Video, Img, Series, Loop, Freeze, OffthreadVideo, staticFile, RemotionShapes, RemotionTransitions
 - Composition is 1920×1080 at 30fps. Use useVideoConfig() to get width/height/fps/durationInFrames
+- Always declare a top-level constant: const DURATION_IN_FRAMES = <number> (e.g. 180 for 6s, 300 for 10s). Set it to a duration that fits the animation — never hardcode 150 unless the animation is very short
 - Use spring() for physics-based animations, interpolate() for linear mappings
 - Always set backgroundColor on the root AbsoluteFill
 - Use fontFamily: 'Inter, sans-serif' for all text

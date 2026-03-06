@@ -23,9 +23,13 @@ type ExportState = 'idle' | 'rendering' | 'done' | 'error';
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function extractDuration(code: string): number {
-  const match = code.match(/durationInFrames[:\s=]+(\d+)/);
-  if (match) return parseInt(match[1], 10);
-  return 150; // default: 5s at 30fps
+  // Prefer the top-level DURATION_IN_FRAMES constant the AI is instructed to declare
+  const upper = code.match(/DURATION_IN_FRAMES\s*=\s*(\d+)/);
+  if (upper) return parseInt(upper[1], 10);
+  // Fallback: any durationInFrames assignment/property
+  const lower = code.match(/durationInFrames[:\s=]+(\d+)/);
+  if (lower) return parseInt(lower[1], 10);
+  return 180; // default: 6s at 30fps
 }
 
 // ─── Main Component ───────────────────────────────────────────────────────────

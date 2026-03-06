@@ -15,7 +15,7 @@ const MonacoEditor = dynamic(() => import('@monaco-editor/react'), { ssr: false 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface ChatMessage {
-  id: number;
+  id: string;
   role: 'user' | 'assistant';
   text: string;
 }
@@ -82,14 +82,14 @@ export default function EditorPage() {
     const prompt = input.trim();
     if (!prompt || isGenerating) return;
 
-    setMessages((prev) => [...prev, { id: Date.now(), role: 'user', text: prompt }]);
+    setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: 'user', text: prompt }]);
     setInput('');
     const images = [...attachedImages];
     setAttachedImages([]);
     const isFollowUp = animationState.code.length > 0;
     conversationHistory.current.push({ role: 'user', content: prompt });
 
-    const assistantMsgId = Date.now() + 1;
+    const assistantMsgId = crypto.randomUUID();
     setMessages((prev) => [...prev, { id: assistantMsgId, role: 'assistant', text: '...' }]);
 
     if (!isFollowUp) {

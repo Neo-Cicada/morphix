@@ -60,7 +60,11 @@ npx prisma studio          # Open Prisma Studio GUI
 4. **Auto-correction** (`useAutoCorrection`): on compile error, retries up to 3 times with error context as `isFollowUp`
 5. Compiled `Component` passed to `AnimationPlayer` → `@remotion/player`
 
-**Globals injected into generated code**: `React`, all Remotion exports (`AbsoluteFill`, `useCurrentFrame`, `spring`, `interpolate`, etc.), `RemotionShapes`, `RemotionTransitions`. Generated code must NOT write import statements.
+**Globals injected into generated code**: `React`, all Remotion exports (`AbsoluteFill`, `useCurrentFrame`, `spring`, `interpolate`, etc.), `RemotionShapes`, `RemotionTransitions`. For 3D: `THREE` (Three.js), `ThreeCanvas` (`@remotion/three`), `useThree`, `extend` (R3F), and Drei components (`Box`, `Sphere`, `Plane`, `Torus`, `Cylinder`, `Cone`, `RoundedBox`, `MeshDistortMaterial`, `MeshWobbleMaterial`, `Environment`, `Stars`, `Float`, `Center`, `Text`, `PerspectiveCamera`). Generated code must NOT write import statements.
+
+**Critical constraint for generated code**: Never use `useFrame` (R3F hook) — drive all 3D animation from `useCurrentFrame()` instead. Never shadow banned globals: `spring`, `interpolate`, `useCurrentFrame`, `useVideoConfig`, `AbsoluteFill`, `Sequence`.
+
+**Multimodal support**: `/api/generate` accepts optional `frameImages: string[]` (base64 JPEG) alongside `prompt` for vision-based editing. Model used: `claude-sonnet-4-6`.
 
 **Component naming**: compiler looks for `MyAnimation` first, then `__defaultExport`, then last declared PascalCase name.
 

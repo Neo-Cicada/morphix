@@ -21,7 +21,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} collapsed={sidebarCollapsed} setCollapsed={setSidebarCollapsed} />
 
       <div className="flex flex-1 flex-col overflow-hidden relative">
-        <Topbar onMenuClick={() => setSidebarOpen(true)} />
+        {!isFullBleed && <Topbar onMenuClick={() => setSidebarOpen(true)} />}
 
         {isFullBleed ? (
           <main className="flex-1 overflow-hidden relative">

@@ -1,9 +1,8 @@
 import { renderMediaOnLambda, getRenderProgress } from '@remotion/lambda/client';
 import type { AwsRegion } from '@remotion/lambda';
 import { prisma } from '../lib/prisma';
-import type { Scene } from '../remotion/schema';
 
-export async function renderVideo(jobId: string, scene: Scene): Promise<void> {
+export async function renderVideo(jobId: string, code: string, durationInFrames: number, fps: number): Promise<void> {
     await prisma.videoJob.update({
         where: { id: jobId },
         data: { render_status: 'rendering', render_started_at: new Date() },
@@ -14,8 +13,8 @@ export async function renderVideo(jobId: string, scene: Scene): Promise<void> {
             region: process.env.AWS_REGION as AwsRegion,
             functionName: process.env.REMOTION_FUNCTION_NAME!,
             serveUrl: process.env.REMOTION_SITE_URL!,
-            composition: 'MorphixVideo',
-            inputProps: { scene },
+            composition: 'DynamicAnimation',
+            inputProps: { code, durationInFrames, fps },
             codec: 'h264',
             imageFormat: 'jpeg',
             maxRetries: 1,

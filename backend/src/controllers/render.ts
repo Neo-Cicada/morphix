@@ -49,8 +49,11 @@ export async function startRender(req: AuthenticatedRequest, res: Response, next
             });
         }
 
-        // Fire-and-forget
-        setImmediate(() => renderVideo(id, scene));
+        // Fire-and-forget (code-based rendering)
+        const code = typeof scene === 'string' ? scene : JSON.stringify(scene);
+        const durationInFrames = req.body.durationInFrames ?? scene.durationInFrames ?? 150;
+        const fps = req.body.fps ?? scene.fps ?? 30;
+        setImmediate(() => renderVideo(id, code, durationInFrames, fps));
 
         res.json({ status: 'queued', jobId: id });
     } catch (err) {

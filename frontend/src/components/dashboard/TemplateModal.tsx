@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Trash2, Loader2 } from 'lucide-react';
 import { api } from '@/lib/api';
-import type { Scene } from '@/remotion/schema';
 
 interface Template {
   id: string;
@@ -15,12 +14,12 @@ interface Template {
 
 interface TemplateModalProps {
   open: boolean;
-  currentScene: Scene;
+  currentCode: string;
   onClose: () => void;
-  onLoad: (scene: Scene) => void;
+  onLoad: (code: string) => void;
 }
 
-export function TemplateModal({ open, currentScene, onClose, onLoad }: TemplateModalProps) {
+export function TemplateModal({ open, currentCode, onClose, onLoad }: TemplateModalProps) {
   const [templates, setTemplates] = useState<Template[]>([]);
   const [loading, setLoading] = useState(false);
   const [saveName, setSaveName] = useState('');
@@ -42,7 +41,7 @@ export function TemplateModal({ open, currentScene, onClose, onLoad }: TemplateM
     try {
       const data = await api.post<{ template: Template }>('/templates', {
         name: saveName.trim(),
-        scene_json: currentScene,
+        scene_json: currentCode,
       });
       setTemplates(prev => [...prev, data.template]);
       setSaveName('');
@@ -63,7 +62,7 @@ export function TemplateModal({ open, currentScene, onClose, onLoad }: TemplateM
   const handleLoad = () => {
     const tpl = templates.find(t => t.id === selectedId);
     if (!tpl) return;
-    onLoad(tpl.scene_json as Scene);
+    onLoad(tpl.scene_json as string);
   };
 
   if (!open) return null;

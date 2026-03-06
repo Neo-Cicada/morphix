@@ -1,4 +1,4 @@
-import { EditorPage } from '@/components/dashboard/EditorPage';
+import EditorPage from '@/components/dashboard/EditorPage';
 
 export const metadata = { title: 'Editor — Morphix Studio' };
 

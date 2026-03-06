@@ -6,6 +6,7 @@ export interface SceneKeyframe {
     frame: number;
     prop: 'x' | 'y' | 'scale' | 'rotation' | 'opacity';
     value: number;
+    easing?: 'linear' | 'ease-in' | 'ease-out' | 'ease-in-out' | 'spring';
 }
 
 // ─── Layer types ──────────────────────────────────────────────────────────────

@@ -1,7 +1,6 @@
 'use client';
 
-import { useCurrentFrame } from 'remotion';
-import { interpolate } from 'remotion';
+import { useCurrentFrame, interpolate, spring, Easing } from 'remotion';
 import type { SceneKeyframe } from './schema';
 
 /**
@@ -37,9 +36,28 @@ export function useLayerTransform(
             }
         }
 
+        const easing = lo.easing ?? 'linear';
+
+        if (easing === 'spring') {
+            const progress = spring({
+                frame: frame - lo.frame,
+                fps: 30,
+                config: { damping: 200 },
+                durationInFrames: hi.frame - lo.frame,
+            });
+            return lo.value + (hi.value - lo.value) * progress;
+        }
+
+        const easingFn =
+            easing === 'ease-in' ? Easing.in(Easing.quad) :
+            easing === 'ease-out' ? Easing.out(Easing.quad) :
+            easing === 'ease-in-out' ? Easing.inOut(Easing.quad) :
+            Easing.linear;
+
         return interpolate(frame, [lo.frame, hi.frame], [lo.value, hi.value], {
             extrapolateLeft: 'clamp',
             extrapolateRight: 'clamp',
+            easing: easingFn,
         });
     };
 

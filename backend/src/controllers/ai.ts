@@ -39,6 +39,9 @@ interface Keyframe {
   frame: number;   // RELATIVE to layer.from — 0 = first frame of this layer
   prop: "x" | "y" | "scale" | "rotation" | "opacity";
   value: number;
+  easing?: "linear" | "ease-in" | "ease-out" | "ease-in-out" | "spring";
+  // easing is read from the SOURCE keyframe (the one before current frame).
+  // "spring" uses a smooth no-bounce physics curve (damping: 200).
 }
 
 interface TextLayer extends LayerBase {
@@ -84,21 +87,21 @@ interface AudioLayer extends LayerBase {
 ## Motion Design Rules
 
 ### Entry Animations (use on every text/shape layer)
-**fade-up** — smooth reveal from below:
+**fade-up** — smooth reveal from below (ease-out decelerates into position):
 \`\`\`json
-[{"frame":0,"prop":"opacity","value":0},{"frame":25,"prop":"opacity","value":1},
- {"frame":0,"prop":"y","value":580},{"frame":25,"prop":"y","value":540}]
+[{"frame":0,"prop":"opacity","value":0,"easing":"ease-out"},{"frame":25,"prop":"opacity","value":1},
+ {"frame":0,"prop":"y","value":580,"easing":"ease-out"},{"frame":25,"prop":"y","value":540}]
 \`\`\`
 
-**scale-in** — grow into view with fade:
+**scale-in** — grow into view with spring landing:
 \`\`\`json
-[{"frame":0,"prop":"scale","value":0.88},{"frame":22,"prop":"scale","value":1},
- {"frame":0,"prop":"opacity","value":0},{"frame":22,"prop":"opacity","value":1}]
+[{"frame":0,"prop":"scale","value":0.88,"easing":"spring"},{"frame":22,"prop":"scale","value":1},
+ {"frame":0,"prop":"opacity","value":0,"easing":"ease-out"},{"frame":22,"prop":"opacity","value":1}]
 \`\`\`
 
 **fade-in** — simple opacity reveal:
 \`\`\`json
-[{"frame":0,"prop":"opacity","value":0},{"frame":25,"prop":"opacity","value":1}]
+[{"frame":0,"prop":"opacity","value":0,"easing":"ease-out"},{"frame":25,"prop":"opacity","value":1}]
 \`\`\`
 
 ### Exit Animations
@@ -177,6 +180,7 @@ Layer 4 — CTA text:
 - Never change fps, width, or height.
 - Every text/shape layer MUST have entry animation keyframes. Static, unanimated layers are not acceptable.
 - When given brand context, use it to write copy and choose accent colors that fit the brand tone.
+- **Easing rule**: Position (x/y) and scale animations use \`"ease-out"\` or \`"spring"\`. Opacity always uses \`"ease-out"\` or \`"linear"\`. Never use \`"ease-in"\` on opacity. Rotation can use \`"linear"\` or \`"ease-in-out"\`.
 
 ## Response Format
 Respond with:

@@ -13,7 +13,7 @@ function SectionCard({
   accent = '#3b82f6',
   children,
 }: {
-  icon: React.ElementType;
+  icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
   label: string;
   title: string;
   accent?: string;

@@ -642,6 +642,7 @@ export function EditorPage() {
       from: frameRef.current, durationInFrames: 90,
       x: sceneRef.current.width / 2, y: sceneRef.current.height / 2,
       scale: 1, rotation: 0, opacity: 1,
+      zIndex: sceneRef.current.layers.length,
       keyframes: [] as SceneKeyframe[],
     };
     const newLayer: Layer = type === 'text'
@@ -689,6 +690,7 @@ export function EditorPage() {
       from: 0, durationInFrames: 90,
       x: sceneRef.current.width / 2, y: sceneRef.current.height / 2,
       scale: 1, rotation: 0, opacity: 1,
+      zIndex: sceneRef.current.layers.length,
       keyframes: [],
       src: url,
       width: dims.w, height: dims.h,
@@ -712,6 +714,7 @@ export function EditorPage() {
       trackColor: '#22c55e',
       from: 0, durationInFrames: 90,
       x: 0, y: 0, scale: 1, rotation: 0, opacity: 1,
+      zIndex: sceneRef.current.layers.length,
       keyframes: [],
       src: url,
       volume: 1, startFrom: 0, playbackRate: 1,

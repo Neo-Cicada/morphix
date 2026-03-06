@@ -1,15 +1,17 @@
 import React from 'react';
+import { useVideoConfig } from 'remotion';
 import type { ShapeLayer as ShapeLayerType } from '../schema';
 import { useLayerTransform } from '../useKeyframes';
 
 export const ShapeLayerComponent: React.FC<{ layer: ShapeLayerType }> = ({ layer }) => {
+  const { fps } = useVideoConfig();
   const t = useLayerTransform(layer.keyframes, {
     x: layer.x,
     y: layer.y,
     scale: layer.scale,
     rotation: layer.rotation,
     opacity: layer.opacity,
-  });
+  }, fps);
 
   return (
     <div

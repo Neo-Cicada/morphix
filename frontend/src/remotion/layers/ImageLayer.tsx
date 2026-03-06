@@ -1,18 +1,19 @@
 'use client';
 
 import React from 'react';
-import { Img } from 'remotion';
+import { Img, useVideoConfig } from 'remotion';
 import type { ImageLayer as ImageLayerType } from '../schema';
 import { useLayerTransform } from '../useKeyframes';
 
 export const ImageLayerComponent: React.FC<{ layer: ImageLayerType }> = ({ layer }) => {
+  const { fps } = useVideoConfig();
   const t = useLayerTransform(layer.keyframes, {
     x: layer.x,
     y: layer.y,
     scale: layer.scale,
     rotation: layer.rotation,
     opacity: layer.opacity,
-  });
+  }, fps);
 
   return (
     <div

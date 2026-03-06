@@ -21,6 +21,7 @@ export interface LayerBase {
     scale: number;
     rotation: number;
     opacity: number;
+    zIndex: number;
     keyframes: SceneKeyframe[];
 }
 
@@ -78,5 +79,6 @@ export interface Scene {
     width: number;
     height: number;
     durationInFrames: number;
+    backgroundColor: string;
     layers: Layer[];
 }

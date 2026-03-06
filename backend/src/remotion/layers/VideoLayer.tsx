@@ -1,16 +1,17 @@
 import React from 'react';
-import { Video } from 'remotion';
+import { Video, useVideoConfig } from 'remotion';
 import type { VideoLayer as VideoLayerType } from '../schema';
 import { useLayerTransform } from '../useKeyframes';
 
 export const VideoLayerComponent: React.FC<{ layer: VideoLayerType }> = ({ layer }) => {
+  const { fps } = useVideoConfig();
   const t = useLayerTransform(layer.keyframes, {
     x: layer.x,
     y: layer.y,
     scale: layer.scale,
     rotation: layer.rotation,
     opacity: layer.opacity,
-  });
+  }, fps);
 
   return (
     <div

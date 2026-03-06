@@ -97,7 +97,9 @@ The scene data model is defined in **two identical copies** that must be kept in
 - `frontend/src/remotion/schema.ts` — has `'use client'` directive, exports `DEFAULT_SCENE`
 - `backend/src/remotion/schema.ts` — no `'use client'`, used for server-side rendering
 
-**Key constraint**: `SceneKeyframe.frame` values are **relative to the layer's `from`** (0 = first frame of that layer). `useKeyframes.ts` uses linear `interpolate()` only — no easing or spring support in the current keyframe system.
+**Key constraint**: `SceneKeyframe.frame` values are **relative to the layer's `from`** (0 = first frame of that layer). `SceneKeyframe.easing` supports `'linear' | 'ease-in' | 'ease-out' | 'ease-in-out' | 'spring'`; defaults to `'linear'`. Spring uses Remotion's `spring()` with `damping: 200`. Layer types: `text | shape | image | video | audio`.
+
+**Font**: `MorphixVideo.tsx` loads Inter via `@remotion/google-fonts/Inter` at module level (call `loadFont()` before the component, not inside it).
 
 **Composition**: `backend/src/remotion/` is a copy of the frontend Remotion files without `'use client'` directives, used by the render worker for server-side bundling. `backend/tsconfig.json` has `"jsx": "react"` for this reason.
 

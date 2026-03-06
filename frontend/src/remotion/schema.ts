@@ -23,6 +23,7 @@ export interface LayerBase {
     scale: number;
     rotation: number;         // degrees
     opacity: number;
+    zIndex: number;
     keyframes: SceneKeyframe[];
 }
 
@@ -80,6 +81,7 @@ export interface Scene {
     width: number;
     height: number;
     durationInFrames: number;
+    backgroundColor: string;
     layers: Layer[];
 }
 
@@ -101,6 +103,7 @@ export const DEFAULT_SCENE: Scene = {
     width: 1920,
     height: 1080,
     durationInFrames: 300, // 10 seconds
+    backgroundColor: '#000000',
 
     layers: [
         // 1 ── Title — fades in with upward slide, fades out at end
@@ -112,7 +115,7 @@ export const DEFAULT_SCENE: Scene = {
             from: 0,
             durationInFrames: 270,
             x: 960, y: 475,
-            scale: 1, rotation: 0, opacity: 0,
+            scale: 1, rotation: 0, opacity: 0, zIndex: 4,
             content: 'MORPHIX',
             fontSize: 72,
             color: '#ffffff',
@@ -138,7 +141,7 @@ export const DEFAULT_SCENE: Scene = {
             from: 45,
             durationInFrames: 210,
             x: 960, y: 670,
-            scale: 0, rotation: 0, opacity: 0,
+            scale: 0, rotation: 0, opacity: 0, zIndex: 3,
             content: 'AI-Powered Video Creation',
             fontSize: 28,
             color: '#888888',
@@ -164,7 +167,7 @@ export const DEFAULT_SCENE: Scene = {
             from: 60,
             durationInFrames: 180,
             x: 960, y: 540,
-            scale: 1, rotation: 0, opacity: 0,
+            scale: 1, rotation: 0, opacity: 0, zIndex: 2,
             shape: 'rect',
             width: 420, height: 54,
             color: '#a855f7',
@@ -188,7 +191,7 @@ export const DEFAULT_SCENE: Scene = {
             from: 30,
             durationInFrames: 240,
             x: 288, y: 540,
-            scale: 0.5, rotation: 0, opacity: 0,
+            scale: 0.5, rotation: 0, opacity: 0, zIndex: 1,
             shape: 'circle',
             width: 806, height: 806,
             color: '#3b82f6',

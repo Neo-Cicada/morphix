@@ -13,13 +13,14 @@ interface MorphixVideoProps {
 
 export const MorphixVideo: React.FC<MorphixVideoProps> = ({ scene }) => {
   return (
-    <AbsoluteFill style={{ backgroundColor: '#000' }}>
+    <AbsoluteFill style={{ backgroundColor: scene.backgroundColor ?? '#000' }}>
       {scene.layers.map((layer) => (
         <Sequence
           key={layer.id}
           from={layer.from}
           durationInFrames={layer.durationInFrames}
           name={layer.label}
+          style={{ zIndex: layer.zIndex ?? 0 }}
         >
           <AbsoluteFill style={{ pointerEvents: 'none' }}>
             {layer.type === 'text' && <TextLayerComponent layer={layer} />}

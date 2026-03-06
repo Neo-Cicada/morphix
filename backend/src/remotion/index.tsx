@@ -27,6 +27,7 @@ const defaultScene: Scene = {
   width: 1920,
   height: 1080,
   durationInFrames: 300,
+  backgroundColor: '#000000',
   layers: [],
 };
 

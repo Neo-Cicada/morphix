@@ -12,6 +12,7 @@ import type { SceneKeyframe } from './schema';
 export function useLayerTransform(
     keyframes: SceneKeyframe[],
     base: { x: number; y: number; scale: number; rotation: number; opacity: number },
+    fps: number,
 ) {
     const frame = useCurrentFrame();
 
@@ -41,7 +42,7 @@ export function useLayerTransform(
         if (easing === 'spring') {
             const progress = spring({
                 frame: frame - lo.frame,
-                fps: 30,
+                fps,
                 config: { damping: 200 },
                 durationInFrames: hi.frame - lo.frame,
             });

@@ -2,6 +2,9 @@
 
 import React from 'react';
 import { Sequence, AbsoluteFill } from 'remotion';
+import { loadFont } from '@remotion/google-fonts/Inter';
+
+loadFont('normal', { weights: ['400', '600', '700', '800'], subsets: ['latin'] });
 import type { Scene } from './schema';
 import { TextLayerComponent } from './layers/TextLayer';
 import { ShapeLayerComponent } from './layers/ShapeLayer';

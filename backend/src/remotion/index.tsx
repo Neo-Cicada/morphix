@@ -1,7 +1,26 @@
 import React from 'react';
 import { Composition, registerRoot } from 'remotion';
+import type { CalculateMetadataFunction } from 'remotion';
+import { loadFont } from '@remotion/google-fonts/Inter';
 import { MorphixVideo } from './MorphixVideo';
 import type { Scene } from './schema';
+
+// Load Inter font — blocks rendering until ready in Lambda
+loadFont('normal', { weights: ['400', '600', '700', '800'], subsets: ['latin'] });
+
+interface RootProps {
+  scene: Scene;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const calculateMetadata: CalculateMetadataFunction<any> = ({ props }: { props: RootProps }) => {
+  return {
+    durationInFrames: props.scene.durationInFrames,
+    fps: props.scene.fps,
+    width: props.scene.width,
+    height: props.scene.height,
+  };
+};
 
 const defaultScene: Scene = {
   fps: 30,
@@ -22,6 +41,7 @@ const RemotionRoot: React.FC = () => {
       width={defaultScene.width}
       height={defaultScene.height}
       defaultProps={{ scene: defaultScene }}
+      calculateMetadata={calculateMetadata}
     />
   );
 };

@@ -117,7 +117,7 @@ export const DEFAULT_SCENE: Scene = {
             fontSize: 72,
             color: '#ffffff',
             fontWeight: 800,
-            fontFamily: 'var(--font-sans, system-ui)',
+            fontFamily: 'Inter, system-ui, sans-serif',
             letterSpacing: 6,
             keyframes: [
                 { frame: 0, prop: 'opacity', value: 0 },
@@ -143,7 +143,7 @@ export const DEFAULT_SCENE: Scene = {
             fontSize: 28,
             color: '#888888',
             fontWeight: 400,
-            fontFamily: 'var(--font-sans, system-ui)',
+            fontFamily: 'Inter, system-ui, sans-serif',
             letterSpacing: 2,
             keyframes: [
                 { frame: 0, prop: 'scale', value: 0 },

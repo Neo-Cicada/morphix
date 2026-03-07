@@ -16,7 +16,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     <UserProvider>
     <div
       className="flex h-screen text-white overflow-hidden antialiased selection:bg-blue-500/30"
-      style={{ background: '#080808', fontFamily: 'var(--font-geist-sans, system-ui, sans-serif)' }}
+      style={{ background: '#05050A', fontFamily: 'var(--font-geist-sans, system-ui, sans-serif)' }}
     >
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} collapsed={sidebarCollapsed} setCollapsed={setSidebarCollapsed} />
 

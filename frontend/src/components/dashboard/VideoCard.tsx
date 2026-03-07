@@ -7,9 +7,9 @@ interface VideoCardProps {
 }
 
 const statusConfig = {
-  pending: { label: 'Pending', bg: 'rgba(234,179,8,0.08)', color: '#facc15', border: 'rgba(234,179,8,0.2)' },
+  pending: { label: 'Pending', bg: 'rgba(59,130,246,0.08)', color: '#3b82f6', border: 'rgba(59,130,246,0.2)' },
   processing: { label: 'Processing', bg: 'rgba(59,130,246,0.08)', color: '#3b82f6', border: 'rgba(59,130,246,0.2)' },
-  done: { label: 'Completed', bg: 'rgba(34,197,94,0.08)', color: '#22c55e', border: 'rgba(34,197,94,0.2)' },
+  done: { label: 'Completed', bg: 'rgba(0,243,255,0.08)', color: '#00f3ff', border: 'rgba(0,243,255,0.2)' },
   failed: { label: 'Failed', bg: 'rgba(239,68,68,0.08)', color: '#f87171', border: 'rgba(239,68,68,0.2)' },
 };
 
@@ -19,17 +19,17 @@ export function VideoCard({ title, status, date }: VideoCardProps) {
   return (
     <div
       className="group rounded-2xl overflow-hidden transition-all duration-200 cursor-pointer hover:border-[#2a2a2a]"
-      style={{ background: '#0d0d0d', border: '1px solid #1e1e1e' }}
+      style={{ background: '#0A0A10', border: '1px solid #111122' }}
     >
       {/* Thumbnail — matches landing page card style */}
       <div
         className="aspect-video relative flex items-center justify-center overflow-hidden"
-        style={{ background: 'linear-gradient(135deg, #3b82f6/10 0%, transparent 50%, rgba(168,85,247,0.06) 100%)' }}
+        style={{ background: 'linear-gradient(135deg, #3b82f6/10 0%, transparent 50%, rgba(0,243,255,0.06) 100%)' }}
       >
         {/* Radial gradient bg */}
         <div
           className="absolute inset-0"
-          style={{ background: 'radial-gradient(ellipse at center, rgba(59,130,246,0.08) 0%, rgba(168,85,247,0.04) 40%, transparent 70%)' }}
+          style={{ background: 'radial-gradient(ellipse at center, rgba(59,130,246,0.08) 0%, rgba(0,243,255,0.04) 40%, transparent 70%)' }}
         />
         {/* Grid lines */}
         <div
@@ -55,12 +55,12 @@ export function VideoCard({ title, status, date }: VideoCardProps) {
         {/* Bottom progress bar — matches landing video player */}
         <div
           className="absolute bottom-0 left-0 right-0 h-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-          style={{ background: 'linear-gradient(90deg, #3b82f6, #a855f7, transparent)' }}
+          style={{ background: 'linear-gradient(90deg, #3b82f6, #00f3ff, transparent)' }}
         />
       </div>
 
       {/* Info */}
-      <div className="p-4" style={{ borderTop: '1px solid #1a1a1a' }}>
+      <div className="p-4" style={{ borderTop: '1px solid #111122' }}>
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
             <h3 className="text-sm font-medium text-zinc-300 truncate">{title}</h3>

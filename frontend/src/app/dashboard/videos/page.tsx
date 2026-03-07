@@ -55,7 +55,7 @@ export default function MyVideosPage() {
       {/* Filter Bar */}
       <div
         className="inline-flex items-center gap-1 rounded-xl p-1 mb-8"
-        style={{ background: '#0d0d0d', border: '1px solid #1e1e1e' }}
+        style={{ background: '#0A0A10', border: '1px solid #111122' }}
       >
         {FILTERS.map((tab) => (
           <button
@@ -87,15 +87,15 @@ export default function MyVideosPage() {
       ) : (
         <div
           className="rounded-2xl p-8 sm:p-12 flex flex-col items-center justify-center text-center"
-          style={{ background: '#0d0d0d', border: '1px solid #1e1e1e' }}
+          style={{ background: '#0A0A10', border: '1px solid #111122' }}
         >
           <div
             className="relative w-full max-w-lg aspect-video rounded-2xl overflow-hidden mb-8"
-            style={{ background: '#080808', border: '1px solid #1e1e1e' }}
+            style={{ background: '#05050A', border: '1px solid #111122' }}
           >
             <div
               className="absolute inset-0"
-              style={{ background: 'radial-gradient(ellipse at center, rgba(59,130,246,0.1) 0%, rgba(168,85,247,0.05) 50%, transparent 70%)' }}
+              style={{ background: 'radial-gradient(ellipse at center, rgba(59,130,246,0.1) 0%, rgba(0,243,255,0.05) 50%, transparent 70%)' }}
             />
             <div
               className="absolute inset-0"
@@ -117,8 +117,8 @@ export default function MyVideosPage() {
               </div>
             </div>
             <div className="absolute bottom-0 left-0 right-0 px-4 py-2" style={{ background: 'rgba(0,0,0,0.4)' }}>
-              <div className="h-[1px] bg-[#1a1a1a] rounded-full overflow-hidden">
-                <div className="h-full w-[0%] rounded-full" style={{ background: 'linear-gradient(90deg, #3b82f6, #a855f7)' }} />
+              <div className="h-[1px] bg-[#111122] rounded-full overflow-hidden">
+                <div className="h-full w-[0%] rounded-full" style={{ background: 'linear-gradient(90deg, #3b82f6, #00f3ff)' }} />
               </div>
             </div>
           </div>

@@ -41,7 +41,7 @@ export function Topbar({ onMenuClick }: TopbarProps) {
       className="sticky top-0 z-30 flex h-14 items-center justify-between px-4 backdrop-blur-xl sm:px-6 lg:px-8"
       style={{
         background: 'rgba(8,8,8,0.9)',
-        borderBottom: '1px solid #1a1a1a',
+        borderBottom: '1px solid #111122',
       }}
     >
       {/* Left: Mobile menu */}
@@ -91,12 +91,12 @@ export function Topbar({ onMenuClick }: TopbarProps) {
               role="menu"
               className="absolute right-0 mt-2 w-52 origin-top-right overflow-hidden rounded-xl shadow-2xl shadow-black/60 animate-in fade-in zoom-in-95 duration-200"
               style={{
-                background: '#111111',
-                border: '1px solid #1e1e1e',
+                background: '#0A0A10',
+                border: '1px solid #111122',
               }}
             >
               {/* User info */}
-              <div className="px-4 py-3" style={{ borderBottom: '1px solid #1e1e1e' }}>
+              <div className="px-4 py-3" style={{ borderBottom: '1px solid #111122' }}>
                 <p className="text-sm font-semibold text-white">{displayName}</p>
                 <p className="text-xs text-[#555555] truncate mt-0.5">{user?.email ?? ''}</p>
               </div>
@@ -118,7 +118,7 @@ export function Topbar({ onMenuClick }: TopbarProps) {
                   <CreditCard className="h-4 w-4 text-zinc-600" />
                   Billing
                 </Link>
-                <div className="my-1 mx-3" style={{ borderTop: '1px solid #1e1e1e' }} />
+                <div className="my-1 mx-3" style={{ borderTop: '1px solid #111122' }} />
                 <button
                   className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-red-400 transition-colors hover:bg-red-500/10 hover:text-red-300 text-left cursor-pointer"
                   onClick={handleSignOut}

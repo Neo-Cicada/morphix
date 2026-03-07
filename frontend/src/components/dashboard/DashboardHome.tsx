@@ -58,11 +58,11 @@ export function DashboardHome() {
             {/* Hero CTA */}
             <div
                 className="relative rounded-2xl p-7 sm:p-9 mb-10 overflow-hidden cursor-pointer group hero-shimmer morphix-card"
-                style={{ background: '#0d0d0d', border: '1px solid #1e1e1e' }}
+                style={{ background: '#0A0A10', border: '1px solid #111122' }}
             >
                 <div
                     className="absolute inset-0 rounded-2xl pointer-events-none"
-                    style={{ background: 'radial-gradient(ellipse 80% 60% at 70% -10%, rgba(59,130,246,0.1) 0%, rgba(168,85,247,0.05) 40%, transparent 70%)' }}
+                    style={{ background: 'radial-gradient(ellipse 80% 60% at 70% -10%, rgba(59,130,246,0.1) 0%, rgba(0,243,255,0.05) 40%, transparent 70%)' }}
                 />
                 <div
                     className="absolute inset-0 rounded-2xl pointer-events-none"
@@ -79,7 +79,7 @@ export function DashboardHome() {
                         </div>
                         <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-white mb-2 leading-tight">
                             Transform screenshots into{' '}
-                            <span className="bg-gradient-to-r from-[#3b82f6] via-[#818cf8] to-[#a855f7] bg-clip-text text-transparent">
+                            <span className="neon-text-cyan">
                                 cinematic marketing videos.
                             </span>
                         </h2>
@@ -133,7 +133,7 @@ export function DashboardHome() {
                 ) : (
                     <div
                         className="rounded-2xl p-10 flex flex-col items-center justify-center text-center"
-                        style={{ background: '#0d0d0d', border: '1px solid #1e1e1e' }}
+                        style={{ background: '#0A0A10', border: '1px solid #111122' }}
                     >
                         <div
                             className="size-12 rounded-xl flex items-center justify-center mb-4"

@@ -40,8 +40,8 @@ export function Sidebar({ isOpen, setIsOpen, collapsed, setCollapsed }: SidebarP
         style={{
           width: w,
           minWidth: w,
-          background: '#080808',
-          borderRight: '1px solid #141414',
+          background: '#05050A',
+          borderRight: '1px solid #111122',
           transition: 'width 220ms cubic-bezier(0.4,0,0.2,1), min-width 220ms cubic-bezier(0.4,0,0.2,1)',
           overflow: 'visible',
           position: 'relative',
@@ -54,7 +54,7 @@ export function Sidebar({ isOpen, setIsOpen, collapsed, setCollapsed }: SidebarP
           style={{
             height: 56,
             padding: collapsed ? '0 0' : '0 16px',
-            borderBottom: '1px solid #141414',
+            borderBottom: '1px solid #111122',
             justifyContent: collapsed ? 'center' : 'space-between',
           }}
         >
@@ -200,7 +200,7 @@ export function Sidebar({ isOpen, setIsOpen, collapsed, setCollapsed }: SidebarP
         {/* ── Footer ─────────────────────────────────────────────────── */}
         <div
           className="flex-shrink-0 flex flex-col"
-          style={{ borderTop: '1px solid #141414' }}
+          style={{ borderTop: '1px solid #111122' }}
         >
           {!collapsed && (
             <div style={{ padding: '10px 18px 4px' }}>

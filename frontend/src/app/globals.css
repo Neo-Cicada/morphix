@@ -49,28 +49,32 @@
 
 :root {
   --radius: 0.625rem;
-  --background: #0a0a0a;
-  /* Pure black for cinema */
+  --background: #05050a;
+  /* Cyberpunk deep dark void */
   --foreground: oklch(0.985 0 0);
   /* White */
-  --card: oklch(0.12 0 0);
+  --card: #0A0A10;
+  /* Slightly lighter deep dark */
   --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.12 0 0);
+  --popover: #0A0A10;
   --popover-foreground: oklch(0.985 0 0);
   --primary: #3b82f6;
   /* Electric Blue */
   --primary-foreground: oklch(0.985 0 0);
-  --secondary: #7c3aed;
-  /* Deep Violet tint */
+  --secondary: #00f3ff;
+  /* Neon Cyan */
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.15 0 0);
   --muted-foreground: oklch(0.7 0 0);
-  --accent: oklch(0.2 0.05 280);
+  --accent: #2159B6;
+  /* Deep glowing blue */
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(0.2 0 0);
-  --input: oklch(0.2 0 0);
-  --ring: oklch(0.6 0.25 260);
+  --border: #111122;
+  /* Blueish dark border */
+  --input: #111122;
+  --ring: #3b82f6;
+  /* Electric Blue */
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
@@ -122,15 +126,15 @@
   z-index: 0;
 }
 
-/* Primary Gradient Button */
+/* Primary Gradient Button - Lightsaber Theme */
 .btn-gradient {
-  background: linear-gradient(135deg, #3b82f6, #7c3aed);
-  box-shadow: 0 0 25px rgba(99, 102, 241, 0.25);
+  background: linear-gradient(135deg, #00f3ff, #3b82f6);
+  box-shadow: 0 0 25px rgba(0, 243, 255, 0.4);
   transition: all 0.2s ease;
 }
 
 .btn-gradient:hover {
-  box-shadow: 0 0 35px rgba(99, 102, 241, 0.4);
+  box-shadow: 0 0 40px rgba(0, 243, 255, 0.6);
   transform: scale(1.02);
 }
 
@@ -139,17 +143,17 @@
 
   0%,
   100% {
-    box-shadow: 0 0 25px rgba(99, 102, 241, 0.25);
+    box-shadow: 0 0 25px rgba(0, 243, 255, 0.4);
   }
 
   50% {
-    box-shadow: 0 0 40px rgba(99, 102, 241, 0.45);
+    box-shadow: 0 0 45px rgba(0, 243, 255, 0.7);
   }
 }
 
 .btn-gradient-pulse {
-  background: linear-gradient(135deg, #3b82f6, #7c3aed);
-  box-shadow: 0 0 25px rgba(99, 102, 241, 0.25);
+  background: linear-gradient(135deg, #00f3ff, #3b82f6);
+  box-shadow: 0 0 25px rgba(0, 243, 255, 0.4);
   animation: pulse-glow 2.5s ease-in-out infinite;
   transition: transform 0.2s ease;
 }
@@ -206,13 +210,13 @@
   line-height: 1.2;
 }
 
-/* Selected Pill with Gradient Border */
+/* Selected Pill with Neon Blue Border */
 .pill-selected {
   position: relative;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(124, 58, 237, 0.15));
+  background: linear-gradient(135deg, rgba(0, 243, 255, 0.15), rgba(59, 130, 246, 0.15));
   border: 1px solid transparent;
   background-clip: padding-box;
-  box-shadow: 0 0 15px rgba(59, 130, 246, 0.15), inset 0 0 12px rgba(59, 130, 246, 0.08);
+  box-shadow: 0 0 15px rgba(0, 243, 255, 0.2), inset 0 0 12px rgba(59, 130, 246, 0.1);
 }
 
 .pill-selected::before {
@@ -221,7 +225,7 @@
   inset: -1px;
   border-radius: inherit;
   padding: 1px;
-  background: linear-gradient(135deg, #3b82f6, #7c3aed);
+  background: linear-gradient(135deg, #00f3ff, #3b82f6);
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
@@ -249,11 +253,11 @@
 
   0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4);
+    box-shadow: 0 0 0 0 rgba(0, 243, 255, 0.6);
   }
 
   50% {
-    box-shadow: 0 0 0 16px rgba(99, 102, 241, 0);
+    box-shadow: 0 0 0 16px rgba(0, 243, 255, 0);
   }
 }
 
@@ -371,13 +375,15 @@
 
 .pipeline-connector {
   background-image: repeating-linear-gradient(90deg,
-      #3b82f6 0px,
-      #3b82f6 4px,
+      #00f3ff 0px,
+      #00f3ff 4px,
       transparent 4px,
       transparent 8px);
   background-size: 8px 1px;
   animation: pipeline-flow 0.8s linear infinite;
   height: 2px;
+  box-shadow: 0 0 8px rgba(0, 243, 255, 0.5);
+  /* Glowing track */
 }
 
 .pipeline-connector-delayed {
@@ -460,8 +466,8 @@
 
 .aurora-bg {
   background: radial-gradient(ellipse 80% 60% at 50% -20%,
-      rgba(59, 130, 246, 0.12) 0%,
-      rgba(168, 85, 247, 0.06) 40%,
+      rgba(0, 243, 255, 0.15) 0%,
+      rgba(59, 130, 246, 0.08) 40%,
       transparent 70%);
   pointer-events: none;
 }
@@ -545,7 +551,7 @@
   inset: -1px;
   border-radius: inherit;
   padding: 1px;
-  background: linear-gradient(135deg, #3b82f6 0%, #a855f7 50%, #3b82f6 100%);
+  background: linear-gradient(135deg, #00f3ff 0%, #3b82f6 50%, #00f3ff 100%);
   background-size: 200% 200%;
   animation: aurora 4s ease infinite;
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -578,7 +584,8 @@
   left: 0;
   right: 0;
   height: 2px;
-  background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.2), transparent);
+  background: linear-gradient(90deg, transparent, rgba(0, 243, 255, 0.4), transparent);
+  box-shadow: 0 0 10px rgba(0, 243, 255, 0.4);
   animation: scan 6s linear infinite;
   pointer-events: none;
 }
@@ -606,23 +613,55 @@
 
   0%,
   100% {
-    box-shadow: 0 0 30px rgba(59, 130, 246, 0.25), 0 0 60px rgba(168, 85, 247, 0.1);
+    box-shadow: 0 0 30px rgba(0, 243, 255, 0.3), 0 0 60px rgba(59, 130, 246, 0.2);
   }
 
   50% {
-    box-shadow: 0 0 50px rgba(59, 130, 246, 0.45), 0 0 90px rgba(168, 85, 247, 0.2);
+    box-shadow: 0 0 50px rgba(0, 243, 255, 0.5), 0 0 90px rgba(59, 130, 246, 0.3);
   }
 }
 
 .cta-btn-primary {
-  background: linear-gradient(135deg, #3b82f6, #7c3aed);
+  background: linear-gradient(135deg, #00f3ff, #3b82f6);
   animation: cta-pulse 3s ease-in-out infinite;
   transition: transform 0.2s ease, opacity 0.2s ease;
+  color: #05050A !important;
+  /* Cyber text */
 }
 
 .cta-btn-primary:hover {
   transform: scale(1.03);
   opacity: 0.95;
+}
+
+/* ── Neon Text Utility ── */
+.neon-text-blue {
+  color: #fff;
+  text-shadow: 0 0 10px rgba(0, 243, 255, 0.6), 0 0 20px rgba(59, 130, 246, 0.4), 0 0 30px rgba(0, 243, 255, 0.2);
+}
+
+.neon-text-cyan {
+  color: #00f3ff;
+  text-shadow: 0 0 12px rgba(0, 243, 255, 0.8), 0 0 24px rgba(0, 243, 255, 0.4);
+}
+
+/* ── Lightsaber Line Utility ── */
+.lightsaber-line {
+  background: #fff;
+  box-shadow: 0 0 5px #fff, 0 0 10px #00f3ff, 0 0 20px #00f3ff, 0 0 40px #3b82f6;
+  border-radius: 9999px;
+}
+
+.lightsaber-line-top::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #fff;
+  box-shadow: 0 0 5px #fff, 0 0 10px #00f3ff, 0 0 20px #00f3ff, 0 0 40px #3b82f6;
+  opacity: 0.5;
 }
 
 /* ── Horizontal rule token ── */

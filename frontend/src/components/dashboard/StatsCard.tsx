@@ -17,18 +17,18 @@ const colorMap = {
     glow: 'rgba(59,130,246,0.06)',
   },
   purple: {
-    iconBg: 'rgba(168,85,247,0.1)',
-    iconColor: '#a855f7',
-    iconBorder: 'rgba(168,85,247,0.2)',
-    topBar: 'linear-gradient(90deg,#a855f7,transparent)',
-    glow: 'rgba(168,85,247,0.06)',
+    iconBg: 'rgba(0,243,255,0.1)',
+    iconColor: '#00f3ff',
+    iconBorder: 'rgba(0,243,255,0.2)',
+    topBar: 'linear-gradient(90deg,#00f3ff,transparent)',
+    glow: 'rgba(0,243,255,0.06)',
   },
   green: {
-    iconBg: 'rgba(34,197,94,0.1)',
-    iconColor: '#22c55e',
-    iconBorder: 'rgba(34,197,94,0.2)',
-    topBar: 'linear-gradient(90deg,#22c55e,transparent)',
-    glow: 'rgba(34,197,94,0.06)',
+    iconBg: 'rgba(0,243,255,0.1)',
+    iconColor: '#00f3ff',
+    iconBorder: 'rgba(0,243,255,0.2)',
+    topBar: 'linear-gradient(90deg,#00f3ff,transparent)',
+    glow: 'rgba(0,243,255,0.06)',
   },
 };
 
@@ -39,8 +39,8 @@ export function StatsCard({ icon: Icon, title, value, subtitle, color = 'blue' }
     <div
       className="relative rounded-xl p-5 overflow-hidden transition-all duration-200 hover:border-[#2a2a2a] cursor-default group"
       style={{
-        background: '#0d0d0d',
-        border: '1px solid #1e1e1e',
+        background: '#0A0A10',
+        border: '1px solid #111122',
       }}
     >
       {/* Top accent bar */}

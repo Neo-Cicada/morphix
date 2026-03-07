@@ -22,7 +22,7 @@ function SectionCard({
   return (
     <div
       className="relative rounded-2xl p-6 mb-6 overflow-hidden"
-      style={{ background: '#0d0d0d', border: '1px solid #1e1e1e' }}
+      style={{ background: '#0A0A10', border: '1px solid #111122' }}
     >
       {/* Top 1px accent line */}
       <div
@@ -61,10 +61,10 @@ function Field({ label, ...props }: { label: string } & React.InputHTMLAttribute
       </label>
       <input
         {...props}
-        className="w-full rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-[#333333] transition-all duration-200 focus:outline-none"
+        className="w-full rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-[#1c1c36] transition-all duration-200 focus:outline-none"
         style={{
-          background: '#111111',
-          border: focused ? '1px solid rgba(59,130,246,0.4)' : '1px solid #1e1e1e',
+          background: '#0A0A10',
+          border: focused ? '1px solid rgba(59,130,246,0.4)' : '1px solid #111122',
           boxShadow: focused ? '0 0 0 3px rgba(59,130,246,0.08)' : 'none',
           ...(props.disabled ? { color: '#444444', cursor: 'not-allowed' } : {}),
         }}
@@ -122,11 +122,11 @@ export default function SettingsPage() {
               {/* Gradient ring */}
               <div
                 className="absolute -inset-[2px] rounded-full"
-                style={{ background: 'linear-gradient(135deg, #3b82f6, #a855f7)', opacity: 0.6 }}
+                style={{ background: 'linear-gradient(135deg, #3b82f6, #00f3ff)', opacity: 0.6 }}
               />
               <div
                 className="relative size-16 rounded-full flex items-center justify-center"
-                style={{ background: '#111111' }}
+                style={{ background: '#0A0A10' }}
               >
                 <User className="h-6 w-6 text-zinc-600" />
               </div>
@@ -168,7 +168,7 @@ export default function SettingsPage() {
       </SectionCard>
 
       {/* Security Section */}
-      <SectionCard icon={Lock} label="Access" title="Security" accent="#a855f7">
+      <SectionCard icon={Lock} label="Access" title="Security" accent="#00f3ff">
         <div className="space-y-5">
           <Field label="Current Password" type="password" placeholder="Enter current password" />
           <Field label="New Password" type="password" placeholder="Enter new password" />
@@ -226,7 +226,7 @@ export default function SettingsPage() {
           <div
             className="relative w-full max-w-md rounded-2xl p-6 shadow-2xl mx-4 animate-in fade-in zoom-in-95 duration-200"
             style={{
-              background: '#111111',
+              background: '#0A0A10',
               border: '1px solid rgba(239,68,68,0.2)',
               boxShadow: '0 25px 60px rgba(0,0,0,0.9)',
             }}
@@ -249,7 +249,7 @@ export default function SettingsPage() {
                 className="rounded-xl px-4 py-2 text-sm font-medium transition-all duration-200 cursor-pointer"
                 style={{
                   background: 'rgba(255,255,255,0.04)',
-                  border: '1px solid #1e1e1e',
+                  border: '1px solid #111122',
                   color: '#888888',
                 }}
               >

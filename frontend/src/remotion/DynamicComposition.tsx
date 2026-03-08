@@ -4,7 +4,7 @@ import * as Remotion from 'remotion';
 import * as RemotionShapes from '@remotion/shapes';
 import * as RemotionTransitions from '@remotion/transitions';
 
-interface Props {
+interface Props extends Record<string, unknown> {
   code: string;
 }
 

@@ -42,14 +42,14 @@ export async function POST(req: NextRequest) {
       region,
       functionName,
       serveUrl,
-      composition: 'DynamicAnimation',
+      composition: 'MorphixVideo',
       inputProps: {
         code,
         durationInFrames,
         fps,
       },
       codec: 'h264',
-      framesPerLambda: 20,
+      framesPerLambda: 60,
       downloadBehavior: {
         type: 'download',
         fileName: 'animation.mp4',

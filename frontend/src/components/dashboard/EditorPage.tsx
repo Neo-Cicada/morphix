@@ -3,7 +3,7 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import {
   Send, Download, Loader2, ImagePlus, Code2, Sparkles,
-  PanelRightClose, PanelRightOpen, MessageSquare,
+  PanelRightClose, PanelRightOpen, MessageSquare, FilePlus,
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { AnimationPlayer } from './AnimationPlayer';
@@ -39,7 +39,7 @@ function extractDuration(code: string): number {
 export default function EditorPage() {
   const animationState = useAnimationState();
   const { generate, isGenerating, isStreaming } = useGenerationApi();
-  const { load, save } = useEditorPersistence();
+  const { load, save, clear } = useEditorPersistence();
 
   // Player state
   const [durationInFrames, setDurationInFrames] = useState(180);
@@ -64,6 +64,9 @@ export default function EditorPage() {
   // Export state
   const [exportState, setExportState] = useState<ExportState>('idle');
   const [exportUrl, setExportUrl] = useState<string | null>(null);
+
+  // New animation modal
+  const [showNewModal, setShowNewModal] = useState(false);
   const compileDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // ── Effects ──────────────────────────────────────────────────────────────────
@@ -237,6 +240,17 @@ export default function EditorPage() {
     }
   };
 
+  const handleNewConfirm = useCallback(() => {
+    animationState.reset();
+    clear();
+    setMessages([{ id: '0', role: 'assistant', text: "Hi! Describe an animation and I'll generate it for you. You can also follow up to refine it." }]);
+    conversationHistory.current = [];
+    setDurationInFrames(180);
+    setExportState('idle');
+    setExportUrl(null);
+    setShowNewModal(false);
+  }, [animationState, clear]);
+
   // ── Render ───────────────────────────────────────────────────────────────────
 
   return (
@@ -264,6 +278,17 @@ export default function EditorPage() {
         </div>
 
         <div className="flex items-center gap-2">
+          {/* New animation */}
+          {animationState.code && (
+            <button
+              onClick={() => setShowNewModal(true)}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-zinc-500 hover:text-zinc-200 hover:bg-zinc-900 border border-transparent hover:border-zinc-800 transition-all"
+            >
+              <FilePlus className="w-3.5 h-3.5" />
+              New
+            </button>
+          )}
+
           {/* Panel toggle */}
           <button
             onClick={() => setIsPanelOpen((v) => !v)}
@@ -482,6 +507,30 @@ export default function EditorPage() {
           </div>
         )}
       </div>
+
+      {/* ── New Animation Modal ── */}
+      {showNewModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 w-80 shadow-2xl">
+            <h2 className="text-sm font-semibold text-zinc-100 mb-2">Start a new animation?</h2>
+            <p className="text-xs text-zinc-400 mb-6 leading-relaxed">Your current code and chat history will be cleared.</p>
+            <div className="flex items-center justify-end gap-2">
+              <button
+                onClick={() => setShowNewModal(false)}
+                className="px-3 py-1.5 rounded-lg text-xs font-medium text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 border border-zinc-800 transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleNewConfirm}
+                className="px-3 py-1.5 rounded-lg text-xs font-medium btn-gradient text-white transition-all"
+              >
+                New Animation
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

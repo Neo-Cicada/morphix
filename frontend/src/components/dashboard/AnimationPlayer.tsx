@@ -9,8 +9,53 @@ interface AnimationPlayerProps {
   fps: number;
   isCompiling: boolean;
   isStreaming: boolean;
+  streamingChars?: number;
   error: string | null;
 }
+
+// ─── Error helpers ─────────────────────────────────────────────────────────────
+
+type ErrorCategory = 'syntax' | 'global' | 'component' | 'runtime';
+
+function categorizeError(error: string): { label: string; type: ErrorCategory; hint: string } {
+  if (/^(unknown:|SyntaxError:)/i.test(error) || error.includes('animation.tsx')) {
+    return {
+      label: 'Syntax Error',
+      type: 'syntax',
+      hint: 'Check for mismatched brackets, invalid JSX, or unsupported syntax.',
+    };
+  }
+  if (error.includes('is not defined')) {
+    const match = error.match(/(\w+) is not defined/);
+    const name = match?.[1] ?? 'variable';
+    return {
+      label: 'Missing Global',
+      type: 'global',
+      hint: `"${name}" isn't injected. Available globals: React, Remotion exports, THREE, ThreeCanvas, Drei components.`,
+    };
+  }
+  if (error.startsWith('No component found')) {
+    return {
+      label: 'No Component',
+      type: 'component',
+      hint: 'Define a React component — preferably named MyAnimation.',
+    };
+  }
+  return {
+    label: 'Runtime Error',
+    type: 'runtime',
+    hint: 'An error occurred while running the animation. Check your logic and data types.',
+  };
+}
+
+function cleanMessage(error: string): string {
+  return error
+    .replace(/^unknown:\s*/i, '')
+    .replace(/\(animation\.tsx\)/g, '')
+    .trim();
+}
+
+// ─── Component ────────────────────────────────────────────────────────────────
 
 export function AnimationPlayer({
   Component,
@@ -18,6 +63,7 @@ export function AnimationPlayer({
   fps,
   isCompiling,
   isStreaming,
+  streamingChars = 0,
   error,
 }: AnimationPlayerProps) {
   const overlay = (() => {
@@ -33,6 +79,9 @@ export function AnimationPlayer({
           ))}
         </div>
         <p className="text-sm text-zinc-500 animate-pulse tracking-wide">Generating animation...</p>
+        {streamingChars > 0 && (
+          <p className="text-[11px] text-zinc-700 tabular-nums">{streamingChars.toLocaleString()} chars</p>
+        )}
       </div>
     );
 
@@ -46,17 +95,36 @@ export function AnimationPlayer({
       </div>
     );
 
-    if (error) return (
-      <div className="absolute inset-0 flex items-center justify-center bg-zinc-950 rounded-xl p-6">
-        <div className="w-full max-w-lg p-4 bg-red-950/30 border border-red-900/50 rounded-xl">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
-            <p className="text-xs font-semibold text-red-400 uppercase tracking-wider">Compile Error</p>
+    if (error) {
+      const { label, type, hint } = categorizeError(error);
+      const badgeColor: Record<ErrorCategory, string> = {
+        syntax:    'bg-orange-950/60 border-orange-800/50 text-orange-400',
+        global:    'bg-yellow-950/60 border-yellow-800/50 text-yellow-400',
+        component: 'bg-blue-950/60   border-blue-800/50   text-blue-400',
+        runtime:   'bg-red-950/60    border-red-800/50    text-red-400',
+      };
+      const dotColor: Record<ErrorCategory, string> = {
+        syntax:    'bg-orange-500',
+        global:    'bg-yellow-500',
+        component: 'bg-blue-500',
+        runtime:   'bg-red-500',
+      };
+
+      return (
+        <div className="absolute inset-0 flex items-center justify-center bg-zinc-950 rounded-xl p-6">
+          <div className="w-full max-w-lg space-y-3">
+            <div className={`inline-flex items-center gap-2 px-2.5 py-1 rounded-full border text-[11px] font-semibold uppercase tracking-wider ${badgeColor[type]}`}>
+              <div className={`w-1.5 h-1.5 rounded-full ${dotColor[type]}`} />
+              {label}
+            </div>
+            <pre className="text-xs text-zinc-300 whitespace-pre-wrap break-all leading-relaxed bg-zinc-900 border border-zinc-800 rounded-lg p-3 font-mono">
+              {cleanMessage(error)}
+            </pre>
+            <p className="text-[11px] text-zinc-500 leading-relaxed">{hint}</p>
           </div>
-          <pre className="text-xs text-red-300/80 whitespace-pre-wrap break-all leading-relaxed">{error}</pre>
         </div>
-      </div>
-    );
+      );
+    }
 
     if (!Component) return (
       <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 text-center px-8 bg-zinc-950 rounded-xl">

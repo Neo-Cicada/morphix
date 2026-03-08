@@ -1,14 +1,25 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { Sidebar } from './Sidebar';
 import { Topbar } from './Topbar';
 import { UserProvider } from '@/contexts/UserContext';
 
+const SIDEBAR_KEY = 'morphix_sidebar_collapsed';
+
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen,     setSidebarOpen]     = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  useEffect(() => {
+    const stored = localStorage.getItem(SIDEBAR_KEY);
+    if (stored !== null) setSidebarCollapsed(stored === 'true');
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem(SIDEBAR_KEY, String(sidebarCollapsed));
+  }, [sidebarCollapsed]);
   const pathname = usePathname();
   const isFullBleed = pathname === '/dashboard/editor';
 

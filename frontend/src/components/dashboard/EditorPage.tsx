@@ -204,8 +204,20 @@ export default function EditorPage() {
   }, [input, isGenerating, animationState, generate, attachedImages]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault();
+      handleSend();
+    }
   };
+
+  // Esc closes the new-animation modal
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && showNewModal) setShowNewModal(false);
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [showNewModal]);
 
   const handleMonacoChange = (value: string | undefined) => {
     if (value === undefined) return;
@@ -368,6 +380,7 @@ export default function EditorPage() {
             fps={fps}
             isCompiling={animationState.isCompiling}
             isStreaming={isStreaming}
+            streamingChars={streamingCode.length}
             error={animationState.error}
           />
         </div>
@@ -464,7 +477,7 @@ export default function EditorPage() {
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    placeholder={animationState.code ? 'Describe a change...' : 'Describe your animation...'}
+                    placeholder={animationState.code ? 'Describe a change... (⌘↵ to send)' : 'Describe your animation... (⌘↵ to send)'}
                     rows={1}
                     className="flex-1 bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/15 resize-none transition-all"
                     style={{ maxHeight: '100px', overflowY: 'auto' }}

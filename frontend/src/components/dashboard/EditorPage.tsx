@@ -9,6 +9,7 @@ import dynamic from 'next/dynamic';
 import { AnimationPlayer } from './AnimationPlayer';
 import { useAnimationState } from '@/hooks/useAnimationState';
 import { useGenerationApi } from '@/hooks/useGenerationApi';
+import { useEditorPersistence } from '@/hooks/useEditorPersistence';
 
 const MonacoEditor = dynamic(() => import('@monaco-editor/react'), { ssr: false });
 
@@ -38,6 +39,7 @@ function extractDuration(code: string): number {
 export default function EditorPage() {
   const animationState = useAnimationState();
   const { generate, isGenerating, isStreaming } = useGenerationApi();
+  const { load, save } = useEditorPersistence();
 
   // Player state
   const [durationInFrames, setDurationInFrames] = useState(180);
@@ -75,6 +77,57 @@ export default function EditorPage() {
       setDurationInFrames(extractDuration(animationState.code));
     }
   }, [animationState.code]);
+
+  // Restore persisted state on mount
+  useEffect(() => {
+    const saved = load();
+    if (saved.code) {
+      animationState.setCode(saved.code);
+    }
+    if (saved.messages && saved.messages.length > 0) {
+      setMessages(saved.messages);
+    }
+    if (saved.history) {
+      conversationHistory.current = saved.history;
+    }
+    if (saved.duration) {
+      setDurationInFrames(saved.duration);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Auto-save state to localStorage (debounced)
+  useEffect(() => {
+    save({
+      code: animationState.code,
+      messages,
+      history: conversationHistory.current,
+      duration: durationInFrames,
+    });
+  }, [animationState.code, messages, durationInFrames, save]);
+
+  // Sync state from other tabs
+  useEffect(() => {
+    const handleStorage = (e: StorageEvent) => {
+      if (!['morphix_editor_code', 'morphix_editor_messages', 'morphix_editor_history', 'morphix_editor_duration'].includes(e.key ?? '')) return;
+      const saved = load();
+      if (saved.code !== undefined && saved.code !== animationState.code) {
+        if (saved.code) animationState.setCode(saved.code);
+      }
+      if (saved.messages && saved.messages.length > 0) {
+        setMessages(saved.messages);
+      }
+      if (saved.history) {
+        conversationHistory.current = saved.history;
+      }
+      if (saved.duration) {
+        setDurationInFrames(saved.duration);
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // ── Handlers ─────────────────────────────────────────────────────────────────
 

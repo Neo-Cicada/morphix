@@ -41,7 +41,7 @@ export function useEditorPersistence() {
     }
   }, []);
 
-  const save = useCallback((state: PersistedState) => {
+  const save = useCallback((state: PersistedState, onError?: (type: 'quota' | 'unavailable') => void) => {
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(() => {
       try {
@@ -49,14 +49,22 @@ export function useEditorPersistence() {
         localStorage.setItem(KEYS.messages, JSON.stringify(state.messages));
         localStorage.setItem(KEYS.history, JSON.stringify(state.history));
         localStorage.setItem(KEYS.duration, String(state.duration));
-      } catch {
-        // localStorage may be full or unavailable
+      } catch (err) {
+        const type =
+          err instanceof DOMException && err.name === 'QuotaExceededError'
+            ? 'quota'
+            : 'unavailable';
+        onError?.(type);
       }
     }, 500);
   }, []);
 
   const clear = useCallback(() => {
-    Object.values(KEYS).forEach((k) => localStorage.removeItem(k));
+    try {
+      Object.values(KEYS).forEach((k) => localStorage.removeItem(k));
+    } catch {
+      // unavailable — nothing to clear
+    }
   }, []);
 
   return { load, save, clear };

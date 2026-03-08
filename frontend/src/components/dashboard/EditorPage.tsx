@@ -65,6 +65,9 @@ export default function EditorPage() {
   const [exportState, setExportState] = useState<ExportState>('idle');
   const [exportUrl, setExportUrl] = useState<string | null>(null);
 
+  // Persistence error
+  const [persistError, setPersistError] = useState<'quota' | 'unavailable' | null>(null);
+
   // New animation modal
   const [showNewModal, setShowNewModal] = useState(false);
   const compileDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -101,12 +104,15 @@ export default function EditorPage() {
 
   // Auto-save state to localStorage (debounced)
   useEffect(() => {
-    save({
-      code: animationState.code,
-      messages,
-      history: conversationHistory.current,
-      duration: durationInFrames,
-    });
+    save(
+      {
+        code: animationState.code,
+        messages,
+        history: conversationHistory.current,
+        duration: durationInFrames,
+      },
+      (type) => setPersistError(type),
+    );
   }, [animationState.code, messages, durationInFrames, save]);
 
   // Sync state from other tabs
@@ -332,6 +338,24 @@ export default function EditorPage() {
           )}
         </div>
       </header>
+
+      {/* ── Persist error banner ── */}
+      {persistError && (
+        <div className="flex items-center justify-between gap-3 px-4 py-2 bg-amber-950/60 border-b border-amber-700/40 text-amber-300 text-xs shrink-0">
+          <span>
+            {persistError === 'quota'
+              ? 'Auto-save failed: storage is full. Your changes may not be saved.'
+              : 'Auto-save unavailable (private browsing?). Your changes will be lost on refresh.'}
+          </span>
+          <button
+            onClick={() => setPersistError(null)}
+            className="shrink-0 text-amber-400 hover:text-amber-200 transition-colors"
+            aria-label="Dismiss"
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
       {/* ── Main: Preview + Right Panel ── */}
       <div className="flex flex-1 min-h-0">

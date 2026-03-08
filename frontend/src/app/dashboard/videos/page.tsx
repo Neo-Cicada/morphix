@@ -10,11 +10,15 @@ interface VideoSummary {
   id: string;
   app_name: string;
   status: 'pending' | 'processing' | 'done' | 'failed';
+  source: 'form' | 'editor';
+  has_code: boolean;
+  render_status: string | null;
   created_at: string;
 }
 
 const FILTERS = [
   { id: 'all', label: 'All' },
+  { id: 'drafts', label: 'Drafts' },
   { id: 'processing', label: 'Processing' },
   { id: 'done', label: 'Completed' },
   { id: 'failed', label: 'Failed' },
@@ -28,7 +32,11 @@ export default function MyVideosPage() {
     api.get<VideoSummary[]>('/videos').then(setVideos).catch(() => {});
   }, []);
 
-  const filtered = activeFilter === 'all' ? videos : videos.filter((v) => v.status === activeFilter);
+  const filtered = videos.filter((v) => {
+    if (activeFilter === 'all') return true;
+    if (activeFilter === 'drafts') return v.source === 'editor' && v.status === 'pending';
+    return v.status === activeFilter;
+  });
 
   return (
     <div className="px-6 py-10 lg:px-8">
@@ -78,8 +86,10 @@ export default function MyVideosPage() {
           {filtered.map((v) => (
             <VideoCard
               key={v.id}
+              id={v.id}
               title={v.app_name}
               status={v.status}
+              source={v.source}
               date={new Date(v.created_at).toLocaleDateString()}
             />
           ))}

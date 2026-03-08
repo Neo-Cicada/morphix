@@ -18,6 +18,7 @@ interface VideoSummary {
     id: string;
     app_name: string;
     status: 'pending' | 'processing' | 'done' | 'failed';
+    source?: 'form' | 'editor';
     created_at: string;
 }
 
@@ -124,8 +125,10 @@ export function DashboardHome() {
                         {recentVideos.map((v) => (
                             <VideoCard
                                 key={v.id}
+                                id={v.id}
                                 title={v.app_name}
                                 status={v.status}
+                                source={v.source ?? 'form'}
                                 date={new Date(v.created_at).toLocaleDateString()}
                             />
                         ))}

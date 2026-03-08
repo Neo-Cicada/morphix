@@ -23,13 +23,22 @@ export async function listVideos(req: AuthenticatedRequest, res: Response, next:
                 id: true,
                 app_name: true,
                 status: true,
+                source: true,
                 credits_used: true,
                 output_url: true,
+                render_status: true,
+                animation_code: true,
                 created_at: true,
             },
         });
 
-        res.json(videos);
+        const result = videos.map(v => ({
+            ...v,
+            has_code: v.animation_code !== null,
+            animation_code: undefined,
+        }));
+
+        res.json(result);
     } catch (err) {
         next(err);
     }
@@ -100,6 +109,96 @@ export async function createVideo(req: AuthenticatedRequest, res: Response, next
         ]);
 
         res.status(201).json(video);
+    } catch (err) {
+        next(err);
+    }
+}
+
+const createDraftSchema = z.object({
+    title: z.string().min(1).max(200),
+    animation_code: z.string().min(1),
+    production_doc: z.any().optional(),
+});
+
+export async function createDraft(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+        const parsed = createDraftSchema.safeParse(req.body);
+        if (!parsed.success) {
+            res.status(400).json({ status: 'error', message: parsed.error.issues[0].message });
+            return;
+        }
+
+        const video = await prisma.videoJob.create({
+            data: {
+                user_id: req.user!.id,
+                app_name: parsed.data.title,
+                source: 'editor',
+                animation_code: parsed.data.animation_code,
+                production_doc: parsed.data.production_doc ?? undefined,
+                credits_used: 0,
+                audience: [],
+            },
+        });
+
+        res.status(201).json({ id: video.id });
+    } catch (err) {
+        next(err);
+    }
+}
+
+const updateDraftCodeSchema = z.object({
+    animation_code: z.string().min(1),
+    production_doc: z.any().optional(),
+});
+
+export async function updateDraftCode(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+        const id = req.params['id'] as string;
+        const parsed = updateDraftCodeSchema.safeParse(req.body);
+        if (!parsed.success) {
+            res.status(400).json({ status: 'error', message: parsed.error.issues[0].message });
+            return;
+        }
+
+        const existing = await prisma.videoJob.findUnique({ where: { id }, select: { user_id: true } });
+        if (!existing) {
+            res.status(404).json({ status: 'error', message: 'Not found' });
+            return;
+        }
+        if (existing.user_id !== req.user!.id) {
+            res.status(403).json({ status: 'error', message: 'Forbidden' });
+            return;
+        }
+
+        await prisma.videoJob.update({
+            where: { id: id },
+            data: {
+                animation_code: parsed.data.animation_code,
+                production_doc: parsed.data.production_doc ?? undefined,
+            },
+        });
+
+        res.json({ status: 'ok' });
+    } catch (err) {
+        next(err);
+    }
+}
+
+export async function getVideo(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+        const id = req.params['id'] as string;
+
+        const video = await prisma.videoJob.findUnique({ where: { id } });
+        if (!video) {
+            res.status(404).json({ status: 'error', message: 'Not found' });
+            return;
+        }
+        if (video.user_id !== req.user!.id) {
+            res.status(403).json({ status: 'error', message: 'Forbidden' });
+            return;
+        }
+
+        res.json(video);
     } catch (err) {
         next(err);
     }

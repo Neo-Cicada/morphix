@@ -36,14 +36,16 @@ model VideoJob {
   id              String   @id @default(uuid())
   user_id         String
   status          String   @default("pending")
+  source          String   @default("form")
   app_name        String
-  description     String
+  description     String?
   audience        String[]
-  cta_goal        String
+  cta_goal        String?
   features        String?
-  video_length    Int
-  tone            String
-  music_vibe      String
+  video_length    Int?
+  tone            String?
+  music_vibe      String?
+  animation_code  String?
   production_doc  Json?
   output_url      String?
   credits_used          Int       @default(1)

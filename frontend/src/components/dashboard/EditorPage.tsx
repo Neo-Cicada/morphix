@@ -6,10 +6,12 @@ import {
   PanelRightClose, PanelRightOpen, MessageSquare, FilePlus,
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
+import { useSearchParams } from 'next/navigation';
 import { AnimationPlayer } from './AnimationPlayer';
 import { useAnimationState } from '@/hooks/useAnimationState';
 import { useGenerationApi } from '@/hooks/useGenerationApi';
 import { useEditorPersistence } from '@/hooks/useEditorPersistence';
+import { useCloudPersistence } from '@/hooks/useCloudPersistence';
 
 const MonacoEditor = dynamic(() => import('@monaco-editor/react'), { ssr: false });
 
@@ -37,9 +39,11 @@ function extractDuration(code: string): number {
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function EditorPage() {
+  const searchParams = useSearchParams();
   const animationState = useAnimationState();
   const { generate, isGenerating, isStreaming } = useGenerationApi();
   const { load, save, clear } = useEditorPersistence();
+  const cloud = useCloudPersistence();
 
   // Player state
   const [durationInFrames, setDurationInFrames] = useState(180);
@@ -86,18 +90,36 @@ export default function EditorPage() {
 
   // Restore persisted state on mount
   useEffect(() => {
-    const saved = load();
-    if (saved.code) {
-      animationState.setCode(saved.code);
-    }
-    if (saved.messages && saved.messages.length > 0) {
-      setMessages(saved.messages);
-    }
-    if (saved.history) {
-      conversationHistory.current = saved.history;
-    }
-    if (saved.duration) {
-      setDurationInFrames(saved.duration);
+    const urlVideoId = searchParams.get('videoId');
+    const storedVideoId = cloud.loadStoredVideoId();
+    const idToLoad = urlVideoId ?? storedVideoId;
+
+    if (idToLoad) {
+      cloud.fetchVideo(idToLoad).then((video) => {
+        if (video?.animation_code) {
+          cloud.initVideoId(idToLoad);
+          animationState.setCode(video.animation_code);
+          if (video.production_doc) {
+            const doc = video.production_doc;
+            if (doc.messages && doc.messages.length > 0) setMessages(doc.messages);
+            if (doc.history) conversationHistory.current = doc.history;
+            if (doc.duration) setDurationInFrames(doc.duration);
+          }
+          return;
+        }
+        // fallback to localStorage
+        const saved = load();
+        if (saved.code) animationState.setCode(saved.code);
+        if (saved.messages && saved.messages.length > 0) setMessages(saved.messages);
+        if (saved.history) conversationHistory.current = saved.history;
+        if (saved.duration) setDurationInFrames(saved.duration);
+      });
+    } else {
+      const saved = load();
+      if (saved.code) animationState.setCode(saved.code);
+      if (saved.messages && saved.messages.length > 0) setMessages(saved.messages);
+      if (saved.history) conversationHistory.current = saved.history;
+      if (saved.duration) setDurationInFrames(saved.duration);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -114,6 +136,17 @@ export default function EditorPage() {
       (type) => setPersistError(type),
     );
   }, [animationState.code, messages, durationInFrames, save]);
+
+  // Cloud auto-save (debounced 3s) — only runs after a draft has been created this session
+  useEffect(() => {
+    if (!cloud.videoId || !animationState.code || streamingCode.length > 0) return;
+    cloud.scheduleSave(cloud.videoId, animationState.code, {
+      messages,
+      history: conversationHistory.current,
+      duration: durationInFrames,
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [animationState.code, messages, durationInFrames, cloud.videoId]);
 
   // Sync state from other tabs
   useEffect(() => {
@@ -172,6 +205,15 @@ export default function EditorPage() {
           setMessages((prev) => prev.map((m) =>
             m.id === assistantMsgId ? { ...m, text: 'Animation generated! Refine it by describing changes.' } : m
           ));
+          if (!cloud.videoId) {
+            cloud.createDraft(prompt, fullCode, {
+              messages: messages.map((m) =>
+                m.id === assistantMsgId ? { ...m, text: 'Animation generated! Refine it by describing changes.' } : m
+              ),
+              history: conversationHistory.current,
+              duration: durationInFrames,
+            });
+          }
         },
         onError: (err) => {
           setStreamingCode('');
@@ -201,7 +243,7 @@ export default function EditorPage() {
         },
       });
     }
-  }, [input, isGenerating, animationState, generate, attachedImages]);
+  }, [input, isGenerating, animationState, generate, attachedImages, cloud.videoId, cloud]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
@@ -261,13 +303,14 @@ export default function EditorPage() {
   const handleNewConfirm = useCallback(() => {
     animationState.reset();
     clear();
+    cloud.clearVideoId();
     setMessages([{ id: '0', role: 'assistant', text: "Hi! Describe an animation and I'll generate it for you. You can also follow up to refine it." }]);
     conversationHistory.current = [];
     setDurationInFrames(180);
     setExportState('idle');
     setExportUrl(null);
     setShowNewModal(false);
-  }, [animationState, clear]);
+  }, [animationState, clear, cloud]);
 
   // ── Render ───────────────────────────────────────────────────────────────────
 
@@ -296,6 +339,20 @@ export default function EditorPage() {
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Cloud save status */}
+          {cloud.saveStatus === 'saving' && (
+            <span className="flex items-center gap-1 text-xs text-zinc-500">
+              <Loader2 className="w-3 h-3 animate-spin" />
+              Saving...
+            </span>
+          )}
+          {cloud.saveStatus === 'saved' && (
+            <span className="text-xs text-zinc-600">Saved</span>
+          )}
+          {cloud.saveStatus === 'error' && (
+            <span className="text-xs text-red-500">Save failed</span>
+          )}
+
           {/* New animation */}
           {animationState.code && (
             <button

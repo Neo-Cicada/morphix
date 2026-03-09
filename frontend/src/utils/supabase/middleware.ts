@@ -56,5 +56,13 @@ export async function updateSession(request: NextRequest) {
         return NextResponse.redirect(url)
     }
 
+    const isLandingPage = request.nextUrl.pathname === '/'
+
+    if (user && isLandingPage) {
+        const url = request.nextUrl.clone()
+        url.pathname = '/dashboard'
+        return NextResponse.redirect(url)
+    }
+
     return supabaseResponse
 }

@@ -2,9 +2,21 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { headers } from 'next/headers'
 import { createClient } from '@/utils/supabase/server'
+import { checkRateLimit } from '@/lib/rateLimit'
+
+// 3 signups per hour per IP — blocks account/email spam
+const SIGNUP_LIMIT = 3
+const SIGNUP_WINDOW_MS = 60 * 60 * 1000
 
 export async function signupAction(formData: FormData) {
+    const ip = (await headers()).get('x-forwarded-for')?.split(',')[0].trim() ?? 'unknown'
+    const rl = checkRateLimit(`signup:${ip}`, SIGNUP_LIMIT, SIGNUP_WINDOW_MS)
+    if (!rl.allowed) {
+        return { error: 'Too many signup attempts from this IP. Please try again later.' }
+    }
+
     const supabase = await createClient()
 
     const email = formData.get('email') as string

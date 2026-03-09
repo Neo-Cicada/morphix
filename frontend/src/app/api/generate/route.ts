@@ -3,6 +3,7 @@ import { streamText, generateObject } from 'ai';
 import { anthropic } from '@ai-sdk/anthropic';
 import { z } from 'zod';
 import { NextRequest } from 'next/server';
+import { checkRateLimit, rateLimitResponse } from '@/lib/rateLimit';
 
 const SYSTEM_PROMPT = `You are an expert Remotion animation developer. Generate beautiful, production-quality animations using React and Remotion.
 
@@ -109,6 +110,10 @@ function applyEdits(
   return { code, error: null };
 }
 
+// 20 generations per hour per user (blocks abuse while allowing normal usage)
+const GENERATE_LIMIT = 20
+const GENERATE_WINDOW_MS = 60 * 60 * 1000
+
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
   const {
@@ -118,6 +123,9 @@ export async function POST(req: NextRequest) {
   if (!session) {
     return new Response('Unauthorized', { status: 401 });
   }
+
+  const rl = checkRateLimit(`generate:${session.user.id}`, GENERATE_LIMIT, GENERATE_WINDOW_MS)
+  if (!rl.allowed) return rateLimitResponse(rl.resetAt)
 
   const body = await req.json();
   const { prompt, conversationHistory = [], currentCode, isFollowUp = false, errorCorrection, frameImages } = body;

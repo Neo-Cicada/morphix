@@ -4,6 +4,11 @@ import { renderMediaOnLambda, getRenderProgress } from '@remotion/lambda/client'
 import fs from 'fs/promises';
 import path from 'path';
 import os from 'os';
+import { checkRateLimit, rateLimitResponse } from '@/lib/rateLimit';
+
+// 5 renders per hour per user (renders are expensive Lambda invocations)
+const RENDER_LIMIT = 5
+const RENDER_WINDOW_MS = 60 * 60 * 1000
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
@@ -14,6 +19,9 @@ export async function POST(req: NextRequest) {
   if (!session) {
     return new Response('Unauthorized', { status: 401 });
   }
+
+  const rl = checkRateLimit(`render:${session.user.id}`, RENDER_LIMIT, RENDER_WINDOW_MS)
+  if (!rl.allowed) return rateLimitResponse(rl.resetAt)
 
   const { code, durationInFrames, fps } = await req.json();
 

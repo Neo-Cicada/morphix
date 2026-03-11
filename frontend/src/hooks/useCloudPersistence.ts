@@ -9,6 +9,7 @@ interface ProductionDoc {
   messages: { id: string; role: 'user' | 'assistant'; text: string }[];
   history: { role: 'user' | 'assistant'; content: string }[];
   duration: number;
+  thumbnail?: string;
 }
 
 const VIDEO_ID_KEY = 'morphix_editor_video_id';

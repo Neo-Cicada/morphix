@@ -12,6 +12,7 @@ import { useAnimationState } from '@/hooks/useAnimationState';
 import { useGenerationApi } from '@/hooks/useGenerationApi';
 import { useEditorPersistence } from '@/hooks/useEditorPersistence';
 import { useCloudPersistence } from '@/hooks/useCloudPersistence';
+import { createCodeThumbnail } from '@/lib/thumbnail';
 
 const MonacoEditor = dynamic(() => import('@monaco-editor/react'), { ssr: false });
 
@@ -206,12 +207,14 @@ export default function EditorPage() {
             m.id === assistantMsgId ? { ...m, text: 'Animation generated! Refine it by describing changes.' } : m
           ));
           if (!cloud.videoId) {
+            const thumbnail = createCodeThumbnail(fullCode, prompt.slice(0, 40));
             cloud.createDraft(prompt, fullCode, {
               messages: messages.map((m) =>
                 m.id === assistantMsgId ? { ...m, text: 'Animation generated! Refine it by describing changes.' } : m
               ),
               history: conversationHistory.current,
               duration: durationInFrames,
+              ...(thumbnail ? { thumbnail } : {}),
             });
           }
         },

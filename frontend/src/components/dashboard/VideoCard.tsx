@@ -7,6 +7,7 @@ interface VideoCardProps {
   status: 'pending' | 'processing' | 'done' | 'failed';
   source: 'form' | 'editor';
   date: string;
+  thumbnail?: string | null;
 }
 
 const statusConfig = {
@@ -18,7 +19,7 @@ const statusConfig = {
 
 const draftBadge = { bg: 'rgba(245,158,11,0.08)', color: '#f59e0b', border: 'rgba(245,158,11,0.2)' };
 
-export function VideoCard({ id, title, status, source, date }: VideoCardProps) {
+export function VideoCard({ id, title, status, source, date, thumbnail }: VideoCardProps) {
   const isDraft = source === 'editor' && status === 'pending';
   const s = statusConfig[status];
 
@@ -30,31 +31,52 @@ export function VideoCard({ id, title, status, source, date }: VideoCardProps) {
       {/* Thumbnail */}
       <div
         className="aspect-video relative flex items-center justify-center overflow-hidden"
-        style={{ background: 'linear-gradient(135deg, #3b82f6/10 0%, transparent 50%, rgba(0,243,255,0.06) 100%)' }}
+        style={{ background: 'linear-gradient(135deg, rgba(59,130,246,0.1) 0%, transparent 50%, rgba(0,243,255,0.06) 100%)' }}
       >
+        {thumbnail ? (
+          <>
+            <img
+              src={thumbnail}
+              alt={title}
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+            {/* Play button overlay */}
+            <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
+              <div
+                className="size-12 rounded-full flex items-center justify-center"
+                style={{ background: 'rgba(59,130,246,0.8)', boxShadow: '0 0 20px rgba(59,130,246,0.4)' }}
+              >
+                <Play className="h-5 w-5 ml-0.5 text-white" />
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
+            <div
+              className="absolute inset-0"
+              style={{ background: 'radial-gradient(ellipse at center, rgba(59,130,246,0.08) 0%, rgba(0,243,255,0.04) 40%, transparent 70%)' }}
+            />
+            <div
+              className="absolute inset-0 opacity-[0.03]"
+              style={{
+                backgroundImage: 'radial-gradient(circle, rgba(255,255,255,1) 1px, transparent 1px)',
+                backgroundSize: '28px 28px',
+              }}
+            />
+            <div
+              className="relative z-10 size-12 rounded-full flex items-center justify-center transition-all duration-200"
+              style={{
+                background: 'rgba(59,130,246,0.12)',
+                border: '1px solid rgba(59,130,246,0.25)',
+                boxShadow: '0 0 20px rgba(59,130,246,0.1)',
+              }}
+            >
+              <Play className="h-5 w-5 ml-0.5 text-[#3b82f6] group-hover:text-[#60a5fa] transition-colors" />
+            </div>
+          </>
+        )}
         <div
-          className="absolute inset-0"
-          style={{ background: 'radial-gradient(ellipse at center, rgba(59,130,246,0.08) 0%, rgba(0,243,255,0.04) 40%, transparent 70%)' }}
-        />
-        <div
-          className="absolute inset-0 opacity-[0.03]"
-          style={{
-            backgroundImage: 'radial-gradient(circle, rgba(255,255,255,1) 1px, transparent 1px)',
-            backgroundSize: '28px 28px',
-          }}
-        />
-        <div
-          className="relative z-10 size-12 rounded-full flex items-center justify-center transition-all duration-200"
-          style={{
-            background: 'rgba(59,130,246,0.12)',
-            border: '1px solid rgba(59,130,246,0.25)',
-            boxShadow: '0 0 20px rgba(59,130,246,0.1)',
-          }}
-        >
-          <Play className="h-5 w-5 ml-0.5 text-[#3b82f6] group-hover:text-[#60a5fa] transition-colors" />
-        </div>
-        <div
-          className="absolute bottom-0 left-0 right-0 h-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+          className="absolute bottom-0 left-0 right-0 h-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10"
           style={{ background: 'linear-gradient(90deg, #3b82f6, #00f3ff, transparent)' }}
         />
       </div>

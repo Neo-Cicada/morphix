@@ -4,6 +4,7 @@ import { VideoFormData } from '@/types/video';
 import { Zap, PlayCircle, Film, Sparkles, AlertCircle, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { api } from '@/lib/api';
+import { createCodeThumbnail, createScreenshotThumbnail } from '@/lib/thumbnail';
 import { useRouter } from 'next/navigation';
 
 interface Step3FormProps {
@@ -17,11 +18,7 @@ type GenerationPhase = 'idle' | 'generating' | 'saving';
 async function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result as string;
-      // Strip the data URL prefix, keep only base64
-      resolve(result.split(',')[1]);
-    };
+    reader.onload = () => { resolve((reader.result as string).split(',')[1]); };
     reader.onerror = reject;
     reader.readAsDataURL(file);
   });
@@ -99,8 +96,12 @@ export function Step3Form({ formData, onChange, onBack }: Step3FormProps) {
     try {
       // Convert screenshots to base64 if any
       let frameImages: string[] = [];
+      let thumbnail: string | undefined;
       if (formData.screenshots.length > 0) {
-        frameImages = await Promise.all(formData.screenshots.map(fileToBase64));
+        [frameImages, thumbnail] = await Promise.all([
+          Promise.all(formData.screenshots.map(fileToBase64)),
+          createScreenshotThumbnail(formData.screenshots[0]),
+        ]);
       }
 
       const prompt = buildPrompt(formData);
@@ -138,6 +139,12 @@ export function Step3Form({ formData, onChange, onBack }: Step3FormProps) {
         throw new Error('No animation code was generated');
       }
 
+      // Fall back to code-based thumbnail if no screenshot was provided
+      if (!thumbnail) {
+        const generated = createCodeThumbnail(code, formData.appName);
+        if (generated) thumbnail = generated;
+      }
+
       // Save as draft
       setPhase('saving');
       const draft = await api.post<{ id: string }>('/videos/draft', {
@@ -147,6 +154,7 @@ export function Step3Form({ formData, onChange, onBack }: Step3FormProps) {
           tone: formData.tone,
           music_vibe: formData.musicVibe,
           video_length: formData.videoLength,
+          ...(thumbnail ? { thumbnail } : {}),
         },
       });
 

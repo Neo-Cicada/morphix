@@ -28,15 +28,21 @@ export async function listVideos(req: AuthenticatedRequest, res: Response, next:
                 output_url: true,
                 render_status: true,
                 animation_code: true,
+                production_doc: true,
                 created_at: true,
             },
         });
 
-        const result = videos.map(v => ({
-            ...v,
-            has_code: v.animation_code !== null,
-            animation_code: undefined,
-        }));
+        const result = videos.map(v => {
+            const doc = v.production_doc as Record<string, unknown> | null;
+            return {
+                ...v,
+                has_code: v.animation_code !== null,
+                animation_code: undefined,
+                thumbnail: (doc?.thumbnail as string | undefined) ?? null,
+                production_doc: undefined,
+            };
+        });
 
         res.json(result);
     } catch (err) {
@@ -160,7 +166,7 @@ export async function updateDraftCode(req: AuthenticatedRequest, res: Response, 
             return;
         }
 
-        const existing = await prisma.videoJob.findUnique({ where: { id }, select: { user_id: true } });
+        const existing = await prisma.videoJob.findUnique({ where: { id }, select: { user_id: true, production_doc: true } });
         if (!existing) {
             res.status(404).json({ status: 'error', message: 'Not found' });
             return;
@@ -170,11 +176,16 @@ export async function updateDraftCode(req: AuthenticatedRequest, res: Response, 
             return;
         }
 
+        // Merge new production_doc with existing to preserve fields like thumbnail
+        const mergedDoc = parsed.data.production_doc
+            ? { ...(existing.production_doc as object ?? {}), ...parsed.data.production_doc }
+            : existing.production_doc ?? undefined;
+
         await prisma.videoJob.update({
             where: { id: id },
             data: {
                 animation_code: parsed.data.animation_code,
-                production_doc: parsed.data.production_doc ?? undefined,
+                production_doc: mergedDoc,
             },
         });
 

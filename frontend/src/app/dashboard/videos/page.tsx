@@ -13,6 +13,7 @@ interface VideoSummary {
   source: 'form' | 'editor';
   has_code: boolean;
   render_status: string | null;
+  thumbnail: string | null;
   created_at: string;
 }
 
@@ -91,6 +92,7 @@ export default function MyVideosPage() {
               status={v.status}
               source={v.source}
               date={new Date(v.created_at).toLocaleDateString()}
+              thumbnail={v.thumbnail}
             />
           ))}
         </div>

@@ -538,9 +538,9 @@ export default function EditorPage() {
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={handleKeyDown}
                     placeholder={animationState.code ? 'Describe a change... (⌘↵ to send)' : 'Describe your animation... (⌘↵ to send)'}
-                    rows={1}
-                    className="flex-1 bg-[#1a1a18] border border-[#2e2e2c] rounded-xl px-3 py-2 text-sm text-[#FAFAF7] placeholder-[#555553] focus:outline-none focus:border-[#C17B4F]/50 focus:ring-1 focus:ring-[#C17B4F]/15 resize-none transition-all"
-                    style={{ maxHeight: '100px', overflowY: 'auto' }}
+                    rows={3}
+                    className="flex-1 bg-[#1a1a18] border border-[#2e2e2c] rounded-xl px-3 py-2.5 text-sm text-[#FAFAF7] placeholder-[#555553] focus:outline-none focus:border-[#C17B4F]/50 focus:ring-1 focus:ring-[#C17B4F]/15 resize-none transition-all"
+                    style={{ maxHeight: '160px', overflowY: 'auto' }}
                   />
                   <button
                     onClick={handleSend}

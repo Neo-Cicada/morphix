@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import useSWR from 'swr';
-import { Store, Loader2 } from 'lucide-react';
+import { LayoutTemplate, Loader2 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { Template, TemplateCard } from './TemplateCard';
 import { QuickEditModal } from './QuickEditModal';
@@ -39,10 +39,10 @@ export function MarketplacePage() {
             className="size-9 rounded-xl flex items-center justify-center shrink-0"
             style={{ background: 'rgba(193,123,79,0.1)', border: '1px solid rgba(193,123,79,0.2)' }}
           >
-            <Store className="size-4 text-[#C17B4F]" />
+            <LayoutTemplate className="size-4 text-[#C17B4F]" />
           </div>
           <div>
-            <h1 className="text-base font-bold text-white leading-tight">Template Marketplace</h1>
+            <h1 className="text-base font-bold text-white leading-tight">Templates</h1>
             <p className="text-xs" style={{ color: '#555' }}>
               Ready-made animations — customize and open in the editor
             </p>
@@ -89,7 +89,7 @@ export function MarketplacePage() {
 
         {!isLoading && !error && filtered.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 gap-3">
-            <Store className="size-8" style={{ color: '#333' }} />
+            <LayoutTemplate className="size-8" style={{ color: '#333' }} />
             <p className="text-sm" style={{ color: '#555' }}>No templates found.</p>
           </div>
         )}

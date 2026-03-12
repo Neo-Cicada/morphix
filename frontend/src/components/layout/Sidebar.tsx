@@ -2,12 +2,12 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, PlaySquare, PlusCircle, X, Film, Clapperboard, PanelLeftClose, PanelLeftOpen, Store } from 'lucide-react';
+import { Home, PlaySquare, PlusCircle, X, Film, Clapperboard, PanelLeftClose, PanelLeftOpen, LayoutTemplate } from 'lucide-react';
 
 const navItems = [
   { name: 'Home',        href: '/dashboard',             icon: Home },
   { name: 'My Videos',  href: '/dashboard/videos',      icon: PlaySquare },
-  { name: 'Marketplace', href: '/dashboard/marketplace', icon: Store },
+  { name: 'Templates',  href: '/dashboard/marketplace', icon: LayoutTemplate },
   { name: 'New Video',  href: '/dashboard/new',         icon: PlusCircle },
   { name: 'Editor',     href: '/dashboard/editor',      icon: Clapperboard },
 ];

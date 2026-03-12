@@ -73,7 +73,7 @@ export function compile(code: string): CompileResult {
         ['typescript', { allExtensions: true, isTSX: true }],
       ],
       filename: 'animation.tsx',
-      sourceType: 'script',
+      sourceType: 'module',
     });
 
     const transformed = result.code;

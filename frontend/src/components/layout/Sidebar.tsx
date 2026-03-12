@@ -2,13 +2,14 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, PlaySquare, PlusCircle, X, Film, Clapperboard, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { Home, PlaySquare, PlusCircle, X, Film, Clapperboard, PanelLeftClose, PanelLeftOpen, Store } from 'lucide-react';
 
 const navItems = [
-  { name: 'Home',      href: '/dashboard',       icon: Home },
-  { name: 'My Videos', href: '/dashboard/videos', icon: PlaySquare },
-  { name: 'New Video', href: '/dashboard/new',    icon: PlusCircle },
-  { name: 'Editor',    href: '/dashboard/editor', icon: Clapperboard },
+  { name: 'Home',        href: '/dashboard',             icon: Home },
+  { name: 'My Videos',  href: '/dashboard/videos',      icon: PlaySquare },
+  { name: 'Marketplace', href: '/dashboard/marketplace', icon: Store },
+  { name: 'New Video',  href: '/dashboard/new',         icon: PlusCircle },
+  { name: 'Editor',     href: '/dashboard/editor',      icon: Clapperboard },
 ];
 
 interface SidebarProps {

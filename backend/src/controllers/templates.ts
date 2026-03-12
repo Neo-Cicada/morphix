@@ -18,9 +18,30 @@ export async function listTemplates(req: AuthenticatedRequest, res: Response, ne
                 ],
             },
             orderBy: [{ is_preset: 'desc' }, { created_at: 'asc' }],
-            select: { id: true, name: true, scene_json: true, is_preset: true, user_id: true, created_at: true },
+            select: { id: true, name: true, description: true, category: true, thumbnail: true, scene_json: true, animation_code: true, variables: true, use_count: true, is_preset: true, user_id: true, created_at: true },
         });
         res.json({ templates });
+    } catch (err) {
+        next(err);
+    }
+}
+
+export async function getTemplate(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+        const { id } = req.params;
+        const template = await prisma.template.findUnique({
+            where: { id: String(id) },
+            select: { id: true, name: true, description: true, category: true, thumbnail: true, scene_json: true, animation_code: true, variables: true, use_count: true, is_preset: true, user_id: true, created_at: true },
+        });
+        if (!template) {
+            res.status(404).json({ status: 'error', message: 'Template not found' });
+            return;
+        }
+        if (!template.is_preset && template.user_id !== req.user!.id) {
+            res.status(403).json({ status: 'error', message: 'Forbidden' });
+            return;
+        }
+        res.json({ template });
     } catch (err) {
         next(err);
     }

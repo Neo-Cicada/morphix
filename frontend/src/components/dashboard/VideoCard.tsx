@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { MoreVertical, Download, Play, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -24,6 +25,7 @@ const statusConfig = {
 const draftBadge = { bg: 'rgba(245,158,11,0.08)', color: '#f59e0b', border: 'rgba(245,158,11,0.2)' };
 
 export function VideoCard({ id, title, status, source, date, thumbnail, onDelete }: VideoCardProps) {
+  const router = useRouter();
   const isDraft = source === 'editor' && status === 'pending';
   const s = statusConfig[status];
   const [menuOpen, setMenuOpen] = useState(false);
@@ -167,13 +169,13 @@ export function VideoCard({ id, title, status, source, date, thumbnail, onDelete
             )}
 
             {isDraft ? (
-              <Link
-                href={`/dashboard/editor?videoId=${id}`}
+              <button
+                onClick={(e) => { e.preventDefault(); router.push(`/dashboard/editor?videoId=${id}`); }}
                 className="inline-flex items-center gap-1.5 text-xs font-medium transition-colors cursor-pointer"
                 style={{ color: '#f59e0b' }}
               >
                 Resume
-              </Link>
+              </button>
             ) : (
               <button
                 disabled={status !== 'done'}

@@ -1,58 +1,14 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useState } from 'react';
 import { PlusCircle, Play, ArrowUpDown } from 'lucide-react';
 import Link from 'next/link';
 import { VideoCard } from '@/components/dashboard/VideoCard';
-import { api } from '@/lib/api';
-
-interface VideoSummary {
-  id: string;
-  app_name: string;
-  status: 'pending' | 'processing' | 'done' | 'failed';
-  source: 'form' | 'editor';
-  has_code: boolean;
-  render_status: string | null;
-  thumbnail: string | null;
-  created_at: string;
-}
-
-interface VideosResponse {
-  videos: VideoSummary[];
-  nextCursor: string | null;
-}
+import { useVideos } from '@/hooks/useVideos';
 
 export default function MyVideosPage() {
-  const [videos, setVideos] = useState<VideoSummary[]>([]);
-  const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [order, setOrder] = useState<'desc' | 'asc'>('desc');
-  const [loadingMore, setLoadingMore] = useState(false);
-
-  const fetchVideos = useCallback(async (ord: 'desc' | 'asc') => {
-    const data = await api.get<VideosResponse>(`/videos?order=${ord}`);
-    setVideos(data.videos);
-    setNextCursor(data.nextCursor);
-  }, []);
-
-  useEffect(() => {
-    fetchVideos(order).catch(() => {});
-  }, [order, fetchVideos]);
-
-  async function loadMore() {
-    if (!nextCursor || loadingMore) return;
-    setLoadingMore(true);
-    try {
-      const data = await api.get<VideosResponse>(`/videos?order=${order}&cursor=${nextCursor}`);
-      setVideos(prev => [...prev, ...data.videos]);
-      setNextCursor(data.nextCursor);
-    } finally {
-      setLoadingMore(false);
-    }
-  }
-
-  function toggleOrder() {
-    setOrder(prev => (prev === 'desc' ? 'asc' : 'desc'));
-  }
+  const { videos, hasMore, isLoading, isLoadingMore, loadMore } = useVideos(order);
 
   return (
     <div className="px-6 py-10 lg:px-8">
@@ -68,7 +24,7 @@ export default function MyVideosPage() {
         </div>
         <div className="flex items-center gap-3">
           <button
-            onClick={toggleOrder}
+            onClick={() => setOrder(prev => prev === 'desc' ? 'asc' : 'desc')}
             className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-semibold transition-all duration-200 cursor-pointer"
             style={{ background: '#1a1a18', border: '1px solid #2e2e2c', color: '#888888' }}
           >
@@ -86,7 +42,13 @@ export default function MyVideosPage() {
         </div>
       </div>
 
-      {videos.length > 0 ? (
+      {isLoading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="rounded-2xl aspect-video animate-pulse" style={{ background: '#1a1a18', border: '1px solid #2e2e2c' }} />
+          ))}
+        </div>
+      ) : videos.length > 0 ? (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {videos.map((v) => (
@@ -102,15 +64,15 @@ export default function MyVideosPage() {
             ))}
           </div>
 
-          {nextCursor && (
+          {hasMore && (
             <div className="flex justify-center mt-8">
               <button
                 onClick={loadMore}
-                disabled={loadingMore}
+                disabled={isLoadingMore}
                 className="inline-flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-semibold transition-all duration-200 cursor-pointer disabled:opacity-50"
                 style={{ background: '#1a1a18', border: '1px solid #2e2e2c', color: '#888888' }}
               >
-                {loadingMore ? 'Loading...' : 'Load more'}
+                {isLoadingMore ? 'Loading...' : 'Load more'}
               </button>
             </div>
           )}
@@ -124,10 +86,7 @@ export default function MyVideosPage() {
             className="relative w-full max-w-lg aspect-video rounded-2xl overflow-hidden mb-8"
             style={{ background: '#111110', border: '1px solid #2e2e2c' }}
           >
-            <div
-              className="absolute inset-0"
-              style={{ background: 'rgba(193,123,79,0.06)' }}
-            />
+            <div className="absolute inset-0" style={{ background: 'rgba(193,123,79,0.06)' }} />
             <div
               className="absolute inset-0"
               style={{

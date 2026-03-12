@@ -7,20 +7,12 @@ import { StatsCard } from './StatsCard';
 import { VideoCard } from './VideoCard';
 import { useUser } from '@/contexts/UserContext';
 import { api } from '@/lib/api';
+import { useVideos } from '@/hooks/useVideos';
 
 interface Stats {
     total_videos: number;
     this_month: number;
     credit_balance: number;
-}
-
-interface VideoSummary {
-    id: string;
-    app_name: string;
-    status: 'pending' | 'processing' | 'done' | 'failed';
-    source?: 'form' | 'editor';
-    thumbnail: string | null;
-    created_at: string;
 }
 
 function getGreeting(): string {
@@ -33,11 +25,11 @@ function getGreeting(): string {
 export function DashboardHome() {
     const { user } = useUser();
     const [stats, setStats] = useState<Stats | null>(null);
-    const [recentVideos, setRecentVideos] = useState<VideoSummary[]>([]);
+    const { videos } = useVideos();
+    const recentVideos = videos.slice(0, 3);
 
     useEffect(() => {
         api.get<Stats>('/videos/stats').then(setStats).catch(() => {});
-        api.get<{ videos: VideoSummary[] }>('/videos').then((r) => setRecentVideos(r.videos.slice(0, 3))).catch(() => {});
     }, []);
 
     const displayName = user?.full_name || user?.email?.split('@')[0] || 'there';

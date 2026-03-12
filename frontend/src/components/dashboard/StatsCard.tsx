@@ -10,25 +10,25 @@ interface StatsCardProps {
 
 const colorMap = {
   blue: {
-    iconBg: 'rgba(59,130,246,0.1)',
-    iconColor: '#3b82f6',
-    iconBorder: 'rgba(59,130,246,0.2)',
-    topBar: 'linear-gradient(90deg,#3b82f6,transparent)',
-    glow: 'rgba(59,130,246,0.06)',
+    iconBg: 'rgba(193,123,79,0.1)',
+    iconColor: '#C17B4F',
+    iconBorder: 'rgba(193,123,79,0.2)',
+    topBar: '#C17B4F',
+    glow: 'rgba(193,123,79,0.06)',
   },
   purple: {
-    iconBg: 'rgba(0,243,255,0.1)',
-    iconColor: '#00f3ff',
-    iconBorder: 'rgba(0,243,255,0.2)',
-    topBar: 'linear-gradient(90deg,#00f3ff,transparent)',
-    glow: 'rgba(0,243,255,0.06)',
+    iconBg: 'rgba(193,123,79,0.1)',
+    iconColor: '#D4A574',
+    iconBorder: 'rgba(193,123,79,0.2)',
+    topBar: '#D4A574',
+    glow: 'rgba(193,123,79,0.06)',
   },
   green: {
-    iconBg: 'rgba(0,243,255,0.1)',
-    iconColor: '#00f3ff',
-    iconBorder: 'rgba(0,243,255,0.2)',
-    topBar: 'linear-gradient(90deg,#00f3ff,transparent)',
-    glow: 'rgba(0,243,255,0.06)',
+    iconBg: 'rgba(193,123,79,0.1)',
+    iconColor: '#D4A574',
+    iconBorder: 'rgba(193,123,79,0.2)',
+    topBar: '#D4A574',
+    glow: 'rgba(193,123,79,0.06)',
   },
 };
 
@@ -39,8 +39,8 @@ export function StatsCard({ icon: Icon, title, value, subtitle, color = 'blue' }
     <div
       className="relative rounded-xl p-5 overflow-hidden transition-all duration-200 hover:border-[#2a2a2a] cursor-default group"
       style={{
-        background: '#0A0A10',
-        border: '1px solid #111122',
+        background: '#1a1a18',
+        border: '1px solid #2e2e2c',
       }}
     >
       {/* Top accent bar */}
@@ -62,13 +62,13 @@ export function StatsCard({ icon: Icon, title, value, subtitle, color = 'blue' }
           >
             <Icon className="h-[17px] w-[17px]" style={{ color: c.iconColor }} />
           </div>
-          <p className="text-[10px] font-semibold tracking-[0.12em] uppercase" style={{ color: '#555555' }}>
+          <p className="text-[10px] font-semibold tracking-[0.12em] uppercase" style={{ color: '#888884' }}>
             {title}
           </p>
         </div>
         <p className="text-4xl font-bold tracking-tight text-white leading-none">{value}</p>
         {subtitle && (
-          <p className="text-xs mt-2" style={{ color: '#666666' }}>{subtitle}</p>
+          <p className="text-xs mt-2" style={{ color: '#888884' }}>{subtitle}</p>
         )}
       </div>
     </div>

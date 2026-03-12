@@ -33,42 +33,42 @@ const quotes = [
     author: "@indiefounder",
     detail: "847 upvotes on launch day",
     initials: "IF",
-    color: "#3b82f6",
+    color: "#C17B4F",
   },
   {
     text: "Finally a launch video that doesn't look like I made it in Canva.",
     author: "@saasbuilder",
     detail: "Indie Hacker",
     initials: "SB",
-    color: "#00f3ff",
+    color: "#D4A574",
   },
   {
     text: "Worth every penny. Our demo converted 3x better than screenshots.",
     author: "@startupneo",
     detail: "Founder",
     initials: "SN",
-    color: "#3b82f6",
+    color: "#C17B4F",
   },
   {
     text: "I've launched 6 products. This is the first time the video didn't embarrass me.",
     author: "@serialfounder",
     detail: "Serial Entrepreneur",
     initials: "SF",
-    color: "#00f3ff",
+    color: "#D4A574",
   },
   {
     text: "Sent it to investors. They asked who made the video. I said AI. They didn't believe me.",
     author: "@techfounder",
     detail: "Pre-seed Founder",
     initials: "TF",
-    color: "#00f3ff",
+    color: "#D4A574",
   },
   {
     text: "$20. Are you kidding me. This would have cost me $800 from a freelancer.",
     author: "@bootstrapped_dev",
     detail: "Bootstrapped",
     initials: "BD",
-    color: "#3b82f6",
+    color: "#C17B4F",
   },
 ];
 
@@ -203,13 +203,13 @@ function FAQItem({ q, a, index }: { q: string; a: string; index: number }) {
 
   return (
     <Reveal delay={index * 60}>
-      <div className="border-b border-[#111122] last:border-b-0">
+      <div className="border-b border-[#2e2e2c] last:border-b-0">
         <button
           onClick={() => setOpen(!open)}
           className="w-full flex items-center justify-between py-6 text-left cursor-pointer group"
           aria-expanded={open}
         >
-          <span className="text-base md:text-lg font-medium text-white group-hover:text-[#3b82f6] transition-colors duration-200">
+          <span className="text-base md:text-lg font-medium text-white group-hover:text-[#C17B4F] transition-colors duration-200">
             {q}
           </span>
           <motion.div
@@ -230,7 +230,7 @@ function FAQItem({ q, a, index }: { q: string; a: string; index: number }) {
               transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
               className="overflow-hidden"
             >
-              <p className="text-[#888888] leading-relaxed pb-6 text-sm md:text-base">
+              <p className="text-[#888884] leading-relaxed pb-6 text-sm md:text-base">
                 {a}
               </p>
             </motion.div>
@@ -261,7 +261,7 @@ export default function LandingPage() {
 
   return (
     <MotionConfig reducedMotion="user">
-      <div className="min-h-screen bg-[#05050A] text-white antialiased overflow-x-hidden selection:bg-blue-500/30">
+      <div className="min-h-screen bg-[#111110] text-white antialiased overflow-x-hidden selection:bg-[#C17B4F]/20">
 
         {/* ════════════════════════════════════
             NAV
@@ -281,7 +281,7 @@ export default function LandingPage() {
           <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
             {/* Wordmark */}
             <Link href="/" className="flex items-center gap-2.5 group">
-              <Film className="size-5 text-white group-hover:text-[#3b82f6] transition-colors" />
+              <Film className="size-5 text-white group-hover:text-[#C17B4F] transition-colors" />
               <span className="font-bold text-[17px] tracking-tight text-white">
                 Morphix
               </span>
@@ -297,7 +297,7 @@ export default function LandingPage() {
               </Link>
               <Link
                 href="/signup"
-                className="text-sm font-semibold bg-white text-[#05050A] hover:bg-zinc-100 px-5 py-2 rounded-full transition-all cursor-pointer"
+                className="text-sm font-semibold bg-white text-[#111110] hover:bg-zinc-100 px-5 py-2 rounded-full transition-all cursor-pointer"
               >
                 Get Early Access
               </Link>
@@ -325,7 +325,7 @@ export default function LandingPage() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.2, ease: "easeOut" }}
-                className="md:hidden bg-[#05050A]/95 backdrop-blur-xl border-t border-[#111122] px-6 py-6 flex flex-col gap-4"
+                className="md:hidden bg-[#111110]/95 backdrop-blur-xl border-t border-[#2e2e2c] px-6 py-6 flex flex-col gap-4"
               >
                 <Link
                   href="/login"
@@ -336,7 +336,7 @@ export default function LandingPage() {
                 </Link>
                 <Link
                   href="/signup"
-                  className="text-sm font-semibold bg-white text-[#05050A] px-5 py-2.5 rounded-full text-center transition-all cursor-pointer"
+                  className="text-sm font-semibold bg-white text-[#111110] px-5 py-2.5 rounded-full text-center transition-all cursor-pointer"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Get Early Access
@@ -376,12 +376,12 @@ export default function LandingPage() {
 
                 {/* Orbiting dot 1 */}
                 <div
-                  className="orbit-dot absolute size-3 rounded-full bg-[#3b82f6] shadow-[0_0_12px_rgba(59,130,246,0.8)]"
+                  className="orbit-dot absolute size-3 rounded-full bg-[#C17B4F] shadow-[0_0_12px_rgba(193,123,79,0.8)]"
                   style={{ top: "50%", left: "50%", marginTop: "-6px", marginLeft: "-6px" }}
                 />
                 {/* Orbiting dot 2 */}
                 <div
-                  className="orbit-dot-reverse absolute size-2 rounded-full bg-[#00f3ff] shadow-[0_0_10px_rgba(0,243,255,0.8)]"
+                  className="orbit-dot-reverse absolute size-2 rounded-full bg-[#D4A574] shadow-[0_0_10px_rgba(193,123,79,0.8)]"
                   style={{ top: "50%", left: "50%", marginTop: "-4px", marginLeft: "-4px" }}
                 />
               </div>
@@ -405,7 +405,7 @@ export default function LandingPage() {
               </h1>
 
               {/* Subtext */}
-              <p className="hero-child text-lg md:text-xl text-[#888888] max-w-[520px] mx-auto mb-10 leading-relaxed">
+              <p className="hero-child text-lg md:text-xl text-[#888884] max-w-[520px] mx-auto mb-10 leading-relaxed">
                 Upload your screenshots. Describe your vision. Walk away with a
                 marketing video that makes investors stop scrolling.
               </p>
@@ -428,7 +428,7 @@ export default function LandingPage() {
               </div>
 
               {/* Social proof micro-line */}
-              <p className="hero-child mt-10 text-sm text-[#555555]">
+              <p className="hero-child mt-10 text-sm text-[#555553]">
                 Join 500+ founders who launched with Morphix
               </p>
 
@@ -436,30 +436,30 @@ export default function LandingPage() {
               <div className="hero-child mt-16 relative w-full max-w-2xl mx-auto hidden sm:block">
                 {/* Left card */}
                 <div
-                  className="float-card absolute -left-12 -top-4 bg-[#0A0A10] border border-[#111122] rounded-2xl p-4 w-52 text-left shadow-2xl"
+                  className="float-card absolute -left-12 -top-4 bg-[#1a1a18] border border-[#2e2e2c] rounded-2xl p-4 w-52 text-left shadow-2xl"
                 >
-                  <div className="aspect-video rounded-lg bg-[#0a0a0a] flex items-center justify-center mb-3 relative overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-br from-[#3b82f6]/20 to-[#00f3ff]/10" />
-                    <Play className="size-5 text-[#3b82f6] ml-0.5 relative z-10" />
+                  <div className="aspect-video rounded-lg bg-[#141412] flex items-center justify-center mb-3 relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#C17B4F]/20 to-[#D4A574]/10" />
+                    <Play className="size-5 text-[#C17B4F] ml-0.5 relative z-10" />
                   </div>
                   <p className="text-xs font-medium text-zinc-300">morphix_launch.mp4</p>
-                  <p className="text-[10px] text-[#555555] mt-0.5">1080p · Ready in 7 min</p>
+                  <p className="text-[10px] text-[#555553] mt-0.5">1080p · Ready in 7 min</p>
                 </div>
 
                 {/* Center card — main */}
-                <div className="bg-[#0A0A10] border border-[#111122] rounded-2xl overflow-hidden">
+                <div className="bg-[#1a1a18] border border-[#2e2e2c] rounded-2xl overflow-hidden">
                   <div className="aspect-video relative flex items-center justify-center">
-                    <div className="absolute inset-0 bg-gradient-to-br from-[#3b82f6]/10 via-transparent to-[#00f3ff]/10" />
-                    <div className="size-14 rounded-full bg-[#3b82f6]/15 border border-[#3b82f6]/25 flex items-center justify-center hover:bg-[#3b82f6]/25 transition-all shadow-[0_0_30px_rgba(59,130,246,0.15)] cursor-pointer">
-                      <Play className="size-6 text-[#3b82f6] ml-0.5" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#C17B4F]/10 via-transparent to-[#D4A574]/10" />
+                    <div className="size-14 rounded-full bg-[#C17B4F]/15 border border-[#C17B4F]/25 flex items-center justify-center hover:bg-[#C17B4F]/25 transition-all shadow-[0_0_30px_rgba(193,123,79,0.15)] cursor-pointer">
+                      <Play className="size-6 text-[#C17B4F] ml-0.5" />
                     </div>
                   </div>
-                  <div className="px-5 py-4 border-t border-[#111122] flex items-center justify-between">
+                  <div className="px-5 py-4 border-t border-[#2e2e2c] flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-zinc-300">demo_video.mp4</p>
-                      <p className="text-xs text-[#555555] mt-0.5">1080p · 0:45</p>
+                      <p className="text-xs text-[#555553] mt-0.5">1080p · 0:45</p>
                     </div>
-                    <span className="text-xs font-semibold text-[#3b82f6] bg-[#3b82f6]/10 px-2.5 py-1 rounded-full">
+                    <span className="text-xs font-semibold text-[#C17B4F] bg-[#C17B4F]/10 px-2.5 py-1 rounded-full">
                       Ready
                     </span>
                   </div>
@@ -467,15 +467,15 @@ export default function LandingPage() {
 
                 {/* Right card */}
                 <div
-                  className="float-card-delayed absolute -right-12 top-8 bg-[#0A0A10] border border-[#111122] rounded-2xl p-4 w-44 text-left shadow-2xl"
+                  className="float-card-delayed absolute -right-12 top-8 bg-[#1a1a18] border border-[#2e2e2c] rounded-2xl p-4 w-44 text-left shadow-2xl"
                 >
                   <div className="flex items-center gap-2 mb-3">
-                    <div className="size-7 rounded-full bg-[#00f3ff]/20 flex items-center justify-center">
-                      <Sparkles className="size-3.5 text-[#00f3ff]" />
+                    <div className="size-7 rounded-full bg-[#D4A574]/20 flex items-center justify-center">
+                      <Sparkles className="size-3.5 text-[#D4A574]" />
                     </div>
                     <p className="text-xs font-medium text-zinc-300">AI ready</p>
                   </div>
-                  <p className="text-[10px] text-[#555555] leading-relaxed">
+                  <p className="text-[10px] text-[#555553] leading-relaxed">
                     Script written. Voiceover recorded. Rendering now.
                   </p>
                 </div>
@@ -489,7 +489,7 @@ export default function LandingPage() {
           <section id="problem" className="py-32 px-6">
             <div className="max-w-6xl mx-auto">
               <Reveal>
-                <span className="text-sm font-semibold uppercase tracking-widest text-[#3b82f6] block mb-5">
+                <span className="text-sm font-semibold uppercase tracking-widest text-[#C17B4F] block mb-5">
                   Sound familiar?
                 </span>
               </Reveal>
@@ -499,7 +499,7 @@ export default function LandingPage() {
                 </h2>
               </Reveal>
               <Reveal delay={140}>
-                <p className="text-[#666666] text-lg mb-20 max-w-lg">
+                <p className="text-[#888884] text-lg mb-20 max-w-lg">
                   You&apos;ve spent months building. You shouldn&apos;t have to
                   spend weeks making a video.
                 </p>
@@ -531,19 +531,19 @@ export default function LandingPage() {
                   },
                 ].map(({ Icon, num, title, body, delay }) => (
                   <Reveal key={num} delay={delay}>
-                    <div className="grid md:grid-cols-[120px_1fr] gap-6 md:gap-12 py-12 border-b border-[#111122] group cursor-default hover:border-[#2a2a2a] transition-colors">
+                    <div className="grid md:grid-cols-[120px_1fr] gap-6 md:gap-12 py-12 border-b border-[#2e2e2c] group cursor-default hover:border-[#2a2a2a] transition-colors">
                       <div className="flex items-start gap-4 md:flex-col md:gap-0">
                         <span className="ghost-number">{num}</span>
                       </div>
                       <div className="flex flex-col md:flex-row md:items-start gap-5 md:gap-12 pt-2">
-                        <div className="size-12 rounded-xl bg-[#0A0A10] border border-[#111122] flex items-center justify-center flex-shrink-0 group-hover:border-[#2a2a2a] transition-colors">
+                        <div className="size-12 rounded-xl bg-[#1a1a18] border border-[#2e2e2c] flex items-center justify-center flex-shrink-0 group-hover:border-[#2a2a2a] transition-colors">
                           <Icon className="size-5 text-zinc-500" />
                         </div>
                         <div>
                           <h3 className="text-xl md:text-2xl font-semibold mb-3 tracking-tight">
                             {title}
                           </h3>
-                          <p className="text-[#666666] text-base leading-relaxed max-w-lg">
+                          <p className="text-[#888884] text-base leading-relaxed max-w-lg">
                             {body}
                           </p>
                         </div>
@@ -558,10 +558,10 @@ export default function LandingPage() {
           {/* ════════════════════════════════════
               HOW IT WORKS
               ════════════════════════════════════ */}
-          <section id="how-it-works" className="py-32 px-6 bg-[#05050A]">
+          <section id="how-it-works" className="py-32 px-6 bg-[#111110]">
             <div className="max-w-6xl mx-auto">
               <Reveal>
-                <span className="text-sm font-semibold uppercase tracking-widest text-[#3b82f6] block mb-4">
+                <span className="text-sm font-semibold uppercase tracking-widest text-[#C17B4F] block mb-4">
                   The process
                 </span>
               </Reveal>
@@ -577,44 +577,44 @@ export default function LandingPage() {
                   <div className="relative">
                     <span className="ghost-number block -mb-8 select-none">01</span>
                     <div className="flex items-center gap-3 mb-4 relative z-10">
-                      <div className="size-9 rounded-lg bg-[#3b82f6]/10 border border-[#3b82f6]/20 flex items-center justify-center">
-                        <Upload className="size-4 text-[#3b82f6]" />
+                      <div className="size-9 rounded-lg bg-[#C17B4F]/10 border border-[#C17B4F]/20 flex items-center justify-center">
+                        <Upload className="size-4 text-[#C17B4F]" />
                       </div>
-                      <span className="text-xs font-semibold uppercase tracking-widest text-[#3b82f6]">
+                      <span className="text-xs font-semibold uppercase tracking-widest text-[#C17B4F]">
                         Upload
                       </span>
                     </div>
                     <h3 className="text-2xl md:text-3xl font-bold tracking-tight mb-4 relative z-10">
                       Feed it your product
                     </h3>
-                    <p className="text-[#666666] text-lg leading-relaxed relative z-10">
+                    <p className="text-[#888884] text-lg leading-relaxed relative z-10">
                       Drop in your screenshots or paste your URL. Add a quick
                       description. That&apos;s all the context we need.
                     </p>
                   </div>
                   {/* Mock form UI */}
-                  <div className="bg-[#0A0A10] border border-[#111122] rounded-2xl p-6">
+                  <div className="bg-[#1a1a18] border border-[#2e2e2c] rounded-2xl p-6">
                     <div className="space-y-4">
                       <div>
-                        <label className="text-xs text-[#555555] uppercase tracking-wider block mb-2">
+                        <label className="text-xs text-[#555553] uppercase tracking-wider block mb-2">
                           App name
                         </label>
-                        <div className="h-10 bg-[#0A0A10] rounded-lg border border-[#111122] flex items-center px-4">
-                          <span className="text-sm text-[#444444]">e.g. Morphix</span>
+                        <div className="h-10 bg-[#1a1a18] rounded-lg border border-[#2e2e2c] flex items-center px-4">
+                          <span className="text-sm text-[#4a4a48]">e.g. Morphix</span>
                         </div>
                       </div>
                       <div>
-                        <label className="text-xs text-[#555555] uppercase tracking-wider block mb-2">
+                        <label className="text-xs text-[#555553] uppercase tracking-wider block mb-2">
                           Description
                         </label>
-                        <div className="h-20 bg-[#0A0A10] rounded-lg border border-[#111122] flex items-start p-3">
-                          <span className="text-sm text-[#444444]">
+                        <div className="h-20 bg-[#1a1a18] rounded-lg border border-[#2e2e2c] flex items-start p-3">
+                          <span className="text-sm text-[#4a4a48]">
                             Describe what your product does...
                           </span>
                         </div>
                       </div>
                       <div>
-                        <label className="text-xs text-[#555555] uppercase tracking-wider block mb-2">
+                        <label className="text-xs text-[#555553] uppercase tracking-wider block mb-2">
                           Target audience
                         </label>
                         <div className="flex flex-wrap gap-2">
@@ -624,8 +624,8 @@ export default function LandingPage() {
                                 key={pill}
                                 className={`text-xs px-3 py-1.5 rounded-full border transition-colors cursor-pointer ${
                                   pill === "Founders"
-                                    ? "bg-[#3b82f6]/10 border-[#3b82f6]/30 text-[#3b82f6]"
-                                    : "bg-[#0A0A10] border-[#111122] text-[#555555] hover:border-[#1c1c36]"
+                                    ? "bg-[#C17B4F]/10 border-[#C17B4F]/30 text-[#C17B4F]"
+                                    : "bg-[#1a1a18] border-[#2e2e2c] text-[#555553] hover:border-[#2a2a28]"
                                 }`}
                               >
                                 {pill}
@@ -643,47 +643,47 @@ export default function LandingPage() {
               <Reveal>
                 <div className="grid md:grid-cols-2 gap-12 md:gap-16 items-center mb-28">
                   {/* Pipeline diagram */}
-                  <div className="order-2 md:order-1 bg-[#0A0A10] border border-[#111122] rounded-2xl p-8">
+                  <div className="order-2 md:order-1 bg-[#1a1a18] border border-[#2e2e2c] rounded-2xl p-8">
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex-1 text-center">
-                        <div className="size-14 mx-auto rounded-full bg-[#0A0A10] border-2 border-[#3b82f6]/40 flex items-center justify-center mb-2">
-                          <span className="text-base font-bold text-[#3b82f6]">C</span>
+                        <div className="size-14 mx-auto rounded-full bg-[#1a1a18] border-2 border-[#C17B4F]/40 flex items-center justify-center mb-2">
+                          <span className="text-base font-bold text-[#C17B4F]">C</span>
                         </div>
-                        <p className="text-xs text-[#888888] font-medium">Claude AI</p>
-                        <p className="text-[10px] text-[#444444]">Script & Direction</p>
+                        <p className="text-xs text-[#888884] font-medium">Claude AI</p>
+                        <p className="text-[10px] text-[#4a4a48]">Script & Direction</p>
                       </div>
                       <div className="pipeline-connector flex-shrink-0 w-12" />
                       <div className="flex-1 text-center">
-                        <div className="size-14 mx-auto rounded-full bg-[#0A0A10] border-2 border-[#00f3ff]/40 flex items-center justify-center mb-2">
-                          <span className="text-base font-bold text-[#00f3ff]">E</span>
+                        <div className="size-14 mx-auto rounded-full bg-[#1a1a18] border-2 border-[#D4A574]/40 flex items-center justify-center mb-2">
+                          <span className="text-base font-bold text-[#D4A574]">E</span>
                         </div>
-                        <p className="text-xs text-[#888888] font-medium">ElevenLabs</p>
-                        <p className="text-[10px] text-[#444444]">Voiceover</p>
+                        <p className="text-xs text-[#888884] font-medium">ElevenLabs</p>
+                        <p className="text-[10px] text-[#4a4a48]">Voiceover</p>
                       </div>
                       <div className="pipeline-connector pipeline-connector-delayed flex-shrink-0 w-12" />
                       <div className="flex-1 text-center">
-                        <div className="size-14 mx-auto rounded-full bg-[#0A0A10] border-2 border-[#3b82f6]/40 flex items-center justify-center mb-2">
-                          <span className="text-base font-bold text-[#3b82f6]">R</span>
+                        <div className="size-14 mx-auto rounded-full bg-[#1a1a18] border-2 border-[#C17B4F]/40 flex items-center justify-center mb-2">
+                          <span className="text-base font-bold text-[#C17B4F]">R</span>
                         </div>
-                        <p className="text-xs text-[#888888] font-medium">Remotion</p>
-                        <p className="text-[10px] text-[#444444]">Render</p>
+                        <p className="text-xs text-[#888884] font-medium">Remotion</p>
+                        <p className="text-[10px] text-[#4a4a48]">Render</p>
                       </div>
                     </div>
                   </div>
                   <div className="order-1 md:order-2 relative">
                     <span className="ghost-number block -mb-8 select-none">02</span>
                     <div className="flex items-center gap-3 mb-4 relative z-10">
-                      <div className="size-9 rounded-lg bg-[#00f3ff]/10 border border-[#00f3ff]/20 flex items-center justify-center">
-                        <Sparkles className="size-4 text-[#00f3ff]" />
+                      <div className="size-9 rounded-lg bg-[#D4A574]/10 border border-[#D4A574]/20 flex items-center justify-center">
+                        <Sparkles className="size-4 text-[#D4A574]" />
                       </div>
-                      <span className="text-xs font-semibold uppercase tracking-widest text-[#00f3ff]">
+                      <span className="text-xs font-semibold uppercase tracking-widest text-[#D4A574]">
                         Generate
                       </span>
                     </div>
                     <h3 className="text-2xl md:text-3xl font-bold tracking-tight mb-4 relative z-10">
                       AI does the heavy lifting
                     </h3>
-                    <p className="text-[#666666] text-lg leading-relaxed relative z-10">
+                    <p className="text-[#888884] text-lg leading-relaxed relative z-10">
                       Claude analyzes your product, writes the script, directs
                       the shots. ElevenLabs records the voiceover. All
                       automatically.
@@ -698,32 +698,32 @@ export default function LandingPage() {
                   <div className="relative">
                     <span className="ghost-number block -mb-8 select-none">03</span>
                     <div className="flex items-center gap-3 mb-4 relative z-10">
-                      <div className="size-9 rounded-lg bg-[#00f3ff]/10 border border-[#00f3ff]/20 flex items-center justify-center">
-                        <Download className="size-4 text-[#00f3ff]" />
+                      <div className="size-9 rounded-lg bg-[#D4A574]/10 border border-[#D4A574]/20 flex items-center justify-center">
+                        <Download className="size-4 text-[#D4A574]" />
                       </div>
-                      <span className="text-xs font-semibold uppercase tracking-widest text-[#00f3ff]">
+                      <span className="text-xs font-semibold uppercase tracking-widest text-[#D4A574]">
                         Download
                       </span>
                     </div>
                     <h3 className="text-2xl md:text-3xl font-bold tracking-tight mb-4 relative z-10">
                       Download. Post. Launch.
                     </h3>
-                    <p className="text-[#666666] text-lg leading-relaxed relative z-10">
+                    <p className="text-[#888884] text-lg leading-relaxed relative z-10">
                       Your cinematic marketing video ready in minutes. 1080p
                       MP4. Optimized for every platform.
                     </p>
                   </div>
                   {/* Mock video player */}
-                  <div className="bg-[#0A0A10] border border-[#111122] rounded-2xl overflow-hidden">
+                  <div className="bg-[#1a1a18] border border-[#2e2e2c] rounded-2xl overflow-hidden">
                     <div className="aspect-video flex items-center justify-center relative">
-                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.06)_0%,rgba(0,243,255,0.03)_40%,transparent_70%)]" />
-                      <div className="size-16 rounded-full bg-[#3b82f6]/15 border border-[#3b82f6]/25 flex items-center justify-center hover:bg-[#3b82f6]/25 transition-all shadow-[0_0_30px_rgba(59,130,246,0.15)] cursor-pointer">
-                        <Play className="size-6 text-[#3b82f6] ml-0.5" />
+                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(193,123,79,0.06)_0%,rgba(193,123,79,0.03)_40%,transparent_70%)]" />
+                      <div className="size-16 rounded-full bg-[#C17B4F]/15 border border-[#C17B4F]/25 flex items-center justify-center hover:bg-[#C17B4F]/25 transition-all shadow-[0_0_30px_rgba(193,123,79,0.15)] cursor-pointer">
+                        <Play className="size-6 text-[#C17B4F] ml-0.5" />
                       </div>
                     </div>
-                    <div className="px-4 py-2 border-t border-[#111122]">
-                      <div className="h-1 bg-[#111122] rounded-full overflow-hidden">
-                        <div className="h-full w-[35%] bg-gradient-to-r from-[#3b82f6] to-[#00f3ff] rounded-full" />
+                    <div className="px-4 py-2 border-t border-[#2e2e2c]">
+                      <div className="h-1 bg-[#2e2e2c] rounded-full overflow-hidden">
+                        <div className="h-full w-[35%] bg-gradient-to-r from-[#C17B4F] to-[#D4A574] rounded-full" />
                       </div>
                     </div>
                     <div className="px-4 pb-4 pt-1 flex items-center justify-between">
@@ -731,9 +731,9 @@ export default function LandingPage() {
                         <p className="text-sm font-medium text-zinc-300">
                           morphix_launch_video.mp4
                         </p>
-                        <p className="text-xs text-[#444444]">1080p • 0:45</p>
+                        <p className="text-xs text-[#4a4a48]">1080p • 0:45</p>
                       </div>
-                      <span className="text-xs text-[#3b82f6] font-semibold bg-[#3b82f6]/10 px-2.5 py-1 rounded-full">
+                      <span className="text-xs text-[#C17B4F] font-semibold bg-[#C17B4F]/10 px-2.5 py-1 rounded-full">
                         Ready
                       </span>
                     </div>
@@ -749,7 +749,7 @@ export default function LandingPage() {
           <section className="py-32 px-0 overflow-hidden">
             <div className="max-w-6xl mx-auto px-6 mb-16 text-center">
               <Reveal>
-                <span className="text-sm font-semibold uppercase tracking-widest text-[#3b82f6] block mb-4">
+                <span className="text-sm font-semibold uppercase tracking-widest text-[#C17B4F] block mb-4">
                   Founder reviews
                 </span>
               </Reveal>
@@ -766,7 +766,7 @@ export default function LandingPage() {
                 {[...quotes, ...quotes].map((q, i) => (
                   <div
                     key={`r1-${i}`}
-                    className="bg-[#0A0A10] border border-[#111122] rounded-2xl p-6 w-[340px] flex-shrink-0 hover:border-[#2a2a2a] transition-colors cursor-default"
+                    className="bg-[#1a1a18] border border-[#2e2e2c] rounded-2xl p-6 w-[340px] flex-shrink-0 hover:border-[#2a2a2a] transition-colors cursor-default"
                   >
                     <p className="text-sm text-white leading-relaxed mb-5 italic">
                       &ldquo;{q.text}&rdquo;
@@ -779,8 +779,8 @@ export default function LandingPage() {
                         {q.initials}
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-[#3b82f6]">{q.author}</p>
-                        <p className="text-xs text-[#555555]">{q.detail}</p>
+                        <p className="text-sm font-medium text-[#C17B4F]">{q.author}</p>
+                        <p className="text-xs text-[#555553]">{q.detail}</p>
                       </div>
                     </div>
                   </div>
@@ -795,7 +795,7 @@ export default function LandingPage() {
                   (q, i) => (
                     <div
                       key={`r2-${i}`}
-                      className="bg-[#0A0A10] border border-[#111122] rounded-2xl p-6 w-[340px] flex-shrink-0 hover:border-[#2a2a2a] transition-colors cursor-default"
+                      className="bg-[#1a1a18] border border-[#2e2e2c] rounded-2xl p-6 w-[340px] flex-shrink-0 hover:border-[#2a2a2a] transition-colors cursor-default"
                     >
                       <p className="text-sm text-white leading-relaxed mb-5 italic">
                         &ldquo;{q.text}&rdquo;
@@ -808,8 +808,8 @@ export default function LandingPage() {
                           {q.initials}
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-[#3b82f6]">{q.author}</p>
-                          <p className="text-xs text-[#555555]">{q.detail}</p>
+                          <p className="text-sm font-medium text-[#C17B4F]">{q.author}</p>
+                          <p className="text-xs text-[#555553]">{q.detail}</p>
                         </div>
                       </div>
                     </div>
@@ -822,10 +822,10 @@ export default function LandingPage() {
           {/* ════════════════════════════════════
               PRICING
               ════════════════════════════════════ */}
-          <section id="pricing" className="py-32 px-6 bg-[#05050A]">
+          <section id="pricing" className="py-32 px-6 bg-[#111110]">
             <div className="max-w-6xl mx-auto">
               <Reveal>
-                <span className="text-sm font-semibold uppercase tracking-widest text-[#3b82f6] block mb-4">
+                <span className="text-sm font-semibold uppercase tracking-widest text-[#C17B4F] block mb-4">
                   Pricing
                 </span>
               </Reveal>
@@ -835,7 +835,7 @@ export default function LandingPage() {
                 </h2>
               </Reveal>
               <Reveal delay={140}>
-                <p className="text-[#666666] text-lg mb-16 max-w-lg">
+                <p className="text-[#888884] text-lg mb-16 max-w-lg">
                   No subscriptions. No monthly fees. Credits never expire. Buy
                   once, use whenever you&apos;re ready to launch.
                 </p>
@@ -846,11 +846,11 @@ export default function LandingPage() {
                   <Reveal key={tier.name} delay={i * 100}>
                     {tier.featured ? (
                       <div className="pricing-card-featured rounded-2xl p-px relative">
-                        <div className="bg-[#0A0A10] rounded-[calc(1rem-1px)] p-8 h-full flex flex-col">
+                        <div className="bg-[#1a1a18] rounded-[calc(1rem-1px)] p-8 h-full flex flex-col">
                           {tier.badge && (
-                            <div className="inline-flex self-start items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-[#3b82f6]/20 to-[#00f3ff]/20 border border-[#3b82f6]/30 mb-5">
-                              <Sparkles className="size-3 text-[#3b82f6]" />
-                              <span className="text-xs font-semibold text-[#3b82f6]">
+                            <div className="inline-flex self-start items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-[#C17B4F]/20 to-[#D4A574]/20 border border-[#C17B4F]/30 mb-5">
+                              <Sparkles className="size-3 text-[#C17B4F]" />
+                              <span className="text-xs font-semibold text-[#C17B4F]">
                                 {tier.badge}
                               </span>
                             </div>
@@ -862,15 +862,15 @@ export default function LandingPage() {
                             <span className="text-5xl font-extrabold tracking-tight text-white">
                               {tier.price}
                             </span>
-                            <span className="text-sm text-[#555555] mb-2">{tier.unit}</span>
+                            <span className="text-sm text-[#555553] mb-2">{tier.unit}</span>
                           </div>
-                          <p className="text-sm text-[#666666] mb-8 leading-relaxed">
+                          <p className="text-sm text-[#888884] mb-8 leading-relaxed">
                             {tier.description}
                           </p>
                           <ul className="space-y-3 mb-10 flex-1">
                             {tier.features.map((f) => (
                               <li key={f} className="flex items-start gap-3">
-                                <Check className="size-4 text-[#3b82f6] mt-0.5 flex-shrink-0" />
+                                <Check className="size-4 text-[#C17B4F] mt-0.5 flex-shrink-0" />
                                 <span className="text-sm text-zinc-300">{f}</span>
                               </li>
                             ))}
@@ -884,7 +884,7 @@ export default function LandingPage() {
                         </div>
                       </div>
                     ) : (
-                      <div className="bg-[#0A0A10] border border-[#111122] rounded-2xl p-8 flex flex-col hover:border-[#2a2a2a] transition-colors">
+                      <div className="bg-[#1a1a18] border border-[#2e2e2c] rounded-2xl p-8 flex flex-col hover:border-[#2a2a2a] transition-colors">
                         {tier.badge && (
                           <div className="inline-flex self-start items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-800 border border-zinc-700 mb-5">
                             <span className="text-xs font-semibold text-zinc-300">
@@ -900,9 +900,9 @@ export default function LandingPage() {
                           <span className="text-5xl font-extrabold tracking-tight text-white">
                             {tier.price}
                           </span>
-                          <span className="text-sm text-[#555555] mb-2">{tier.unit}</span>
+                          <span className="text-sm text-[#555553] mb-2">{tier.unit}</span>
                         </div>
-                        <p className="text-sm text-[#666666] mb-8 leading-relaxed">
+                        <p className="text-sm text-[#888884] mb-8 leading-relaxed">
                           {tier.description}
                         </p>
                         <ul className="space-y-3 mb-10 flex-1">
@@ -915,7 +915,7 @@ export default function LandingPage() {
                         </ul>
                         <Link
                           href="/signup"
-                          className="block w-full bg-[#161616] hover:bg-[#111122] border border-[#111122] hover:border-[#1c1c36] text-white text-sm font-semibold py-3.5 rounded-xl text-center transition-colors cursor-pointer"
+                          className="block w-full bg-[#141412] hover:bg-[#2e2e2c] border border-[#2e2e2c] hover:border-[#2a2a28] text-white text-sm font-semibold py-3.5 rounded-xl text-center transition-colors cursor-pointer"
                         >
                           {tier.cta}
                         </Link>
@@ -928,9 +928,9 @@ export default function LandingPage() {
               {/* Credits-never-expire callout */}
               <Reveal delay={100}>
                 <div className="mt-10 text-center">
-                  <p className="text-sm text-[#444444]">
+                  <p className="text-sm text-[#4a4a48]">
                     All plans include unlimited revisions per video ·{" "}
-                    <span className="text-[#555555]">Credits never expire</span>{" "}
+                    <span className="text-[#555553]">Credits never expire</span>{" "}
                     · Cancel at any time (there&apos;s nothing to cancel)
                   </p>
                 </div>
@@ -944,7 +944,7 @@ export default function LandingPage() {
           <section id="faq" className="py-32 px-6">
             <div className="max-w-3xl mx-auto">
               <Reveal>
-                <span className="text-sm font-semibold uppercase tracking-widest text-[#3b82f6] block mb-4">
+                <span className="text-sm font-semibold uppercase tracking-widest text-[#C17B4F] block mb-4">
                   FAQ
                 </span>
               </Reveal>
@@ -954,7 +954,7 @@ export default function LandingPage() {
                 </h2>
               </Reveal>
 
-              <div className="divide-y divide-[#111122]">
+              <div className="divide-y divide-[#2e2e2c]">
                 {faqItems.map((item, i) => (
                   <FAQItem key={i} q={item.q} a={item.a} index={i} />
                 ))}
@@ -965,7 +965,7 @@ export default function LandingPage() {
           {/* ════════════════════════════════════
               FINAL CTA
               ════════════════════════════════════ */}
-          <section className="py-32 px-6 noise-overlay bg-[#05050A] relative">
+          <section className="py-32 px-6 noise-overlay bg-[#111110] relative">
             <div className="max-w-4xl mx-auto text-center relative z-10">
               {/* Glow */}
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -973,14 +973,14 @@ export default function LandingPage() {
                   className="w-[600px] h-[300px] rounded-full"
                   style={{
                     background:
-                      "radial-gradient(ellipse, rgba(59,130,246,0.08) 0%, rgba(0,243,255,0.04) 50%, transparent 70%)",
+                      "rgba(193,123,79,0.06)",
                     filter: "blur(40px)",
                   }}
                 />
               </div>
 
               <Reveal>
-                <span className="text-sm font-semibold uppercase tracking-widest text-[#3b82f6] block mb-6">
+                <span className="text-sm font-semibold uppercase tracking-widest text-[#C17B4F] block mb-6">
                   Ready?
                 </span>
               </Reveal>
@@ -994,7 +994,7 @@ export default function LandingPage() {
                 </h2>
               </Reveal>
               <Reveal delay={160}>
-                <p className="text-lg text-[#666666] mb-12 max-w-lg mx-auto leading-relaxed">
+                <p className="text-lg text-[#888884] mb-12 max-w-lg mx-auto leading-relaxed">
                   Every week you wait is another week you launch without a video
                   that does your product justice.
                 </p>
@@ -1009,7 +1009,7 @@ export default function LandingPage() {
                     <ArrowUpRight className="size-5" />
                   </Link>
                 </div>
-                <p className="mt-6 text-sm text-[#444444]">
+                <p className="mt-6 text-sm text-[#4a4a48]">
                   One video. 10 minutes. No subscription needed.
                 </p>
               </Reveal>
@@ -1020,17 +1020,17 @@ export default function LandingPage() {
         {/* ════════════════════════════════════
             FOOTER
             ════════════════════════════════════ */}
-        <footer className="border-t border-[#0A0A10] py-12 px-6">
+        <footer className="border-t border-[#1a1a18] py-12 px-6">
           <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
             {/* Left — logo + tagline */}
             <div>
               <Link href="/" className="flex items-center gap-2.5 group mb-2">
-                <Film className="size-4 text-white group-hover:text-[#3b82f6] transition-colors" />
+                <Film className="size-4 text-white group-hover:text-[#C17B4F] transition-colors" />
                 <span className="font-bold text-sm tracking-tight text-white">
                   Morphix
                 </span>
               </Link>
-              <p className="text-xs text-[#444444]">
+              <p className="text-xs text-[#555553]">
                 Transform your product into cinema.
               </p>
             </div>
@@ -1047,7 +1047,7 @@ export default function LandingPage() {
                 <Link
                   key={link.label}
                   href={link.href}
-                  className="text-sm text-[#555555] hover:text-white transition-colors cursor-pointer"
+                  className="text-sm text-[#555553] hover:text-white transition-colors cursor-pointer"
                 >
                   {link.label}
                 </Link>
@@ -1055,20 +1055,20 @@ export default function LandingPage() {
             </nav>
           </div>
 
-          <div className="max-w-6xl mx-auto mt-10 pt-8 border-t border-[#0e0e0e] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-            <p className="text-xs text-[#1c1c36]">
+          <div className="max-w-6xl mx-auto mt-10 pt-8 border-t border-[#1a1a18] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <p className="text-xs text-[#3a3a38]">
               © 2025 Morphix. All rights reserved.
             </p>
             <div className="flex gap-6">
               <Link
                 href="#"
-                className="text-xs text-[#1c1c36] hover:text-[#555555] transition-colors cursor-pointer"
+                className="text-xs text-[#3a3a38] hover:text-[#888884] transition-colors cursor-pointer"
               >
                 Privacy
               </Link>
               <Link
                 href="#"
-                className="text-xs text-[#1c1c36] hover:text-[#555555] transition-colors cursor-pointer"
+                className="text-xs text-[#3a3a38] hover:text-[#888884] transition-colors cursor-pointer"
               >
                 Terms
               </Link>

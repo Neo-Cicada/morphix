@@ -171,10 +171,10 @@ export function Step3Form({ formData, onChange, onBack }: Step3FormProps) {
       <div className="morphix-card rounded-2xl border border-[#222222] bg-[#161616] flex flex-col w-full">
         <div className="flex flex-col items-center justify-center py-24 px-8 text-center space-y-6">
           <div className="relative">
-            <div className="h-16 w-16 rounded-full border-2 border-[#3b82f6]/30 flex items-center justify-center">
-              <Sparkles className="h-7 w-7 text-[#3b82f6]" />
+            <div className="h-16 w-16 rounded-full border-2 border-[#C17B4F]/30 flex items-center justify-center">
+              <Sparkles className="h-7 w-7 text-[#C17B4F]" />
             </div>
-            <Loader2 className="absolute inset-0 m-auto h-16 w-16 animate-spin text-[#3b82f6]/20" />
+            <Loader2 className="absolute inset-0 m-auto h-16 w-16 animate-spin text-[#C17B4F]/20" />
           </div>
 
           <div className="space-y-2">
@@ -189,7 +189,7 @@ export function Step3Form({ formData, onChange, onBack }: Step3FormProps) {
           </div>
 
           {phase === 'generating' && streamedLines > 0 && (
-            <div className="bg-[#0a0a0a] border border-[#222222] rounded-xl px-5 py-3 font-mono text-xs text-[#3b82f6] tabular-nums">
+            <div className="bg-[#0a0a0a] border border-[#222222] rounded-xl px-5 py-3 font-mono text-xs text-[#C17B4F] tabular-nums">
               {streamedLines} lines generated…
             </div>
           )}
@@ -222,22 +222,22 @@ export function Step3Form({ formData, onChange, onBack }: Step3FormProps) {
                   onClick={() => onChange('videoLength', opt.value)}
                   className={`relative p-5 rounded-xl border transition-all cursor-pointer ${
                     isSelected
-                      ? 'border-[#3b82f6] bg-[#0d1829]'
+                      ? 'border-[#C17B4F] bg-[#0d1829]'
                       : 'border-[#222222] bg-[#161616] hover:border-[#444444]'
                   }`}
-                  style={isSelected ? { boxShadow: '0 0 20px rgba(59, 130, 246, 0.15), inset 0 0 15px rgba(59, 130, 246, 0.05)' } : undefined}
+                  style={isSelected ? { boxShadow: '0 0 20px rgba(193, 123, 79, 0.15), inset 0 0 15px rgba(193, 123, 79, 0.05)' } : undefined}
                 >
                   {opt.badge && (
-                    <span className="absolute -top-3 right-4 text-white text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full" style={{ background: 'linear-gradient(135deg, #3b82f6, #7c3aed)' }}>
+                    <span className="absolute -top-3 right-4 text-white text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full" style={{ background: '#C17B4F' }}>
                       {opt.badge}
                     </span>
                   )}
                   {isSelected && (
-                    <div className="absolute top-3 right-3 h-5 w-5 rounded-full flex flex-col items-center justify-center" style={{ background: 'linear-gradient(135deg, #3b82f6, #7c3aed)' }}>
+                    <div className="absolute top-3 right-3 h-5 w-5 rounded-full flex flex-col items-center justify-center" style={{ background: '#C17B4F' }}>
                       <div className="w-1.5 h-2.5 border-b-2 border-r-2 border-white transform rotate-45 -translate-y-[2px]" />
                     </div>
                   )}
-                  <Icon className={`h-8 w-8 mb-4 ${isSelected ? 'text-[#3b82f6]' : 'text-gray-400'}`} />
+                  <Icon className={`h-8 w-8 mb-4 ${isSelected ? 'text-[#C17B4F]' : 'text-gray-400'}`} />
                   <h4 className="text-white font-medium mb-1">{opt.title}</h4>
                   <p className="text-sm text-[#666666] leading-snug">{opt.subtitle}</p>
                 </div>
@@ -258,10 +258,10 @@ export function Step3Form({ formData, onChange, onBack }: Step3FormProps) {
                   onClick={() => onChange('tone', opt.value)}
                   className={`relative p-5 rounded-xl border transition-all cursor-pointer ${
                     isSelected
-                      ? 'border-[#3b82f6] bg-[#0d1829]'
+                      ? 'border-[#C17B4F] bg-[#0d1829]'
                       : 'border-[#222222] bg-[#161616] hover:border-[#444444]'
                   }`}
-                  style={isSelected ? { boxShadow: '0 0 20px rgba(59, 130, 246, 0.15), inset 0 0 15px rgba(59, 130, 246, 0.05)' } : undefined}
+                  style={isSelected ? { boxShadow: '0 0 20px rgba(193, 123, 79, 0.15), inset 0 0 15px rgba(193, 123, 79, 0.05)' } : undefined}
                 >
                   <div className="text-3xl mb-3">{opt.emoji}</div>
                   <h4 className="text-white font-medium mb-1">{opt.value}</h4>
@@ -284,10 +284,10 @@ export function Step3Form({ formData, onChange, onBack }: Step3FormProps) {
                   onClick={() => onChange('musicVibe', opt.value)}
                   className={`relative p-5 rounded-xl border transition-all cursor-pointer ${
                     isSelected
-                      ? 'border-[#3b82f6] bg-[#0d1829]'
+                      ? 'border-[#C17B4F] bg-[#0d1829]'
                       : 'border-[#222222] bg-[#161616] hover:border-[#444444]'
                   }`}
-                  style={isSelected ? { boxShadow: '0 0 20px rgba(59, 130, 246, 0.15), inset 0 0 15px rgba(59, 130, 246, 0.05)' } : undefined}
+                  style={isSelected ? { boxShadow: '0 0 20px rgba(193, 123, 79, 0.15), inset 0 0 15px rgba(193, 123, 79, 0.05)' } : undefined}
                 >
                   <div className="text-3xl mb-3">{opt.emoji}</div>
                   <h4 className="text-white font-medium mb-1">{opt.value}</h4>

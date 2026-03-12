@@ -20,9 +20,9 @@ const sourceCards = [
     title: 'Website URL',
     subtitle: "We'll analyze your live site automatically",
     badge: 'Recommended',
-    badgeColor: 'bg-blue-500',
-    glowColor: 'rgba(59, 130, 246, 0.15)',
-    borderColor: '#3b82f6',
+    badgeColor: 'bg-[#C17B4F]',
+    glowColor: 'rgba(193, 123, 79, 0.15)',
+    borderColor: '#C17B4F',
   },
   {
     value: 'screenshots' as SourceType,
@@ -31,8 +31,8 @@ const sourceCards = [
     subtitle: 'Upload 3–8 images of your product',
     badge: null,
     badgeColor: '',
-    glowColor: 'rgba(59, 130, 246, 0.15)',
-    borderColor: '#3b82f6',
+    glowColor: 'rgba(193, 123, 79, 0.15)',
+    borderColor: '#C17B4F',
   },
   {
     value: 'both' as SourceType,
@@ -42,7 +42,7 @@ const sourceCards = [
     badge: 'Best Quality',
     badgeColor: '',
     glowColor: 'rgba(124, 58, 237, 0.15)',
-    borderColor: '#7c3aed',
+    borderColor: '#B8652A',
   },
 ];
 
@@ -149,7 +149,7 @@ export function Step2Form({ formData, onChange, onNext, onBack }: Step2FormProps
           onChange={(e) => onChange('websiteUrl', e.target.value)}
           className={`w-full bg-[#0a0a0a] rounded-xl px-4 py-3 text-white placeholder:text-[#555555] focus:outline-none transition-colors pr-10 border ${
             !urlTouched
-              ? 'border-[#333333] focus:border-[#3b82f6]'
+              ? 'border-[#333333] focus:border-[#C17B4F]'
               : urlValid
                 ? 'border-green-500/60 focus:border-green-500'
                 : 'border-red-500/60 focus:border-red-500'
@@ -187,10 +187,10 @@ export function Step2Form({ formData, onChange, onNext, onBack }: Step2FormProps
         }}
         onClick={() => fileInputRef.current?.click()}
         className={`border-2 border-dashed rounded-2xl p-10 flex flex-col items-center justify-center text-center cursor-pointer transition-colors ${
-          isDragging ? 'border-[#3b82f6] bg-[#3b82f6]/5' : 'border-[#333333] hover:border-[#555555] bg-transparent'
+          isDragging ? 'border-[#C17B4F] bg-[#C17B4F]/5' : 'border-[#333333] hover:border-[#555555] bg-transparent'
         }`}
       >
-        <UploadCloud className={`h-10 w-10 mb-4 ${isDragging ? 'text-[#3b82f6]' : 'text-gray-500'}`} />
+        <UploadCloud className={`h-10 w-10 mb-4 ${isDragging ? 'text-[#C17B4F]' : 'text-gray-500'}`} />
         <h3 className="text-white font-medium mb-1">Drop your screenshots here</h3>
         <p className="text-[#888888] text-sm">or click to browse</p>
         <p className="text-[#555555] text-xs mt-4">PNG, JPG, WEBP (Max 10MB each)</p>
@@ -255,7 +255,7 @@ export function Step2Form({ formData, onChange, onNext, onBack }: Step2FormProps
                     placeholder="e.g. Dashboard, Onboarding..."
                     value={formData.screenshotLabels[index]}
                     onChange={(e) => updateLabel(index, e.target.value)}
-                    className="w-full bg-[#161616] border border-[#222222] rounded-lg px-3 py-2 text-xs text-white placeholder:text-[#555555] focus:outline-none focus:border-[#3b82f6] transition-colors"
+                    className="w-full bg-[#161616] border border-[#222222] rounded-lg px-3 py-2 text-xs text-white placeholder:text-[#555555] focus:outline-none focus:border-[#C17B4F] transition-colors"
                     onClick={(e) => e.stopPropagation()}
                   />
                 </div>
@@ -296,8 +296,8 @@ export function Step2Form({ formData, onChange, onNext, onBack }: Step2FormProps
                 className={`relative p-5 rounded-xl border transition-all duration-200 cursor-pointer ${
                   isSelected
                     ? isBoth
-                      ? 'border-[#7c3aed] bg-[#160a29]'
-                      : 'border-[#3b82f6] bg-[#0d1829]'
+                      ? 'border-[#B8652A] bg-[#160a29]'
+                      : 'border-[#C17B4F] bg-[#0d1829]'
                     : 'border-[#222222] bg-[#161616] hover:border-[#444444]'
                 }`}
                 style={isSelected ? { boxShadow: `0 0 20px ${card.glowColor}, inset 0 0 15px ${card.glowColor}` } : undefined}
@@ -307,8 +307,8 @@ export function Step2Form({ formData, onChange, onNext, onBack }: Step2FormProps
                     className="absolute -top-3 right-4 text-white text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full"
                     style={{
                       background: isBoth
-                        ? 'linear-gradient(135deg, #7c3aed, #a855f7)'
-                        : 'linear-gradient(135deg, #3b82f6, #60a5fa)',
+                        ? '#B8652A'
+                        : '#C17B4F',
                     }}
                   >
                     {card.badge}
@@ -317,14 +317,14 @@ export function Step2Form({ formData, onChange, onNext, onBack }: Step2FormProps
                 {isSelected && (
                   <div
                     className="absolute top-3 right-3 h-5 w-5 rounded-full flex flex-col items-center justify-center"
-                    style={{ background: isBoth ? 'linear-gradient(135deg, #7c3aed, #a855f7)' : 'linear-gradient(135deg, #3b82f6, #60a5fa)' }}
+                    style={{ background: isBoth ? '#B8652A' : '#C17B4F' }}
                   >
                     <div className="w-1.5 h-2.5 border-b-2 border-r-2 border-white transform rotate-45 -translate-y-[2px]" />
                   </div>
                 )}
                 <Icon className={`h-8 w-8 mb-4 ${
                   isSelected
-                    ? isBoth ? 'text-[#7c3aed]' : 'text-[#3b82f6]'
+                    ? isBoth ? 'text-[#B8652A]' : 'text-[#C17B4F]'
                     : 'text-gray-400'
                 }`} />
                 <h4 className="text-white font-medium mb-1">{card.title}</h4>

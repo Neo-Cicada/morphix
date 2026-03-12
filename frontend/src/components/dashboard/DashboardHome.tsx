@@ -46,13 +46,13 @@ export function DashboardHome() {
         <div className="px-6 py-10 lg:px-8">
             {/* Welcome Header */}
             <div className="mb-10">
-                <span className="text-xs font-semibold uppercase tracking-widest text-[#3b82f6] block mb-2">
+                <span className="text-xs font-semibold uppercase tracking-widest text-[#C17B4F] block mb-2">
                     {getGreeting()}
                 </span>
                 <h1 className="text-3xl font-extrabold tracking-tight text-white leading-tight">
                     Welcome back, {displayName}
                 </h1>
-                <p className="text-[#888888] mt-1.5 text-sm">
+                <p className="text-[#888884] mt-1.5 text-sm">
                     Your studio is ready. Let&apos;s make something cinematic.
                 </p>
             </div>
@@ -60,11 +60,11 @@ export function DashboardHome() {
             {/* Hero CTA */}
             <div
                 className="relative rounded-2xl p-7 sm:p-9 mb-10 overflow-hidden cursor-pointer group hero-shimmer morphix-card"
-                style={{ background: '#0A0A10', border: '1px solid #111122' }}
+                style={{ background: '#1a1a18', border: '1px solid #2e2e2c' }}
             >
                 <div
                     className="absolute inset-0 rounded-2xl pointer-events-none"
-                    style={{ background: 'radial-gradient(ellipse 80% 60% at 70% -10%, rgba(59,130,246,0.1) 0%, rgba(0,243,255,0.05) 40%, transparent 70%)' }}
+                    style={{ background: 'rgba(193,123,79,0.06)' }}
                 />
                 <div
                     className="absolute inset-0 rounded-2xl pointer-events-none"
@@ -76,16 +76,16 @@ export function DashboardHome() {
                 <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
                     <div>
                         <div className="flex items-center gap-2 mb-3">
-                            <span className="size-1.5 rounded-full bg-[#3b82f6] block" />
+                            <span className="size-1.5 rounded-full bg-[#C17B4F] block" />
                             <span className="text-xs font-semibold uppercase tracking-widest text-zinc-400">AI Video Studio</span>
                         </div>
                         <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-white mb-2 leading-tight">
                             Transform screenshots into{' '}
-                            <span className="neon-text-cyan">
+                            <span className="accent-text-sandy">
                                 cinematic marketing videos.
                             </span>
                         </h2>
-                        <p className="text-sm text-[#666666] max-w-sm">
+                        <p className="text-sm text-[#888884] max-w-sm">
                             Upload your screenshots. Describe your vision. Walk away with a video that makes investors stop scrolling.
                         </p>
                     </div>
@@ -110,12 +110,12 @@ export function DashboardHome() {
             <div>
                 <div className="flex items-center justify-between mb-5">
                     <div>
-                        <span className="text-[10px] font-semibold uppercase tracking-widest text-[#555555] block mb-1">Library</span>
+                        <span className="text-[10px] font-semibold uppercase tracking-widest text-[#888884] block mb-1">Library</span>
                         <h3 className="text-base font-bold tracking-tight text-white">Recent Videos</h3>
                     </div>
                     <Link
                         href="/dashboard/videos"
-                        className="text-xs font-medium text-[#3b82f6] hover:text-[#60a5fa] transition-colors cursor-pointer flex items-center gap-1"
+                        className="text-xs font-medium text-[#C17B4F] hover:text-[#D4A574] transition-colors cursor-pointer flex items-center gap-1"
                     >
                         View all →
                     </Link>
@@ -138,16 +138,16 @@ export function DashboardHome() {
                 ) : (
                     <div
                         className="rounded-2xl p-10 flex flex-col items-center justify-center text-center"
-                        style={{ background: '#0A0A10', border: '1px solid #111122' }}
+                        style={{ background: '#1a1a18', border: '1px solid #2e2e2c' }}
                     >
                         <div
                             className="size-12 rounded-xl flex items-center justify-center mb-4"
-                            style={{ background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.15)' }}
+                            style={{ background: 'rgba(193,123,79,0.08)', border: '1px solid rgba(193,123,79,0.15)' }}
                         >
-                            <PlaySquare className="h-5 w-5 text-[#3b82f6]" />
+                            <PlaySquare className="h-5 w-5 text-[#C17B4F]" />
                         </div>
                         <p className="text-sm font-semibold text-white mb-1">No videos yet</p>
-                        <p className="text-xs text-[#555555] mb-5 max-w-xs">
+                        <p className="text-xs text-[#888884] mb-5 max-w-xs">
                             Your cinematic renders will appear here once you&apos;ve created your first video.
                         </p>
                         <Link

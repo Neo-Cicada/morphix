@@ -59,7 +59,7 @@ const MyAnimation = () => {
         <directionalLight position={[5, 5, 5]} intensity={1} />
         <mesh rotation={[0, frame * 0.02, 0]}>
           <boxGeometry args={[2, 2, 2]} />
-          <meshStandardMaterial color="#6366f1" />
+          <meshStandardMaterial color="#C17B4F" />
         </mesh>
       </ThreeCanvas>
     </AbsoluteFill>

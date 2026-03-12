@@ -12,7 +12,7 @@ export default function BillingPage() {
 
       {/* Header */}
       <div className="mb-10">
-        <span className="text-xs font-semibold uppercase tracking-widest text-[#3b82f6] block mb-2">
+        <span className="text-xs font-semibold uppercase tracking-widest text-[#C17B4F] block mb-2">
           Credits
         </span>
         <h1 className="text-3xl font-extrabold tracking-tight text-white leading-tight">Billing</h1>
@@ -22,26 +22,26 @@ export default function BillingPage() {
       {/* Credit Balance Card */}
       <div
         className="relative rounded-2xl p-7 sm:p-8 mb-10 overflow-hidden"
-        style={{ background: '#0A0A10', border: '1px solid #111122' }}
+        style={{ background: '#1a1a18', border: '1px solid #2e2e2c' }}
       >
         {/* Aurora */}
         <div
           className="absolute inset-0 rounded-2xl pointer-events-none"
-          style={{ background: 'radial-gradient(ellipse 80% 60% at 70% -10%, rgba(59,130,246,0.1) 0%, rgba(0,243,255,0.04) 40%, transparent 70%)' }}
+          style={{ background: 'rgba(193,123,79,0.06)' }}
         />
         {/* Top bar */}
         <div
           className="absolute top-0 left-0 right-0 h-[1px] rounded-t-2xl"
-          style={{ background: 'linear-gradient(90deg, #3b82f6, #00f3ff, transparent)' }}
+          style={{ background: 'rgba(193, 123, 79, 0.25)' }}
         />
 
         <div className="relative z-10">
           <div className="flex items-center gap-2 mb-5">
             <div
               className="size-9 rounded-lg flex items-center justify-center"
-              style={{ background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.2)' }}
+              style={{ background: 'rgba(193,123,79,0.1)', border: '1px solid rgba(193,123,79,0.2)' }}
             >
-              <Zap className="h-4 w-4 text-[#3b82f6]" />
+              <Zap className="h-4 w-4 text-[#C17B4F]" />
             </div>
             <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: '#555555' }}>Current Balance</p>
           </div>
@@ -54,10 +54,10 @@ export default function BillingPage() {
               <span>Used 2 of 5</span>
               <span>40%</span>
             </div>
-            <div className="h-1 rounded-full overflow-hidden" style={{ background: '#111122' }}>
+            <div className="h-1 rounded-full overflow-hidden" style={{ background: '#2e2e2c' }}>
               <div
                 className="h-full w-[40%] rounded-full transition-all"
-                style={{ background: 'linear-gradient(90deg, #3b82f6, #00f3ff)' }}
+                style={{ background: '#C17B4F' }}
               />
             </div>
           </div>
@@ -77,15 +77,15 @@ export default function BillingPage() {
                 pack.popular ? 'pricing-card-featured' : ''
               }`}
               style={{
-                background: '#0A0A10',
-                border: pack.popular ? 'none' : '1px solid #111122',
+                background: '#1a1a18',
+                border: pack.popular ? 'none' : '1px solid #2e2e2c',
               }}
             >
               {pack.popular && (
                 <div className="absolute -top-3 left-5">
                   <span
                     className="inline-flex items-center gap-1 rounded-full px-3 py-1 text-[10px] font-bold text-white"
-                    style={{ background: 'linear-gradient(135deg, #3b82f6, #00f3ff)' }}
+                    style={{ background: '#C17B4F' }}
                   >
                     <Sparkles className="h-2.5 w-2.5" />
                     Best value
@@ -100,7 +100,7 @@ export default function BillingPage() {
               <p className="text-xs text-[#555555] mb-5">{pack.unit}</p>
 
               <div className="flex items-center gap-2 text-xs text-[#888888] mb-6">
-                <Check className="h-3.5 w-3.5 shrink-0 text-[#3b82f6]" />
+                <Check className="h-3.5 w-3.5 shrink-0 text-[#C17B4F]" />
                 {pack.description}
               </div>
 
@@ -110,7 +110,7 @@ export default function BillingPage() {
                 className="w-full rounded-xl py-2.5 text-xs font-semibold cursor-not-allowed transition-all"
                 style={{
                   background: 'rgba(255,255,255,0.03)',
-                  border: '1px solid #111122',
+                  border: '1px solid #2e2e2c',
                   color: '#444444',
                 }}
               >
@@ -126,12 +126,12 @@ export default function BillingPage() {
         <h2 className="text-base font-bold tracking-tight text-white mb-5">Transaction History</h2>
         <div
           className="rounded-2xl overflow-hidden"
-          style={{ background: '#0A0A10', border: '1px solid #111122' }}
+          style={{ background: '#1a1a18', border: '1px solid #2e2e2c' }}
         >
           {/* Table Header */}
           <div
             className="hidden sm:grid grid-cols-5 gap-4 px-5 py-3"
-            style={{ borderBottom: '1px solid #111122', background: 'rgba(255,255,255,0.015)' }}
+            style={{ borderBottom: '1px solid #2e2e2c', background: 'rgba(255,255,255,0.015)' }}
           >
             {['Date', 'Pack', 'Amount', 'Credits', 'Status'].map((h) => (
               <p key={h} className="text-[10px] font-semibold tracking-[0.12em] uppercase" style={{ color: '#444444' }}>
@@ -144,7 +144,7 @@ export default function BillingPage() {
           <div className="p-12 flex flex-col items-center justify-center text-center">
             <div
               className="size-11 rounded-xl flex items-center justify-center mb-4"
-              style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid #111122' }}
+              style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid #2e2e2c' }}
             >
               <Receipt className="h-4 w-4" style={{ color: '#444444' }} />
             </div>

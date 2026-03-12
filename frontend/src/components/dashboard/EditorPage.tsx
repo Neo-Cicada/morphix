@@ -318,39 +318,39 @@ export default function EditorPage() {
   // ── Render ───────────────────────────────────────────────────────────────────
 
   return (
-    <div className="h-full flex flex-col bg-zinc-950 text-zinc-100 overflow-hidden">
+    <div className="h-full flex flex-col bg-[#111110] text-[#FAFAF7] overflow-hidden">
 
       {/* ── Header ── */}
       <header className="relative flex items-center justify-between px-4 py-2 shrink-0">
-        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-500/40 to-transparent pointer-events-none" />
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#C17B4F]/30 to-transparent pointer-events-none" />
 
         {/* Duration controls */}
-        <div className="flex items-center gap-2 text-xs text-zinc-500">
+        <div className="flex items-center gap-2 text-xs text-[#888884]">
           <label className="flex items-center gap-1.5">
-            <span className="text-zinc-600">Frames</span>
+            <span className="text-[#555553]">Frames</span>
             <input
               type="number"
               value={durationInFrames}
               onChange={(e) => setDurationInFrames(Math.max(1, parseInt(e.target.value) || 1))}
-              className="w-14 bg-zinc-900 border border-zinc-800 rounded-md px-1.5 py-0.5 text-zinc-200 focus:outline-none focus:border-blue-500/60 focus:ring-1 focus:ring-blue-500/20 transition-all text-center"
+              className="w-14 bg-[#1a1a18] border border-[#2e2e2c] rounded-md px-1.5 py-0.5 text-[#FAFAF7] focus:outline-none focus:border-[#C17B4F]/60 focus:ring-1 focus:ring-[#C17B4F]/20 transition-all text-center"
             />
           </label>
-          <span className="text-zinc-700">·</span>
-          <span className="text-zinc-600">{fps} fps</span>
-          <span className="text-zinc-700">·</span>
-          <span className="text-zinc-500 tabular-nums">{(durationInFrames / fps).toFixed(1)}s</span>
+          <span className="text-[#3a3a38]">·</span>
+          <span className="text-[#555553]">{fps} fps</span>
+          <span className="text-[#3a3a38]">·</span>
+          <span className="text-[#888884] tabular-nums">{(durationInFrames / fps).toFixed(1)}s</span>
         </div>
 
         <div className="flex items-center gap-2">
           {/* Cloud save status */}
           {cloud.saveStatus === 'saving' && (
-            <span className="flex items-center gap-1 text-xs text-zinc-500">
+            <span className="flex items-center gap-1 text-xs text-[#888884]">
               <Loader2 className="w-3 h-3 animate-spin" />
               Saving...
             </span>
           )}
           {cloud.saveStatus === 'saved' && (
-            <span className="text-xs text-zinc-600">Saved</span>
+            <span className="text-xs text-[#555553]">Saved</span>
           )}
           {cloud.saveStatus === 'error' && (
             <span className="text-xs text-red-500">Save failed</span>
@@ -360,7 +360,7 @@ export default function EditorPage() {
           {animationState.code && (
             <button
               onClick={() => setShowNewModal(true)}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-zinc-500 hover:text-zinc-200 hover:bg-zinc-900 border border-transparent hover:border-zinc-800 transition-all"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-[#888884] hover:text-[#FAFAF7] hover:bg-[#1f1f1d] border border-transparent hover:border-[#2a2a28] transition-all"
             >
               <FilePlus className="w-3.5 h-3.5" />
               New
@@ -370,7 +370,7 @@ export default function EditorPage() {
           {/* Panel toggle */}
           <button
             onClick={() => setIsPanelOpen((v) => !v)}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-zinc-500 hover:text-zinc-200 hover:bg-zinc-900 border border-transparent hover:border-zinc-800 transition-all"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-[#888884] hover:text-[#FAFAF7] hover:bg-[#1f1f1d] border border-transparent hover:border-[#2a2a28] transition-all"
           >
             {isPanelOpen ? <PanelRightClose className="w-3.5 h-3.5" /> : <PanelRightOpen className="w-3.5 h-3.5" />}
             <span>{isPanelOpen ? 'Hide panel' : 'Show panel'}</span>
@@ -384,7 +384,7 @@ export default function EditorPage() {
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                 animationState.Component
                   ? 'btn-gradient text-white'
-                  : 'bg-zinc-900 border border-zinc-800 text-zinc-600 cursor-not-allowed'
+                  : 'bg-[#1a1a18] border border-[#2e2e2c] text-[#555553] cursor-not-allowed'
               }`}
             >
               <Download className="w-3.5 h-3.5" />
@@ -392,13 +392,13 @@ export default function EditorPage() {
             </button>
           )}
           {exportState === 'rendering' && (
-            <button disabled className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-900 border border-blue-500/30 text-xs font-medium text-blue-400">
+            <button disabled className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#1a1a18] border border-[#C17B4F]/30 text-xs font-medium text-[#D4A574]">
               <Loader2 className="w-3.5 h-3.5 animate-spin" />
               Rendering...
             </button>
           )}
           {exportState === 'done' && exportUrl && (
-            <a href={exportUrl} download="animation.mp4" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600/20 border border-emerald-500/40 hover:bg-emerald-600/30 text-emerald-400 text-xs font-medium transition-all">
+            <a href={exportUrl} download="animation.mp4" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#5c9e53]/20 border border-[#5c9e53]/40 hover:bg-[#5c9e53]/30 text-[#7ab872] text-xs font-medium transition-all">
               <Download className="w-3.5 h-3.5" />
               Download MP4
             </a>
@@ -447,16 +447,16 @@ export default function EditorPage() {
 
         {/* Right panel */}
         {isPanelOpen && (
-          <div className="w-[360px] shrink-0 flex flex-col min-h-0 border-l border-zinc-800/60">
+          <div className="w-[360px] shrink-0 flex flex-col min-h-0 border-l border-[#2e2e2c]/60">
 
             {/* Tabs */}
-            <div className="flex items-center border-b border-zinc-800/60 shrink-0 px-2 pt-1">
+            <div className="flex items-center border-b border-[#2e2e2c]/60 shrink-0 px-2 pt-1">
               <button
                 onClick={() => setRightPanel('chat')}
                 className={`flex items-center gap-1.5 px-3 py-2 text-xs font-medium border-b-2 -mb-px transition-all ${
                   rightPanel === 'chat'
-                    ? 'text-white border-blue-500'
-                    : 'text-zinc-500 border-transparent hover:text-zinc-300'
+                    ? 'text-white border-[#C17B4F]'
+                    : 'text-[#888884] border-transparent hover:text-[#bbb]'
                 }`}
               >
                 <MessageSquare className="w-3.5 h-3.5" />
@@ -466,14 +466,14 @@ export default function EditorPage() {
                 onClick={() => setRightPanel('code')}
                 className={`flex items-center gap-1.5 px-3 py-2 text-xs font-medium border-b-2 -mb-px transition-all ${
                   rightPanel === 'code'
-                    ? 'text-white border-blue-500'
-                    : 'text-zinc-500 border-transparent hover:text-zinc-300'
+                    ? 'text-white border-[#C17B4F]'
+                    : 'text-[#888884] border-transparent hover:text-[#bbb]'
                 }`}
               >
                 <Code2 className="w-3.5 h-3.5" />
                 Code
                 {(isStreaming || animationState.isCompiling) && (
-                  <div className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-pulse ml-0.5" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#C17B4F] animate-pulse ml-0.5" />
                 )}
               </button>
             </div>
@@ -481,13 +481,13 @@ export default function EditorPage() {
             {/* ── Chat ── */}
             {rightPanel === 'chat' && (
               <>
-                <div className="flex items-center gap-2 px-4 py-2 border-b border-zinc-800/40 shrink-0">
-                  <Sparkles className="w-3 h-3 text-violet-400" />
-                  <span className="text-xs font-medium text-zinc-500">AI Director</span>
+                <div className="flex items-center gap-2 px-4 py-2 border-b border-[#2e2e2c]/40 shrink-0">
+                  <Sparkles className="w-3 h-3 text-[#D4A574]" />
+                  <span className="text-xs font-medium text-[#888884]">AI Director</span>
                   {isGenerating && (
                     <div className="ml-auto flex items-center gap-1.5">
-                      <Loader2 className="w-3 h-3 text-violet-400 animate-spin" />
-                      <span className="text-[10px] text-zinc-600">thinking...</span>
+                      <Loader2 className="w-3 h-3 text-[#D4A574] animate-spin" />
+                      <span className="text-[10px] text-[#555553]">thinking...</span>
                     </div>
                   )}
                 </div>
@@ -498,12 +498,12 @@ export default function EditorPage() {
                       <div
                         className={`max-w-[85%] rounded-xl px-3 py-2 text-sm leading-relaxed ${
                           msg.role === 'assistant'
-                            ? 'bg-zinc-900 border border-zinc-800/80 text-zinc-300'
+                            ? 'bg-[#1a1a18] border border-[#2e2e2c]/80 text-[#bbb]'
                             : 'text-white'
                         }`}
                         style={msg.role === 'user' ? {
-                          background: 'linear-gradient(135deg, #3b82f6, #7c3aed)',
-                          boxShadow: '0 0 12px rgba(99,102,241,0.2)',
+                          background: '#C17B4F',
+                          boxShadow: '0 0 12px rgba(193,123,79,0.2)',
                         } : {}}
                       >
                         {msg.text}
@@ -518,19 +518,19 @@ export default function EditorPage() {
                     {attachedImages.map((img, i) => (
                       <div key={i} className="relative">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={`data:image/jpeg;base64,${img}`} alt="attached" className="w-10 h-10 object-cover rounded-lg border border-zinc-700/60" />
+                        <img src={`data:image/jpeg;base64,${img}`} alt="attached" className="w-10 h-10 object-cover rounded-lg border border-[#3a3a38]/60" />
                         <button
                           onClick={() => setAttachedImages((prev) => prev.filter((_, j) => j !== i))}
-                          className="absolute -top-1 -right-1 w-4 h-4 bg-zinc-700 hover:bg-red-600 border border-zinc-600 rounded-full text-zinc-300 text-[10px] flex items-center justify-center transition-colors"
+                          className="absolute -top-1 -right-1 w-4 h-4 bg-[#3a3a38] hover:bg-red-600 border border-[#555553] rounded-full text-[#bbb] text-[10px] flex items-center justify-center transition-colors"
                         >×</button>
                       </div>
                     ))}
                   </div>
                 )}
 
-                <div className="flex items-end gap-2 px-4 py-3 border-t border-zinc-800/40 shrink-0">
+                <div className="flex items-end gap-2 px-4 py-3 border-t border-[#2e2e2c]/40 shrink-0">
                   <input type="file" ref={fileInputRef} onChange={handleImageAttach} accept="image/*" multiple className="hidden" />
-                  <button onClick={() => fileInputRef.current?.click()} className="p-2 text-zinc-600 hover:text-zinc-300 hover:bg-zinc-800/80 rounded-lg transition-all shrink-0">
+                  <button onClick={() => fileInputRef.current?.click()} className="p-2 text-[#555553] hover:text-[#bbb] hover:bg-[#222220]/80 rounded-lg transition-all shrink-0">
                     <ImagePlus className="w-4 h-4" />
                   </button>
                   <textarea
@@ -539,7 +539,7 @@ export default function EditorPage() {
                     onKeyDown={handleKeyDown}
                     placeholder={animationState.code ? 'Describe a change... (⌘↵ to send)' : 'Describe your animation... (⌘↵ to send)'}
                     rows={1}
-                    className="flex-1 bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/15 resize-none transition-all"
+                    className="flex-1 bg-[#1a1a18] border border-[#2e2e2c] rounded-xl px-3 py-2 text-sm text-[#FAFAF7] placeholder-[#555553] focus:outline-none focus:border-[#C17B4F]/50 focus:ring-1 focus:ring-[#C17B4F]/15 resize-none transition-all"
                     style={{ maxHeight: '100px', overflowY: 'auto' }}
                   />
                   <button
@@ -547,12 +547,12 @@ export default function EditorPage() {
                     disabled={!input.trim() || isGenerating}
                     className={`p-2.5 rounded-xl transition-all shrink-0 ${
                       !input.trim() || isGenerating
-                        ? 'bg-zinc-900 border border-zinc-800 text-zinc-600 cursor-not-allowed'
+                        ? 'bg-[#1a1a18] border border-[#2e2e2c] text-[#555553] cursor-not-allowed'
                         : 'btn-gradient-pulse text-white'
                     }`}
                   >
                     {isGenerating
-                      ? <Loader2 className="w-4 h-4 animate-spin text-violet-400" />
+                      ? <Loader2 className="w-4 h-4 animate-spin text-[#D4A574]" />
                       : <Send className="w-4 h-4" />}
                   </button>
                 </div>
@@ -562,20 +562,20 @@ export default function EditorPage() {
             {/* ── Code ── */}
             {rightPanel === 'code' && (
               <div className="flex-1 flex flex-col min-h-0 bg-[#1e1e1e]">
-                <div className="flex items-center gap-2 px-3 h-8 border-b border-zinc-800/80 bg-zinc-900/60 shrink-0">
-                  <div className="w-1.5 h-1.5 rounded-full bg-blue-400/70" />
-                  <span className="text-[11px] text-zinc-500 font-medium">animation.tsx</span>
+                <div className="flex items-center gap-2 px-3 h-8 border-b border-[#2e2e2c]/80 bg-[#141412] shrink-0">
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#C17B4F]/70" />
+                  <span className="text-[11px] text-[#888884] font-medium">animation.tsx</span>
                   <div className="ml-auto flex items-center gap-1.5">
                     {(isStreaming || animationState.isCompiling) && (
                       <>
-                        <div className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-pulse" />
-                        <span className="text-[10px] text-zinc-600">{isStreaming ? 'streaming...' : 'compiling...'}</span>
+                        <div className="w-1.5 h-1.5 rounded-full bg-[#C17B4F] animate-pulse" />
+                        <span className="text-[10px] text-[#555553]">{isStreaming ? 'streaming...' : 'compiling...'}</span>
                       </>
                     )}
                     {animationState.Component && !isStreaming && !animationState.isCompiling && (
                       <>
-                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500/70" />
-                        <span className="text-[10px] text-zinc-600">compiled</span>
+                        <div className="w-1.5 h-1.5 rounded-full bg-[#5c9e53]/70" />
+                        <span className="text-[10px] text-[#555553]">compiled</span>
                       </>
                     )}
                   </div>
@@ -608,13 +608,13 @@ export default function EditorPage() {
       {/* ── New Animation Modal ── */}
       {showNewModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 w-80 shadow-2xl">
-            <h2 className="text-sm font-semibold text-zinc-100 mb-2">Start a new animation?</h2>
-            <p className="text-xs text-zinc-400 mb-6 leading-relaxed">Your current code and chat history will be cleared.</p>
+          <div className="bg-[#1a1a18] border border-[#2e2e2c] rounded-2xl p-6 w-80 shadow-2xl">
+            <h2 className="text-sm font-semibold text-[#FAFAF7] mb-2">Start a new animation?</h2>
+            <p className="text-xs text-[#888884] mb-6 leading-relaxed">Your current code and chat history will be cleared.</p>
             <div className="flex items-center justify-end gap-2">
               <button
                 onClick={() => setShowNewModal(false)}
-                className="px-3 py-1.5 rounded-lg text-xs font-medium text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 border border-zinc-800 transition-all"
+                className="px-3 py-1.5 rounded-lg text-xs font-medium text-[#888884] hover:text-[#FAFAF7] hover:bg-[#222220] border border-[#2e2e2c] transition-all"
               >
                 Cancel
               </button>

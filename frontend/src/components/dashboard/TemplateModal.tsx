@@ -107,8 +107,8 @@ export function TemplateModal({ open, currentCode, onClose, onLoad }: TemplateMo
                     className="flex items-center gap-2 cursor-pointer transition-colors"
                     style={{
                       padding: '8px 14px',
-                      background: selectedId === tpl.id ? 'rgba(59,130,246,0.1)' : 'transparent',
-                      borderLeft: selectedId === tpl.id ? '2px solid #3b82f6' : '2px solid transparent',
+                      background: selectedId === tpl.id ? 'rgba(193,123,79,0.1)' : 'transparent',
+                      borderLeft: selectedId === tpl.id ? '2px solid #C17B4F' : '2px solid transparent',
                     }}
                     onClick={() => setSelectedId(tpl.id)}
                   >
@@ -118,7 +118,7 @@ export function TemplateModal({ open, currentCode, onClose, onLoad }: TemplateMo
                     {tpl.is_preset && (
                       <span style={{
                         fontSize: 9, padding: '2px 6px', borderRadius: 4,
-                        background: 'rgba(168,85,247,0.15)', color: '#a855f7', border: '1px solid rgba(168,85,247,0.25)',
+                        background: 'rgba(193,123,79,0.15)', color: '#C17B4F', border: '1px solid rgba(193,123,79,0.25)',
                         fontWeight: 600, letterSpacing: 0.5, textTransform: 'uppercase',
                       }}>Preset</span>
                     )}
@@ -146,9 +146,9 @@ export function TemplateModal({ open, currentCode, onClose, onLoad }: TemplateMo
                 className="w-full rounded-lg text-[12px] font-semibold transition-all duration-150 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                 style={{
                   padding: '7px 0',
-                  background: selectedId ? 'rgba(59,130,246,0.15)' : 'rgba(255,255,255,0.04)',
-                  border: `1px solid ${selectedId ? 'rgba(59,130,246,0.35)' : '#1e1e1e'}`,
-                  color: selectedId ? '#60a5fa' : '#555',
+                  background: selectedId ? 'rgba(193,123,79,0.15)' : 'rgba(255,255,255,0.04)',
+                  border: `1px solid ${selectedId ? 'rgba(193,123,79,0.35)' : '#1e1e1e'}`,
+                  color: selectedId ? '#C17B4F' : '#555',
                 }}
               >
                 Load Template
@@ -183,8 +183,8 @@ export function TemplateModal({ open, currentCode, onClose, onLoad }: TemplateMo
               style={{
                 padding: '8px 16px',
                 background: 'rgba(168,85,247,0.12)',
-                border: '1px solid rgba(168,85,247,0.25)',
-                color: '#a855f7',
+                border: '1px solid rgba(193,123,79,0.25)',
+                color: '#C17B4F',
               }}
             >
               {saving && <Loader2 size={12} className="animate-spin" />}

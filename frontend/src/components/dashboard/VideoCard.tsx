@@ -11,9 +11,9 @@ interface VideoCardProps {
 }
 
 const statusConfig = {
-  pending: { label: 'Pending', bg: 'rgba(59,130,246,0.08)', color: '#3b82f6', border: 'rgba(59,130,246,0.2)' },
-  processing: { label: 'Processing', bg: 'rgba(59,130,246,0.08)', color: '#3b82f6', border: 'rgba(59,130,246,0.2)' },
-  done: { label: 'Completed', bg: 'rgba(0,243,255,0.08)', color: '#00f3ff', border: 'rgba(0,243,255,0.2)' },
+  pending: { label: 'Pending', bg: 'rgba(193,123,79,0.08)', color: '#C17B4F', border: 'rgba(193,123,79,0.2)' },
+  processing: { label: 'Processing', bg: 'rgba(193,123,79,0.08)', color: '#C17B4F', border: 'rgba(193,123,79,0.2)' },
+  done: { label: 'Completed', bg: 'rgba(193,123,79,0.08)', color: '#D4A574', border: 'rgba(193,123,79,0.2)' },
   failed: { label: 'Failed', bg: 'rgba(239,68,68,0.08)', color: '#f87171', border: 'rgba(239,68,68,0.2)' },
 };
 
@@ -26,12 +26,12 @@ export function VideoCard({ id, title, status, source, date, thumbnail }: VideoC
   return (
     <div
       className="group rounded-2xl overflow-hidden transition-all duration-200 cursor-pointer hover:border-[#2a2a2a]"
-      style={{ background: '#0A0A10', border: '1px solid #111122' }}
+      style={{ background: '#1a1a18', border: '1px solid #2e2e2c' }}
     >
       {/* Thumbnail */}
       <div
         className="aspect-video relative flex items-center justify-center overflow-hidden"
-        style={{ background: 'linear-gradient(135deg, rgba(59,130,246,0.1) 0%, transparent 50%, rgba(0,243,255,0.06) 100%)' }}
+        style={{ background: 'rgba(193,123,79,0.07)' }}
       >
         {thumbnail ? (
           <>
@@ -44,7 +44,7 @@ export function VideoCard({ id, title, status, source, date, thumbnail }: VideoC
             <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
               <div
                 className="size-12 rounded-full flex items-center justify-center"
-                style={{ background: 'rgba(59,130,246,0.8)', boxShadow: '0 0 20px rgba(59,130,246,0.4)' }}
+                style={{ background: 'rgba(193,123,79,0.8)', boxShadow: '0 0 20px rgba(193,123,79,0.4)' }}
               >
                 <Play className="h-5 w-5 ml-0.5 text-white" />
               </div>
@@ -54,7 +54,7 @@ export function VideoCard({ id, title, status, source, date, thumbnail }: VideoC
           <>
             <div
               className="absolute inset-0"
-              style={{ background: 'radial-gradient(ellipse at center, rgba(59,130,246,0.08) 0%, rgba(0,243,255,0.04) 40%, transparent 70%)' }}
+              style={{ background: 'rgba(193,123,79,0.06)' }}
             />
             <div
               className="absolute inset-0 opacity-[0.03]"
@@ -66,23 +66,23 @@ export function VideoCard({ id, title, status, source, date, thumbnail }: VideoC
             <div
               className="relative z-10 size-12 rounded-full flex items-center justify-center transition-all duration-200"
               style={{
-                background: 'rgba(59,130,246,0.12)',
-                border: '1px solid rgba(59,130,246,0.25)',
-                boxShadow: '0 0 20px rgba(59,130,246,0.1)',
+                background: 'rgba(193,123,79,0.12)',
+                border: '1px solid rgba(193,123,79,0.25)',
+                boxShadow: '0 0 20px rgba(193,123,79,0.1)',
               }}
             >
-              <Play className="h-5 w-5 ml-0.5 text-[#3b82f6] group-hover:text-[#60a5fa] transition-colors" />
+              <Play className="h-5 w-5 ml-0.5 text-[#C17B4F] group-hover:text-[#D4A574] transition-colors" />
             </div>
           </>
         )}
         <div
           className="absolute bottom-0 left-0 right-0 h-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10"
-          style={{ background: 'linear-gradient(90deg, #3b82f6, #00f3ff, transparent)' }}
+          style={{ background: 'rgba(193, 123, 79, 0.25)' }}
         />
       </div>
 
       {/* Info */}
-      <div className="p-4" style={{ borderTop: '1px solid #111122' }}>
+      <div className="p-4" style={{ borderTop: '1px solid #2e2e2c' }}>
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
             <h3 className="text-sm font-medium text-zinc-300 truncate">{title}</h3>

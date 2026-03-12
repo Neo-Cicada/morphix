@@ -40,8 +40,8 @@ export function Sidebar({ isOpen, setIsOpen, collapsed, setCollapsed }: SidebarP
         style={{
           width: w,
           minWidth: w,
-          background: '#05050A',
-          borderRight: '1px solid #111122',
+          background: '#111110',
+          borderRight: '1px solid #2e2e2c',
           transition: 'width 220ms cubic-bezier(0.4,0,0.2,1), min-width 220ms cubic-bezier(0.4,0,0.2,1)',
           overflow: 'visible',
           position: 'relative',
@@ -54,7 +54,7 @@ export function Sidebar({ isOpen, setIsOpen, collapsed, setCollapsed }: SidebarP
           style={{
             height: 56,
             padding: collapsed ? '0 0' : '0 16px',
-            borderBottom: '1px solid #111122',
+            borderBottom: '1px solid #2e2e2c',
             justifyContent: collapsed ? 'center' : 'space-between',
           }}
         >
@@ -64,13 +64,13 @@ export function Sidebar({ isOpen, setIsOpen, collapsed, setCollapsed }: SidebarP
                 className="flex items-center justify-center rounded-lg transition-all duration-200 group-hover:bg-white/[0.05]"
                 style={{ width: 32, height: 32 }}
               >
-                <Film className="size-[18px] text-[#444] group-hover:text-[#3b82f6] transition-colors duration-200" />
+                <Film className="size-[18px] text-[#555553] group-hover:text-[#C17B4F] transition-colors duration-200" />
               </div>
             </Link>
           ) : (
             <>
               <Link href="/dashboard" className="flex items-center gap-2.5 group cursor-pointer">
-                <Film className="size-[17px] text-[#3b82f6]" />
+                <Film className="size-[17px] text-[#C17B4F]" />
                 <span className="font-bold text-[15px] tracking-tight text-white">Morphix</span>
               </Link>
               <button
@@ -94,7 +94,7 @@ export function Sidebar({ isOpen, setIsOpen, collapsed, setCollapsed }: SidebarP
               className="truncate"
               style={{
                 fontSize: 9, fontWeight: 600, letterSpacing: '0.15em',
-                textTransform: 'uppercase', color: '#333',
+                textTransform: 'uppercase', color: '#4a4a48',
                 padding: '6px 8px 8px', userSelect: 'none',
               }}
             >
@@ -116,7 +116,7 @@ export function Sidebar({ isOpen, setIsOpen, collapsed, setCollapsed }: SidebarP
                   onClick={() => setIsOpen(false)}
                   className={`relative flex items-center rounded-lg transition-all duration-150 cursor-pointer ${
                     isActive
-                      ? 'bg-[#3b82f6]/[0.08] text-[#3b82f6]'
+                      ? 'bg-[#C17B4F]/[0.08] text-[#C17B4F]'
                       : 'text-[#555] hover:bg-white/[0.04] hover:text-[#bbb]'
                   }`}
                   style={{
@@ -132,8 +132,8 @@ export function Sidebar({ isOpen, setIsOpen, collapsed, setCollapsed }: SidebarP
                       className="absolute left-0 top-1/2 -translate-y-1/2 rounded-r-full"
                       style={{
                         width: 2, height: 16,
-                        background: '#3b82f6',
-                        boxShadow: '0 0 8px rgba(59,130,246,0.6)',
+                        background: '#C17B4F',
+                        boxShadow: '0 0 8px rgba(193,123,79,0.6)',
                       }}
                     />
                   )}
@@ -142,7 +142,7 @@ export function Sidebar({ isOpen, setIsOpen, collapsed, setCollapsed }: SidebarP
                     className="shrink-0 transition-colors"
                     style={{
                       width: 15, height: 15,
-                      color: isActive ? '#3b82f6' : 'inherit',
+                      color: isActive ? '#C17B4F' : 'inherit',
                     }}
                   />
 
@@ -151,7 +151,7 @@ export function Sidebar({ isOpen, setIsOpen, collapsed, setCollapsed }: SidebarP
                       <span style={{ fontSize: 13, fontWeight: 500 }}>{item.name}</span>
                       {item.name === 'New Video' && (
                         <span
-                          className="ml-auto font-bold text-[#3b82f6] bg-[#3b82f6]/10 rounded-full border border-[#3b82f6]/20"
+                          className="ml-auto font-bold text-[#C17B4F] bg-[#C17B4F]/10 rounded-full border border-[#C17B4F]/20"
                           style={{ fontSize: 9, letterSpacing: '0.15em', padding: '2px 6px' }}
                         >
                           NEW
@@ -170,8 +170,8 @@ export function Sidebar({ isOpen, setIsOpen, collapsed, setCollapsed }: SidebarP
                     <div
                       className="flex items-center whitespace-nowrap rounded-lg px-3 py-1.5"
                       style={{
-                        background: '#161616',
-                        border: '1px solid #222',
+                        background: '#141412',
+                        border: '1px solid #2a2a28',
                         boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
                         fontSize: 12,
                         fontWeight: 500,
@@ -185,7 +185,7 @@ export function Sidebar({ isOpen, setIsOpen, collapsed, setCollapsed }: SidebarP
                           width: 0, height: 0,
                           borderTop: '4px solid transparent',
                           borderBottom: '4px solid transparent',
-                          borderRight: '5px solid #222',
+                          borderRight: '5px solid #2a2a28',
                         }}
                       />
                       {item.name}
@@ -200,11 +200,11 @@ export function Sidebar({ isOpen, setIsOpen, collapsed, setCollapsed }: SidebarP
         {/* ── Footer ─────────────────────────────────────────────────── */}
         <div
           className="flex-shrink-0 flex flex-col"
-          style={{ borderTop: '1px solid #111122' }}
+          style={{ borderTop: '1px solid #2e2e2c' }}
         >
           {!collapsed && (
             <div style={{ padding: '10px 18px 4px' }}>
-              <p style={{ fontSize: 9, color: '#2a2a2a', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+              <p style={{ fontSize: 9, color: '#444442', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
                 Morphix Studio · v0.1
               </p>
             </div>
@@ -217,13 +217,13 @@ export function Sidebar({ isOpen, setIsOpen, collapsed, setCollapsed }: SidebarP
             style={{
               height: 42,
               gap: 7,
-              color: '#2e2e2e',
+              color: '#3a3a38',
               padding: collapsed ? 0 : '0 14px',
               justifyContent: collapsed ? 'center' : 'flex-start',
             }}
             title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            onMouseEnter={e => { e.currentTarget.style.color = '#555'; }}
-            onMouseLeave={e => { e.currentTarget.style.color = '#2e2e2e'; }}
+            onMouseEnter={e => { e.currentTarget.style.color = '#888884'; }}
+            onMouseLeave={e => { e.currentTarget.style.color = '#3a3a38'; }}
           >
             {collapsed
               ? <PanelLeftOpen size={14} />

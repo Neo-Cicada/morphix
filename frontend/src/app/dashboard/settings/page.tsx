@@ -10,7 +10,7 @@ function SectionCard({
   icon: Icon,
   label,
   title,
-  accent = '#3b82f6',
+  accent = '#C17B4F',
   children,
 }: {
   icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
@@ -22,12 +22,12 @@ function SectionCard({
   return (
     <div
       className="relative rounded-2xl p-6 mb-6 overflow-hidden"
-      style={{ background: '#0A0A10', border: '1px solid #111122' }}
+      style={{ background: '#1a1a18', border: '1px solid #2e2e2c' }}
     >
       {/* Top 1px accent line */}
       <div
         className="absolute top-0 left-0 right-0 h-[1px] rounded-t-2xl"
-        style={{ background: `linear-gradient(90deg, ${accent}, transparent)` }}
+        style={{ background: accent }}
       />
       <div className="flex items-center gap-3 mb-6">
         <div
@@ -63,9 +63,9 @@ function Field({ label, ...props }: { label: string } & React.InputHTMLAttribute
         {...props}
         className="w-full rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-[#1c1c36] transition-all duration-200 focus:outline-none"
         style={{
-          background: '#0A0A10',
-          border: focused ? '1px solid rgba(59,130,246,0.4)' : '1px solid #111122',
-          boxShadow: focused ? '0 0 0 3px rgba(59,130,246,0.08)' : 'none',
+          background: '#1a1a18',
+          border: focused ? '1px solid rgba(193,123,79,0.4)' : '1px solid #2e2e2c',
+          boxShadow: focused ? '0 0 0 3px rgba(193,123,79,0.08)' : 'none',
           ...(props.disabled ? { color: '#444444', cursor: 'not-allowed' } : {}),
         }}
         onFocus={() => setFocused(true)}
@@ -106,7 +106,7 @@ export default function SettingsPage() {
 
       {/* Header */}
       <div className="mb-10">
-        <span className="text-xs font-semibold uppercase tracking-widest text-[#3b82f6] block mb-2">
+        <span className="text-xs font-semibold uppercase tracking-widest text-[#C17B4F] block mb-2">
           Account
         </span>
         <h1 className="text-3xl font-extrabold tracking-tight text-white leading-tight">Settings</h1>
@@ -122,11 +122,11 @@ export default function SettingsPage() {
               {/* Gradient ring */}
               <div
                 className="absolute -inset-[2px] rounded-full"
-                style={{ background: 'linear-gradient(135deg, #3b82f6, #00f3ff)', opacity: 0.6 }}
+                style={{ background: '#C17B4F', opacity: 0.6 }}
               />
               <div
                 className="relative size-16 rounded-full flex items-center justify-center"
-                style={{ background: '#0A0A10' }}
+                style={{ background: '#1a1a18' }}
               >
                 <User className="h-6 w-6 text-zinc-600" />
               </div>
@@ -168,7 +168,7 @@ export default function SettingsPage() {
       </SectionCard>
 
       {/* Security Section */}
-      <SectionCard icon={Lock} label="Access" title="Security" accent="#00f3ff">
+      <SectionCard icon={Lock} label="Access" title="Security" accent="#D4A574">
         <div className="space-y-5">
           <Field label="Current Password" type="password" placeholder="Enter current password" />
           <Field label="New Password" type="password" placeholder="Enter new password" />
@@ -189,7 +189,7 @@ export default function SettingsPage() {
       >
         <div
           className="absolute top-0 left-0 right-0 h-[1px] rounded-t-2xl"
-          style={{ background: 'linear-gradient(90deg, rgba(239,68,68,0.5), transparent)' }}
+          style={{ background: 'rgba(239,68,68,0.5)' }}
         />
         <div className="flex items-center gap-3 mb-3">
           <div
@@ -226,7 +226,7 @@ export default function SettingsPage() {
           <div
             className="relative w-full max-w-md rounded-2xl p-6 shadow-2xl mx-4 animate-in fade-in zoom-in-95 duration-200"
             style={{
-              background: '#0A0A10',
+              background: '#1a1a18',
               border: '1px solid rgba(239,68,68,0.2)',
               boxShadow: '0 25px 60px rgba(0,0,0,0.9)',
             }}
@@ -249,7 +249,7 @@ export default function SettingsPage() {
                 className="rounded-xl px-4 py-2 text-sm font-medium transition-all duration-200 cursor-pointer"
                 style={{
                   background: 'rgba(255,255,255,0.04)',
-                  border: '1px solid #111122',
+                  border: '1px solid #2e2e2c',
                   color: '#888888',
                 }}
               >

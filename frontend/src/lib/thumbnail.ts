@@ -20,8 +20,8 @@ export function createCodeThumbnail(code: string, title: string): string {
 
   // Gradient sheen
   const grad = ctx.createLinearGradient(0, 0, 160, 90);
-  grad.addColorStop(0, 'rgba(59,130,246,0.18)');
-  grad.addColorStop(1, 'rgba(0,243,255,0.08)');
+  grad.addColorStop(0, 'rgba(193,123,79,0.18)');
+  grad.addColorStop(1, 'rgba(193,123,79,0.08)');
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, 160, 90);
 

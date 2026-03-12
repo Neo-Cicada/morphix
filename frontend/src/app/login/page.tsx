@@ -36,7 +36,7 @@ export default function LoginPage() {
         {/* Branding */}
         <div className="flex flex-col items-center mb-10">
           <Link href="/" className="flex items-center gap-3 mb-6 transition-transform hover:scale-105">
-            <div className="size-12 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20 shadow-[0_0_15px_rgba(59,130,246,0.1)]">
+            <div className="size-12 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20 shadow-[0_0_15px_rgba(193,123,79,0.1)]">
               <span className="font-semibold text-2xl text-primary tracking-tighter">M</span>
             </div>
           </Link>

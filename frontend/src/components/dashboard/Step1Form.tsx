@@ -85,7 +85,7 @@ export function Step1Form({ formData, onChange, onNext }: Step1FormProps) {
             placeholder="e.g. Linear, Notion, Stripe"
             value={formData.appName}
             onChange={(e) => handleChange('appName', e.target.value)}
-            className="w-full bg-[#0a0a0a] border border-[#333333] rounded-xl px-4 py-3 text-white placeholder:text-[#555555] focus:outline-none focus:border-[#3b82f6] transition-colors"
+            className="w-full bg-[#0a0a0a] border border-[#333333] rounded-xl px-4 py-3 text-white placeholder:text-[#555555] focus:outline-none focus:border-[#C17B4F] transition-colors"
           />
           {errors.appName && <p className="text-red-500 text-sm">{errors.appName}</p>}
         </div>
@@ -107,7 +107,7 @@ export function Step1Form({ formData, onChange, onNext }: Step1FormProps) {
                 handleChange('description', e.target.value);
               }
             }}
-            className="w-full bg-[#0a0a0a] border border-[#333333] rounded-xl px-4 py-3 text-white placeholder:text-[#555555] focus:outline-none focus:border-[#3b82f6] transition-colors resize-none"
+            className="w-full bg-[#0a0a0a] border border-[#333333] rounded-xl px-4 py-3 text-white placeholder:text-[#555555] focus:outline-none focus:border-[#C17B4F] transition-colors resize-none"
           />
           {errors.description && <p className="text-red-500 text-sm">{errors.description}</p>}
         </div>
@@ -173,7 +173,7 @@ export function Step1Form({ formData, onChange, onNext }: Step1FormProps) {
             placeholder="e.g. drag-drop builder, real-time collaboration, analytics dashboard"
             value={formData.features}
             onChange={(e) => handleChange('features', e.target.value)}
-            className="w-full bg-[#0a0a0a] border border-[#333333] rounded-xl px-4 py-3 text-white placeholder:text-[#555555] focus:outline-none focus:border-[#3b82f6] transition-colors resize-none mt-3"
+            className="w-full bg-[#0a0a0a] border border-[#333333] rounded-xl px-4 py-3 text-white placeholder:text-[#555555] focus:outline-none focus:border-[#C17B4F] transition-colors resize-none mt-3"
           />
         </div>
 

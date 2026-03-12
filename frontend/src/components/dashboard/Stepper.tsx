@@ -21,16 +21,16 @@ export function Stepper({ steps, currentStep }: StepperProps) {
               <div
                 className={`size-9 rounded-full flex items-center justify-center text-sm font-semibold transition-all border ${
                   isCompleted
-                    ? 'bg-green-500 border-green-500 text-white'
+                    ? 'text-white'
                     : isCurrent
-                      ? 'bg-blue-500/10 border-blue-500/50 text-blue-400'
+                      ? 'bg-[#C17B4F]/10 border-[#C17B4F]/50 text-[#D4A574]'
                       : 'bg-white/[0.03] border-[#222222] text-gray-600'
                 }`}
                 style={
                   isCompleted
-                    ? { boxShadow: '0 0 18px rgba(34, 197, 94, 0.4)' }
+                    ? { background: '#5c9e53', borderColor: '#5c9e53', boxShadow: '0 0 18px rgba(92, 158, 83, 0.35)' }
                     : isCurrent
-                      ? { boxShadow: '0 0 20px rgba(59, 130, 246, 0.35), 0 0 8px rgba(59, 130, 246, 0.2)' }
+                      ? { boxShadow: '0 0 20px rgba(193, 123, 79, 0.35), 0 0 8px rgba(193, 123, 79, 0.2)' }
                       : undefined
                 }
               >
@@ -44,10 +44,9 @@ export function Stepper({ steps, currentStep }: StepperProps) {
                 className={`text-xs font-medium whitespace-nowrap ${
                   isCurrent
                     ? 'text-white'
-                    : isCompleted
-                      ? 'text-green-400'
-                      : 'text-gray-600'
+                    : 'text-gray-600'
                 }`}
+                style={isCompleted ? { color: '#7ab872' } : undefined}
               >
                 {step}
               </span>

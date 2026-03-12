@@ -205,6 +205,27 @@ export async function updateDraftCode(req: AuthenticatedRequest, res: Response, 
     }
 }
 
+export async function deleteVideo(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+        const id = req.params['id'] as string;
+
+        const existing = await prisma.videoJob.findUnique({ where: { id }, select: { user_id: true } });
+        if (!existing) {
+            res.status(404).json({ status: 'error', message: 'Not found' });
+            return;
+        }
+        if (existing.user_id !== req.user!.id) {
+            res.status(403).json({ status: 'error', message: 'Forbidden' });
+            return;
+        }
+
+        await prisma.videoJob.delete({ where: { id } });
+        res.json({ status: 'ok' });
+    } catch (err) {
+        next(err);
+    }
+}
+
 export async function getVideo(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
         const id = req.params['id'] as string;

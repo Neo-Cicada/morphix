@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { User, Lock, AlertTriangle, Camera } from 'lucide-react';
+import { User, Lock, Camera } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
 import { api } from '@/lib/api';
 
@@ -61,7 +61,7 @@ function Field({ label, ...props }: { label: string } & React.InputHTMLAttribute
       </label>
       <input
         {...props}
-        className="w-full rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-[#1c1c36] transition-all duration-200 focus:outline-none"
+        className="w-full rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-[#555555] transition-all duration-200 focus:outline-none"
         style={{
           background: '#1a1a18',
           border: focused ? '1px solid rgba(193,123,79,0.4)' : '1px solid #2e2e2c',
@@ -76,7 +76,6 @@ function Field({ label, ...props }: { label: string } & React.InputHTMLAttribute
 }
 
 export default function SettingsPage() {
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const { user, refresh } = useUser();
   const [fullName, setFullName] = useState('');
   const [saving, setSaving] = useState(false);
@@ -182,89 +181,6 @@ export default function SettingsPage() {
         </div>
       </SectionCard>
 
-      {/* Danger Zone */}
-      <div
-        className="relative rounded-2xl p-6 overflow-hidden"
-        style={{ background: 'rgba(239,68,68,0.03)', border: '1px solid rgba(239,68,68,0.15)' }}
-      >
-        <div
-          className="absolute top-0 left-0 right-0 h-[1px] rounded-t-2xl"
-          style={{ background: 'rgba(239,68,68,0.5)' }}
-        />
-        <div className="flex items-center gap-3 mb-3">
-          <div
-            className="size-9 rounded-lg flex items-center justify-center"
-            style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}
-          >
-            <AlertTriangle className="h-4 w-4 text-red-400" />
-          </div>
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-red-400/60">Danger</p>
-            <p className="text-sm font-bold tracking-tight text-red-400">Danger Zone</p>
-          </div>
-        </div>
-        <p className="text-sm text-[#666666] mb-5">
-          Permanently delete your account and all associated data. This action cannot be undone.
-        </p>
-        <button
-          onClick={() => setShowDeleteDialog(true)}
-          className="rounded-xl px-5 py-2.5 text-sm font-semibold text-red-400 transition-all duration-200 cursor-pointer hover:bg-red-500/10"
-          style={{ border: '1px solid rgba(239,68,68,0.25)' }}
-        >
-          Delete Account
-        </button>
-      </div>
-
-      {/* Delete Confirmation Dialog */}
-      {showDeleteDialog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div
-            className="absolute inset-0 backdrop-blur-sm"
-            style={{ background: 'rgba(0,0,0,0.8)' }}
-            onClick={() => setShowDeleteDialog(false)}
-          />
-          <div
-            className="relative w-full max-w-md rounded-2xl p-6 shadow-2xl mx-4 animate-in fade-in zoom-in-95 duration-200"
-            style={{
-              background: '#1a1a18',
-              border: '1px solid rgba(239,68,68,0.2)',
-              boxShadow: '0 25px 60px rgba(0,0,0,0.9)',
-            }}
-          >
-            <div className="flex items-center gap-3 mb-4">
-              <div
-                className="size-10 rounded-xl flex items-center justify-center shrink-0"
-                style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)' }}
-              >
-                <AlertTriangle className="h-5 w-5 text-red-400" />
-              </div>
-              <h3 className="text-base font-bold tracking-tight text-white">Delete Account</h3>
-            </div>
-            <p className="text-sm text-[#888888] mb-6 leading-relaxed">
-              Are you sure you want to delete your account? All your data, videos, and credits will be permanently removed. This cannot be undone.
-            </p>
-            <div className="flex items-center justify-end gap-3">
-              <button
-                onClick={() => setShowDeleteDialog(false)}
-                className="rounded-xl px-4 py-2 text-sm font-medium transition-all duration-200 cursor-pointer"
-                style={{
-                  background: 'rgba(255,255,255,0.04)',
-                  border: '1px solid #2e2e2c',
-                  color: '#888888',
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                className="rounded-xl px-4 py-2 text-sm font-semibold text-white transition-all duration-200 cursor-pointer hover:brightness-110"
-                style={{ background: '#dc2626' }}
-              >
-                Yes, Delete My Account
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

@@ -5,10 +5,20 @@ import { PlusCircle, Play, ArrowUpDown } from 'lucide-react';
 import Link from 'next/link';
 import { VideoCard } from '@/components/dashboard/VideoCard';
 import { useVideos } from '@/hooks/useVideos';
+import { api } from '@/lib/api';
 
 export default function MyVideosPage() {
   const [order, setOrder] = useState<'desc' | 'asc'>('desc');
-  const { videos, hasMore, isLoading, isLoadingMore, loadMore } = useVideos(order);
+  const { videos, hasMore, isLoading, isLoadingMore, loadMore, mutate } = useVideos(order);
+
+  async function handleDelete(id: string) {
+    mutate(pages => pages?.map(p => ({ ...p, videos: p.videos.filter(v => v.id !== id) })), false);
+    try {
+      await api.delete(`/videos/${id}`);
+    } catch {
+      mutate();
+    }
+  }
 
   return (
     <div className="px-6 py-10 lg:px-8">
@@ -60,6 +70,7 @@ export default function MyVideosPage() {
                 source={v.source}
                 date={new Date(v.created_at).toLocaleDateString()}
                 thumbnail={v.thumbnail}
+                onDelete={handleDelete}
               />
             ))}
           </div>

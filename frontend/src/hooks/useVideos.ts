@@ -20,7 +20,7 @@ interface VideosResponse {
 const fetcher = (url: string) => api.get<VideosResponse>(url);
 
 export function useVideos(order: 'desc' | 'asc' = 'desc') {
-  const { data, size, setSize, isLoading, isValidating } = useSWRInfinite<VideosResponse>(
+  const { data, size, setSize, isLoading, isValidating, mutate } = useSWRInfinite<VideosResponse>(
     (pageIndex, previousData) => {
       if (previousData && !previousData.nextCursor) return null;
       const cursor = previousData?.nextCursor ? `&cursor=${previousData.nextCursor}` : '';
@@ -33,5 +33,5 @@ export function useVideos(order: 'desc' | 'asc' = 'desc') {
   const videos = data?.flatMap((p) => p.videos) ?? [];
   const hasMore = !!data?.[size - 1]?.nextCursor;
 
-  return { videos, hasMore, isLoading, isLoadingMore: isValidating && size > 1, loadMore: () => setSize(size + 1) };
+  return { videos, hasMore, isLoading, isLoadingMore: isValidating && size > 1, loadMore: () => setSize(size + 1), mutate };
 }

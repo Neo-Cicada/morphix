@@ -37,7 +37,7 @@ export function DashboardHome() {
 
     useEffect(() => {
         api.get<Stats>('/videos/stats').then(setStats).catch(() => {});
-        api.get<VideoSummary[]>('/videos').then((v) => setRecentVideos(v.slice(0, 3))).catch(() => {});
+        api.get<{ videos: VideoSummary[] }>('/videos').then((r) => setRecentVideos(r.videos.slice(0, 3))).catch(() => {});
     }, []);
 
     const displayName = user?.full_name || user?.email?.split('@')[0] || 'there';

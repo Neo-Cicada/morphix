@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { PlusCircle, Play } from 'lucide-react';
+import { useEffect, useState, useCallback } from 'react';
+import { PlusCircle, Play, ArrowUpDown } from 'lucide-react';
 import Link from 'next/link';
 import { VideoCard } from '@/components/dashboard/VideoCard';
 import { api } from '@/lib/api';
@@ -17,27 +17,42 @@ interface VideoSummary {
   created_at: string;
 }
 
-const FILTERS = [
-  { id: 'all', label: 'All' },
-  { id: 'drafts', label: 'Drafts' },
-  { id: 'processing', label: 'Processing' },
-  { id: 'done', label: 'Completed' },
-  { id: 'failed', label: 'Failed' },
-] as const;
+interface VideosResponse {
+  videos: VideoSummary[];
+  nextCursor: string | null;
+}
 
 export default function MyVideosPage() {
-  const [activeFilter, setActiveFilter] = useState<string>('all');
   const [videos, setVideos] = useState<VideoSummary[]>([]);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [order, setOrder] = useState<'desc' | 'asc'>('desc');
+  const [loadingMore, setLoadingMore] = useState(false);
 
-  useEffect(() => {
-    api.get<VideoSummary[]>('/videos').then(setVideos).catch(() => {});
+  const fetchVideos = useCallback(async (ord: 'desc' | 'asc') => {
+    const data = await api.get<VideosResponse>(`/videos?order=${ord}`);
+    setVideos(data.videos);
+    setNextCursor(data.nextCursor);
   }, []);
 
-  const filtered = videos.filter((v) => {
-    if (activeFilter === 'all') return true;
-    if (activeFilter === 'drafts') return v.source === 'editor' && v.status === 'pending';
-    return v.status === activeFilter;
-  });
+  useEffect(() => {
+    fetchVideos(order).catch(() => {});
+  }, [order, fetchVideos]);
+
+  async function loadMore() {
+    if (!nextCursor || loadingMore) return;
+    setLoadingMore(true);
+    try {
+      const data = await api.get<VideosResponse>(`/videos?order=${order}&cursor=${nextCursor}`);
+      setVideos(prev => [...prev, ...data.videos]);
+      setNextCursor(data.nextCursor);
+    } finally {
+      setLoadingMore(false);
+    }
+  }
+
+  function toggleOrder() {
+    setOrder(prev => (prev === 'desc' ? 'asc' : 'desc'));
+  }
 
   return (
     <div className="px-6 py-10 lg:px-8">
@@ -51,51 +66,55 @@ export default function MyVideosPage() {
           <h1 className="text-3xl font-extrabold tracking-tight text-white leading-tight">My Videos</h1>
           <p className="text-sm text-[#888888] mt-1.5">All your generated marketing videos.</p>
         </div>
-        <Link
-          href="/dashboard/new"
-          className="btn-gradient inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-white cursor-pointer shrink-0"
-        >
-          <PlusCircle className="h-4 w-4" />
-          <span className="hidden sm:inline">New Video</span>
-          <span className="sm:hidden">New</span>
-        </Link>
-      </div>
-
-      {/* Filter Bar */}
-      <div
-        className="inline-flex items-center gap-1 rounded-xl p-1 mb-8"
-        style={{ background: '#1a1a18', border: '1px solid #2e2e2c' }}
-      >
-        {FILTERS.map((tab) => (
+        <div className="flex items-center gap-3">
           <button
-            key={tab.id}
-            onClick={() => setActiveFilter(tab.id)}
-            className="px-4 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer"
-            style={{
-              background: activeFilter === tab.id ? 'rgba(193,123,79,0.1)' : 'transparent',
-              color: activeFilter === tab.id ? '#C17B4F' : '#555555',
-              border: activeFilter === tab.id ? '1px solid rgba(193,123,79,0.2)' : '1px solid transparent',
-            }}
+            onClick={toggleOrder}
+            className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-semibold transition-all duration-200 cursor-pointer"
+            style={{ background: '#1a1a18', border: '1px solid #2e2e2c', color: '#888888' }}
           >
-            {tab.label}
+            <ArrowUpDown className="h-3.5 w-3.5" />
+            {order === 'desc' ? 'Newest first' : 'Oldest first'}
           </button>
-        ))}
+          <Link
+            href="/dashboard/new"
+            className="btn-gradient inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-white cursor-pointer shrink-0"
+          >
+            <PlusCircle className="h-4 w-4" />
+            <span className="hidden sm:inline">New Video</span>
+            <span className="sm:hidden">New</span>
+          </Link>
+        </div>
       </div>
 
-      {filtered.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtered.map((v) => (
-            <VideoCard
-              key={v.id}
-              id={v.id}
-              title={v.app_name}
-              status={v.status}
-              source={v.source}
-              date={new Date(v.created_at).toLocaleDateString()}
-              thumbnail={v.thumbnail}
-            />
-          ))}
-        </div>
+      {videos.length > 0 ? (
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {videos.map((v) => (
+              <VideoCard
+                key={v.id}
+                id={v.id}
+                title={v.app_name}
+                status={v.status}
+                source={v.source}
+                date={new Date(v.created_at).toLocaleDateString()}
+                thumbnail={v.thumbnail}
+              />
+            ))}
+          </div>
+
+          {nextCursor && (
+            <div className="flex justify-center mt-8">
+              <button
+                onClick={loadMore}
+                disabled={loadingMore}
+                className="inline-flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-semibold transition-all duration-200 cursor-pointer disabled:opacity-50"
+                style={{ background: '#1a1a18', border: '1px solid #2e2e2c', color: '#888888' }}
+              >
+                {loadingMore ? 'Loading...' : 'Load more'}
+              </button>
+            </div>
+          )}
+        </>
       ) : (
         <div
           className="rounded-2xl p-8 sm:p-12 flex flex-col items-center justify-center text-center"

@@ -16,9 +16,15 @@ const createVideoSchema = z.object({
 
 export async function listVideos(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
+        const limit = 10;
+        const cursor = req.query['cursor'] as string | undefined;
+        const order = req.query['order'] === 'asc' ? 'asc' : 'desc';
+
         const videos = await prisma.videoJob.findMany({
             where: { user_id: req.user!.id },
-            orderBy: { created_at: 'desc' },
+            orderBy: { created_at: order },
+            take: limit + 1,
+            ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
             select: {
                 id: true,
                 app_name: true,
@@ -33,7 +39,11 @@ export async function listVideos(req: AuthenticatedRequest, res: Response, next:
             },
         });
 
-        const result = videos.map(v => {
+        const hasMore = videos.length > limit;
+        const page = videos.slice(0, limit);
+        const nextCursor = hasMore ? page[page.length - 1]?.id : null;
+
+        const result = page.map(v => {
             const doc = v.production_doc as Record<string, unknown> | null;
             return {
                 ...v,
@@ -44,7 +54,7 @@ export async function listVideos(req: AuthenticatedRequest, res: Response, next:
             };
         });
 
-        res.json(result);
+        res.json({ videos: result, nextCursor });
     } catch (err) {
         next(err);
     }

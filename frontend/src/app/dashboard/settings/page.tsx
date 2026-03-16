@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { User, Lock, Camera } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
 import { api } from '@/lib/api';
+import { createClient } from '@/utils/supabase/client';
 
 /* Shared card wrapper — matches landing page card style */
 function SectionCard({
@@ -81,9 +82,58 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState('');
 
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [pwSaving, setPwSaving] = useState(false);
+  const [pwMsg, setPwMsg] = useState<{ text: string; error?: boolean } | null>(null);
+
   useEffect(() => {
     if (user?.full_name) setFullName(user.full_name);
   }, [user]);
+
+  async function handleChangePassword() {
+    if (!newPassword || !confirmPassword || !currentPassword) {
+      setPwMsg({ text: 'All fields are required.', error: true });
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPwMsg({ text: 'Passwords do not match.', error: true });
+      return;
+    }
+    if (newPassword.length < 6) {
+      setPwMsg({ text: 'New password must be at least 6 characters.', error: true });
+      return;
+    }
+    setPwSaving(true);
+    setPwMsg(null);
+    try {
+      const supabase = createClient();
+      // Verify current password by re-authenticating
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user!.email,
+        password: currentPassword,
+      });
+      if (signInError) {
+        setPwMsg({ text: 'Current password is incorrect.', error: true });
+        return;
+      }
+      const { error: updateError } = await supabase.auth.updateUser({ password: newPassword });
+      if (updateError) {
+        setPwMsg({ text: updateError.message, error: true });
+        return;
+      }
+      setPwMsg({ text: 'Password updated successfully!' });
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch {
+      setPwMsg({ text: 'Something went wrong. Try again.', error: true });
+    } finally {
+      setPwSaving(false);
+      setTimeout(() => setPwMsg(null), 4000);
+    }
+  }
 
   async function handleSaveProfile() {
     setSaving(true);
@@ -169,15 +219,42 @@ export default function SettingsPage() {
       {/* Security Section */}
       <SectionCard icon={Lock} label="Access" title="Security" accent="#D4A574">
         <div className="space-y-5">
-          <Field label="Current Password" type="password" placeholder="Enter current password" />
-          <Field label="New Password" type="password" placeholder="Enter new password" />
-          <Field label="Confirm New Password" type="password" placeholder="Repeat new password" />
+          <Field
+            label="Current Password"
+            type="password"
+            placeholder="Enter current password"
+            value={currentPassword}
+            onChange={(e) => setCurrentPassword(e.target.value)}
+          />
+          <Field
+            label="New Password"
+            type="password"
+            placeholder="Enter new password"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+          />
+          <Field
+            label="Confirm New Password"
+            type="password"
+            placeholder="Repeat new password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+          />
 
-          <button
-            className="btn-gradient rounded-xl px-5 py-2.5 text-sm font-semibold text-white transition-all duration-200 cursor-pointer"
-          >
-            Update Password
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleChangePassword}
+              disabled={pwSaving}
+              className="btn-gradient rounded-xl px-5 py-2.5 text-sm font-semibold text-white transition-all duration-200 cursor-pointer disabled:opacity-50"
+            >
+              {pwSaving ? 'Updating…' : 'Update Password'}
+            </button>
+            {pwMsg && (
+              <span className="text-xs" style={{ color: pwMsg.error ? '#f87171' : '#888888' }}>
+                {pwMsg.text}
+              </span>
+            )}
+          </div>
         </div>
       </SectionCard>
 

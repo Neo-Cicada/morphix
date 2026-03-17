@@ -153,6 +153,9 @@ For each edit, old_string MUST appear exactly once in the current code.`;
       schema: EditSchema,
       system: SYSTEM_PROMPT,
       messages: [...historyMessages, { role: 'user', content: editPrompt }],
+      providerOptions: {
+        anthropic: { cacheControl: { type: 'ephemeral' } },
+      },
     });
 
     const editResult = result.object;
@@ -204,6 +207,9 @@ For each edit, old_string MUST appear exactly once in the current code.`;
     model: anthropic('claude-sonnet-4-6'),
     system: SYSTEM_PROMPT,
     messages,
+    providerOptions: {
+      anthropic: { cacheControl: { type: 'ephemeral' } },
+    },
   });
 
   return result.toTextStreamResponse();

@@ -193,6 +193,115 @@ Respond with:
 
 Always return ALL layers. The JSON must be valid and parseable.`;
 
+// ─── Batch ────────────────────────────────────────────────────────────────────
+
+interface BatchRequest {
+    customId: string;
+    scene: Record<string, unknown>;
+    message: string;
+    brandContext?: string;
+}
+
+export async function batchEditScenes(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+        const { requests } = req.body as { requests: BatchRequest[] };
+
+        if (!Array.isArray(requests) || requests.length === 0) {
+            res.status(400).json({ status: 'error', message: 'requests array is required' });
+            return;
+        }
+        if (requests.length > 10) {
+            res.status(400).json({ status: 'error', message: 'Maximum 10 requests per batch' });
+            return;
+        }
+
+        const batchRequests = requests.map(({ customId, scene, message, brandContext }) => {
+            const contextPrefix = brandContext ? `Brand context: ${brandContext}\n\n` : '';
+            return {
+                custom_id: customId,
+                params: {
+                    model: 'claude-sonnet-4-6' as const,
+                    max_tokens: 8192,
+                    system: SYSTEM_PROMPT,
+                    messages: [{
+                        role: 'user' as const,
+                        content: `${contextPrefix}Here is the current scene:\n\`\`\`json\n${JSON.stringify(scene, null, 2)}\n\`\`\`\n\nUser request: ${message}`,
+                    }],
+                },
+            };
+        });
+
+        const batch = await anthropic.messages.batches.create({ requests: batchRequests });
+
+        res.json({
+            batchId: batch.id,
+            status: batch.processing_status,
+            requestCounts: batch.request_counts,
+        });
+    } catch (err) {
+        next(err);
+    }
+}
+
+export async function getBatch(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+        const batchId = req.params['batchId'] as string;
+        const batch = await anthropic.messages.batches.retrieve(batchId);
+
+        if (batch.processing_status !== 'ended') {
+            res.json({
+                batchId: batch.id,
+                status: batch.processing_status,
+                requestCounts: batch.request_counts,
+            });
+            return;
+        }
+
+        const results: Array<{
+            customId: string;
+            status: string;
+            scene?: Record<string, unknown>;
+            reply?: string;
+            error?: string;
+        }> = [];
+
+        for await (const result of await anthropic.messages.batches.results(batchId as string)) {
+            if (result.result.type === 'succeeded') {
+                const responseText = result.result.message.content
+                    .filter((block): block is Anthropic.TextBlock => block.type === 'text')
+                    .map(block => block.text)
+                    .join('\n');
+
+                const jsonMatch = responseText.match(/```json\s*([\s\S]*?)```/);
+                if (jsonMatch) {
+                    try {
+                        const scene = JSON.parse(jsonMatch[1].trim());
+                        const reply = responseText.replace(/```json[\s\S]*?```/, '').trim() || 'Done!';
+                        results.push({ customId: result.custom_id, status: 'succeeded', scene, reply });
+                    } catch {
+                        results.push({ customId: result.custom_id, status: 'parse_error', error: 'Invalid JSON in response' });
+                    }
+                } else {
+                    results.push({ customId: result.custom_id, status: 'parse_error', error: 'No JSON scene in response' });
+                }
+            } else if (result.result.type === 'errored') {
+                results.push({ customId: result.custom_id, status: 'errored', error: result.result.error.type });
+            } else {
+                results.push({ customId: result.custom_id, status: result.result.type });
+            }
+        }
+
+        res.json({
+            batchId: batch.id,
+            status: batch.processing_status,
+            requestCounts: batch.request_counts,
+            results,
+        });
+    } catch (err) {
+        next(err);
+    }
+}
+
 // ─── Handler ──────────────────────────────────────────────────────────────────
 
 interface ChatMessage {

@@ -4,14 +4,19 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import {
   Send, Download, Loader2, ImagePlus, Code2, Sparkles,
   PanelRightClose, PanelRightOpen, MessageSquare, FilePlus,
+  Mic, Volume2, Play, Square, ChevronDown, RefreshCw, Music2,
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useSearchParams } from 'next/navigation';
+import type { PlayerRef } from '@remotion/player';
 import { AnimationPlayer } from './AnimationPlayer';
 import { useAnimationState } from '@/hooks/useAnimationState';
 import { useGenerationApi } from '@/hooks/useGenerationApi';
 import { useEditorPersistence } from '@/hooks/useEditorPersistence';
 import { useCloudPersistence } from '@/hooks/useCloudPersistence';
+import { useVoice } from '@/hooks/useVoice';
+import { useMusic } from '@/hooks/useMusic';
+import { MUSIC_PRESETS } from '@/lib/musicPresets';
 import { createCodeThumbnail } from '@/lib/thumbnail';
 
 const MonacoEditor = dynamic(() => import('@monaco-editor/react'), { ssr: false });
@@ -25,7 +30,7 @@ interface ChatMessage {
 }
 
 type ExportState = 'idle' | 'rendering' | 'done' | 'error';
-type RightPanel = 'chat' | 'code';
+type RightPanel = 'chat' | 'code' | 'voice' | 'music';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -45,10 +50,13 @@ export default function EditorPage() {
   const { generate, isGenerating, isStreaming } = useGenerationApi();
   const { load, save, clear } = useEditorPersistence();
   const cloud = useCloudPersistence();
+  const voice = useVoice();
+  const music = useMusic();
 
   // Player state
   const [durationInFrames, setDurationInFrames] = useState(180);
   const [fps] = useState(30);
+  const playerRef = useRef<PlayerRef | null>(null);
 
   // UI state
   const [rightPanel, setRightPanel] = useState<RightPanel>('chat');
@@ -76,6 +84,7 @@ export default function EditorPage() {
   // New animation modal
   const [showNewModal, setShowNewModal] = useState(false);
   const compileDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [voiceOpen, setVoiceOpen] = useState(false);
 
   // ── Effects ──────────────────────────────────────────────────────────────────
 
@@ -171,6 +180,58 @@ export default function EditorPage() {
     return () => window.removeEventListener('storage', handleStorage);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Sync audio with Remotion Player when voice is enabled + ready
+  useEffect(() => {
+    const player = playerRef.current;
+    const audio = voice.audioRef.current;
+    if (!player || !audio || !voice.enabled || !voice.audioUrl) return;
+
+    const onPlay = () => { audio.play().catch(() => undefined); };
+    const onPause = () => { audio.pause(); };
+    const onSeeked = (e: { detail: { frame: number } }) => {
+      audio.currentTime = e.detail.frame / fps;
+    };
+    const onEnded = () => { audio.pause(); audio.currentTime = 0; };
+
+    player.addEventListener('play', onPlay);
+    player.addEventListener('pause', onPause);
+    player.addEventListener('seeked', onSeeked);
+    player.addEventListener('ended', onEnded);
+
+    return () => {
+      player.removeEventListener('play', onPlay);
+      player.removeEventListener('pause', onPause);
+      player.removeEventListener('seeked', onSeeked);
+      player.removeEventListener('ended', onEnded);
+    };
+  }, [voice.enabled, voice.audioUrl, voice.audioRef, fps]);
+
+  // Sync music with Remotion Player
+  useEffect(() => {
+    const player = playerRef.current;
+    const audio = music.audioRef.current;
+    if (!player || !audio || !music.enabled || !music.audioUrl) return;
+
+    const onPlay = () => { audio.play().catch(() => undefined); };
+    const onPause = () => { audio.pause(); };
+    const onSeeked = (e: { detail: { frame: number } }) => {
+      audio.currentTime = e.detail.frame / fps;
+    };
+    const onEnded = () => { audio.pause(); audio.currentTime = 0; };
+
+    player.addEventListener('play', onPlay);
+    player.addEventListener('pause', onPause);
+    player.addEventListener('seeked', onSeeked);
+    player.addEventListener('ended', onEnded);
+
+    return () => {
+      player.removeEventListener('play', onPlay);
+      player.removeEventListener('pause', onPause);
+      player.removeEventListener('seeked', onSeeked);
+      player.removeEventListener('ended', onEnded);
+    };
+  }, [music.enabled, music.audioUrl, music.audioRef, fps]);
 
   // ── Handlers ─────────────────────────────────────────────────────────────────
 
@@ -435,6 +496,7 @@ export default function EditorPage() {
         {/* Preview */}
         <div className="flex-1 min-h-0 p-3 noise-overlay">
           <AnimationPlayer
+            playerRef={playerRef}
             Component={animationState.Component}
             durationInFrames={durationInFrames}
             fps={fps}
@@ -443,6 +505,14 @@ export default function EditorPage() {
             streamingChars={streamingCode.length}
             error={animationState.error}
           />
+          {/* Hidden audio element for voice narration sync */}
+          {voice.enabled && voice.audioUrl && (
+            <audio ref={voice.audioRef} src={voice.audioUrl} preload="auto" className="hidden" />
+          )}
+          {/* Hidden audio element for background music sync */}
+          {music.enabled && music.audioUrl && (
+            <audio ref={music.audioRef} src={music.audioUrl} preload="auto" loop className="hidden" />
+          )}
         </div>
 
         {/* Right panel */}
@@ -474,6 +544,34 @@ export default function EditorPage() {
                 Code
                 {(isStreaming || animationState.isCompiling) && (
                   <div className="w-1.5 h-1.5 rounded-full bg-[#C17B4F] animate-pulse ml-0.5" />
+                )}
+              </button>
+              <button
+                onClick={() => setRightPanel('voice')}
+                className={`flex items-center gap-1.5 px-3 py-2 text-xs font-medium border-b-2 -mb-px transition-all ${
+                  rightPanel === 'voice'
+                    ? 'text-white border-[#C17B4F]'
+                    : 'text-[#888884] border-transparent hover:text-[#bbb]'
+                }`}
+              >
+                <Mic className="w-3.5 h-3.5" />
+                Voice
+                {voice.enabled && voice.audioUrl && (
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#5c9e53]/70 ml-0.5" />
+                )}
+              </button>
+              <button
+                onClick={() => setRightPanel('music')}
+                className={`flex items-center gap-1.5 px-3 py-2 text-xs font-medium border-b-2 -mb-px transition-all ${
+                  rightPanel === 'music'
+                    ? 'text-white border-[#C17B4F]'
+                    : 'text-[#888884] border-transparent hover:text-[#bbb]'
+                }`}
+              >
+                <Music2 className="w-3.5 h-3.5" />
+                Music
+                {music.enabled && music.audioUrl && (
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#5c9e53]/70 ml-0.5" />
                 )}
               </button>
             </div>
@@ -599,6 +697,392 @@ export default function EditorPage() {
                     }}
                   />
                 </div>
+              </div>
+            )}
+
+            {/* ── Voice ── */}
+            {rightPanel === 'voice' && (
+              <div className="flex-1 flex flex-col min-h-0 overflow-y-auto">
+                {/* Header */}
+                <div className="flex items-center gap-2 px-4 py-2 border-b border-[#2e2e2c]/40 shrink-0">
+                  <Volume2 className="w-3 h-3 text-[#D4A574]" />
+                  <span className="text-xs font-medium text-[#888884]">Voice Narration</span>
+                  <div className="ml-auto">
+                    <button
+                      onClick={() => voice.setEnabled(!voice.enabled)}
+                      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none ${
+                        voice.enabled ? 'bg-[#C17B4F]' : 'bg-[#2e2e2c]'
+                      }`}
+                    >
+                      <span className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform ${
+                        voice.enabled ? 'translate-x-4' : 'translate-x-0.5'
+                      }`} />
+                    </button>
+                  </div>
+                </div>
+
+                {!voice.enabled ? (
+                  <div className="flex-1 flex flex-col items-center justify-center gap-3 px-6 text-center">
+                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{
+                      background: 'rgba(193,123,79,0.1)',
+                      border: '1px solid rgba(193,123,79,0.2)',
+                    }}>
+                      <Mic className="w-5 h-5 text-[#C17B4F]" />
+                    </div>
+                    <div>
+                      <p className="text-[#bbb] text-sm font-medium mb-1">Add voice narration</p>
+                      <p className="text-[#888884] text-xs leading-relaxed">Enable to add an AI voice that reads your script alongside the animation.</p>
+                    </div>
+                    <button
+                      onClick={() => voice.setEnabled(true)}
+                      className="mt-1 px-4 py-1.5 rounded-lg text-xs font-medium btn-gradient text-white transition-all"
+                    >
+                      Enable Voice
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-4 p-4">
+                    {/* Voice selector */}
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-medium text-[#888884] uppercase tracking-wider">Voice</label>
+                      {voice.status === 'loading-voices' ? (
+                        <div className="flex items-center gap-2 h-9 px-3 bg-[#1a1a18] border border-[#2e2e2c] rounded-lg">
+                          <Loader2 className="w-3.5 h-3.5 text-[#D4A574] animate-spin shrink-0" />
+                          <span className="text-xs text-[#555553]">Loading voices...</span>
+                        </div>
+                      ) : (
+                        <div className="relative">
+                          <select
+                            value={voice.selectedVoiceId}
+                            onChange={(e) => voice.setSelectedVoiceId(e.target.value)}
+                            className="w-full appearance-none bg-[#1a1a18] border border-[#2e2e2c] rounded-lg px-3 py-2 text-sm text-[#FAFAF7] focus:outline-none focus:border-[#C17B4F]/50 focus:ring-1 focus:ring-[#C17B4F]/15 transition-all pr-8"
+                          >
+                            {voice.voices.map((v) => (
+                              <option key={v.id} value={v.id}>
+                                {v.name}{v.gender ? ` · ${v.gender}` : ''}{v.accent ? ` · ${v.accent}` : ''}
+                              </option>
+                            ))}
+                          </select>
+                          <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#555553] pointer-events-none" />
+                        </div>
+                      )}
+                      {/* Voice preview button */}
+                      {voice.selectedVoiceId && (() => {
+                        const v = voice.voices.find((x) => x.id === voice.selectedVoiceId);
+                        return v?.previewUrl ? (
+                          <button
+                            onClick={() => {
+                              const a = new Audio(v.previewUrl);
+                              a.play().catch(() => undefined);
+                            }}
+                            className="flex items-center gap-1.5 text-[11px] text-[#888884] hover:text-[#D4A574] transition-colors"
+                          >
+                            <Play className="w-3 h-3" />
+                            Preview voice sample
+                          </button>
+                        ) : null;
+                      })()}
+                    </div>
+
+                    {/* Script textarea */}
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <label className="text-[11px] font-medium text-[#888884] uppercase tracking-wider">Narration Script</label>
+                        <span className={`text-[10px] tabular-nums ${voice.script.length > 4800 ? 'text-amber-400' : 'text-[#3a3a38]'}`}>
+                          {voice.script.length}/5000
+                        </span>
+                      </div>
+                      <textarea
+                        value={voice.script}
+                        onChange={(e) => {
+                          voice.setScript(e.target.value);
+                          if (voice.audioUrl) voice.clearAudio();
+                        }}
+                        placeholder="Write the narration that will be read aloud alongside your animation..."
+                        rows={6}
+                        maxLength={5000}
+                        className="w-full bg-[#1a1a18] border border-[#2e2e2c] rounded-xl px-3 py-2.5 text-sm text-[#FAFAF7] placeholder-[#555553] focus:outline-none focus:border-[#C17B4F]/50 focus:ring-1 focus:ring-[#C17B4F]/15 resize-none transition-all leading-relaxed"
+                      />
+                    </div>
+
+                    {/* Error */}
+                    {voice.status === 'error' && voice.errorMessage && (
+                      <div className="flex items-start gap-2 px-3 py-2.5 bg-red-950/40 border border-red-800/50 rounded-lg">
+                        <span className="text-[11px] text-red-400 leading-relaxed">{voice.errorMessage}</span>
+                      </div>
+                    )}
+
+                    {/* Generate button */}
+                    <button
+                      onClick={voice.generateAudio}
+                      disabled={!voice.script.trim() || !voice.selectedVoiceId || voice.status === 'generating' || voice.status === 'loading-voices'}
+                      className={`flex items-center justify-center gap-2 w-full py-2 rounded-xl text-sm font-medium transition-all ${
+                        !voice.script.trim() || !voice.selectedVoiceId || voice.status === 'generating' || voice.status === 'loading-voices'
+                          ? 'bg-[#1a1a18] border border-[#2e2e2c] text-[#555553] cursor-not-allowed'
+                          : voice.audioUrl
+                            ? 'bg-[#1a1a18] border border-[#C17B4F]/40 text-[#D4A574] hover:bg-[#C17B4F]/10'
+                            : 'btn-gradient text-white'
+                      }`}
+                    >
+                      {voice.status === 'generating' ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          Generating...
+                        </>
+                      ) : voice.audioUrl ? (
+                        <>
+                          <RefreshCw className="w-3.5 h-3.5" />
+                          Regenerate
+                        </>
+                      ) : (
+                        <>
+                          <Mic className="w-3.5 h-3.5" />
+                          Generate Voice
+                        </>
+                      )}
+                    </button>
+
+                    {/* Audio player */}
+                    {voice.audioUrl && (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <div className="w-1.5 h-1.5 rounded-full bg-[#5c9e53]/70" />
+                          <span className="text-[11px] text-[#888884]">Audio ready · plays in sync with animation</span>
+                        </div>
+                        <div
+                          className="flex items-center gap-3 px-3 py-2.5 rounded-xl"
+                          style={{ background: 'rgba(92,158,83,0.08)', border: '1px solid rgba(92,158,83,0.2)' }}
+                        >
+                          <button
+                            onClick={() => {
+                              const a = voice.audioRef.current;
+                              if (!a) return;
+                              if (a.paused) {
+                                a.play().catch(() => undefined);
+                                setVoiceOpen(true);
+                              } else {
+                                a.pause();
+                                setVoiceOpen(false);
+                              }
+                            }}
+                            className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-all hover:scale-105"
+                            style={{ background: 'rgba(92,158,83,0.2)', border: '1px solid rgba(92,158,83,0.3)' }}
+                          >
+                            {voiceOpen ? <Square className="w-3 h-3 text-[#7ab872]" /> : <Play className="w-3 h-3 text-[#7ab872]" />}
+                          </button>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs text-[#7ab872] font-medium truncate">
+                              {voice.voices.find((v) => v.id === voice.selectedVoiceId)?.name ?? 'Voice'}
+                            </p>
+                            <p className="text-[10px] text-[#3a3a38] mt-0.5">narration.mp3</p>
+                          </div>
+                          <a
+                            href={voice.audioUrl}
+                            download="narration.mp3"
+                            className="p-1.5 rounded-lg text-[#555553] hover:text-[#7ab872] hover:bg-[#5c9e53]/10 transition-all"
+                          >
+                            <Download className="w-3.5 h-3.5" />
+                          </a>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+            {/* ── Music ── */}
+            {rightPanel === 'music' && (
+              <div className="flex-1 flex flex-col min-h-0 overflow-y-auto">
+                {/* Header */}
+                <div className="flex items-center gap-2 px-4 py-2 border-b border-[#2e2e2c]/40 shrink-0">
+                  <Music2 className="w-3 h-3 text-[#D4A574]" />
+                  <span className="text-xs font-medium text-[#888884]">Background Music</span>
+                  <div className="ml-auto">
+                    <button
+                      onClick={() => music.setEnabled(!music.enabled)}
+                      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none ${
+                        music.enabled ? 'bg-[#C17B4F]' : 'bg-[#2e2e2c]'
+                      }`}
+                    >
+                      <span className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform ${
+                        music.enabled ? 'translate-x-4' : 'translate-x-0.5'
+                      }`} />
+                    </button>
+                  </div>
+                </div>
+
+                {!music.enabled ? (
+                  <div className="flex-1 flex flex-col items-center justify-center gap-3 px-6 text-center">
+                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{
+                      background: 'rgba(193,123,79,0.1)',
+                      border: '1px solid rgba(193,123,79,0.2)',
+                    }}>
+                      <Music2 className="w-5 h-5 text-[#C17B4F]" />
+                    </div>
+                    <div>
+                      <p className="text-[#bbb] text-sm font-medium mb-1">Add background music</p>
+                      <p className="text-[#888884] text-xs leading-relaxed">Generate AI music by ElevenLabs that plays alongside your animation. Choose from presets or write your own prompt.</p>
+                    </div>
+                    <button
+                      onClick={() => music.setEnabled(true)}
+                      className="mt-1 px-4 py-1.5 rounded-lg text-xs font-medium btn-gradient text-white transition-all"
+                    >
+                      Enable Music
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-4 p-4">
+                    {/* Category presets */}
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-medium text-[#888884] uppercase tracking-wider">Style</label>
+                      <div className="grid grid-cols-2 gap-1.5">
+                        {MUSIC_PRESETS.map((preset) => (
+                          <button
+                            key={preset.id}
+                            onClick={() => {
+                              music.setSelectedPresetId(preset.id);
+                              if (music.audioUrl) music.clearMusic();
+                            }}
+                            className={`flex items-center gap-2 px-2.5 py-2 rounded-lg text-left transition-all ${
+                              music.selectedPresetId === preset.id
+                                ? 'bg-[#C17B4F]/15 border border-[#C17B4F]/50 text-[#D4A574]'
+                                : 'bg-[#1a1a18] border border-[#2e2e2c] text-[#888884] hover:border-[#3a3a38] hover:text-[#bbb]'
+                            }`}
+                          >
+                            <span className="text-base leading-none">{preset.emoji}</span>
+                            <div className="min-w-0">
+                              <p className="text-[11px] font-medium truncate">{preset.label}</p>
+                              <p className="text-[10px] text-[#555553] truncate">{preset.description}</p>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Custom prompt */}
+                    {music.selectedPresetId === 'custom' && (
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <label className="text-[11px] font-medium text-[#888884] uppercase tracking-wider">Music Prompt</label>
+                          <span className={`text-[10px] tabular-nums ${music.customPrompt.length > 900 ? 'text-amber-400' : 'text-[#3a3a38]'}`}>
+                            {music.customPrompt.length}/1000
+                          </span>
+                        </div>
+                        <textarea
+                          value={music.customPrompt}
+                          onChange={(e) => {
+                            music.setCustomPrompt(e.target.value);
+                            if (music.audioUrl) music.clearMusic();
+                          }}
+                          placeholder="Describe the music you want... e.g. 'Upbeat jazz with piano and light drums, energetic and fun'"
+                          rows={4}
+                          maxLength={1000}
+                          className="w-full bg-[#1a1a18] border border-[#2e2e2c] rounded-xl px-3 py-2.5 text-sm text-[#FAFAF7] placeholder-[#555553] focus:outline-none focus:border-[#C17B4F]/50 focus:ring-1 focus:ring-[#C17B4F]/15 resize-none transition-all leading-relaxed"
+                        />
+                      </div>
+                    )}
+
+                    {/* Volume */}
+                    {music.audioUrl && (
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <label className="text-[11px] font-medium text-[#888884] uppercase tracking-wider">Volume</label>
+                          <span className="text-[10px] text-[#555553] tabular-nums">{Math.round(music.volume * 100)}%</span>
+                        </div>
+                        <input
+                          type="range"
+                          min={0}
+                          max={1}
+                          step={0.05}
+                          value={music.volume}
+                          onChange={(e) => music.setVolume(parseFloat(e.target.value))}
+                          className="w-full accent-[#C17B4F]"
+                        />
+                      </div>
+                    )}
+
+                    {/* Error */}
+                    {music.status === 'error' && music.errorMessage && (
+                      <div className="flex items-start gap-2 px-3 py-2.5 bg-red-950/40 border border-red-800/50 rounded-lg">
+                        <span className="text-[11px] text-red-400 leading-relaxed">{music.errorMessage}</span>
+                      </div>
+                    )}
+
+                    {/* Generate button */}
+                    <button
+                      onClick={() => music.generateMusic(Math.round((durationInFrames / fps) * 1000))}
+                      disabled={
+                        music.status === 'generating' ||
+                        (music.selectedPresetId === 'custom' && !music.customPrompt.trim())
+                      }
+                      className={`flex items-center justify-center gap-2 w-full py-2 rounded-xl text-sm font-medium transition-all ${
+                        music.status === 'generating' ||
+                        (music.selectedPresetId === 'custom' && !music.customPrompt.trim())
+                          ? 'bg-[#1a1a18] border border-[#2e2e2c] text-[#555553] cursor-not-allowed'
+                          : music.audioUrl
+                            ? 'bg-[#1a1a18] border border-[#C17B4F]/40 text-[#D4A574] hover:bg-[#C17B4F]/10'
+                            : 'btn-gradient text-white'
+                      }`}
+                    >
+                      {music.status === 'generating' ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          Generating...
+                        </>
+                      ) : music.audioUrl ? (
+                        <>
+                          <RefreshCw className="w-3.5 h-3.5" />
+                          Regenerate
+                        </>
+                      ) : (
+                        <>
+                          <Music2 className="w-3.5 h-3.5" />
+                          Generate Music
+                        </>
+                      )}
+                    </button>
+
+                    {/* Audio player */}
+                    {music.audioUrl && (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <div className="w-1.5 h-1.5 rounded-full bg-[#5c9e53]/70" />
+                          <span className="text-[11px] text-[#888884]">Music ready · loops with animation</span>
+                        </div>
+                        <div
+                          className="flex items-center gap-3 px-3 py-2.5 rounded-xl"
+                          style={{ background: 'rgba(92,158,83,0.08)', border: '1px solid rgba(92,158,83,0.2)' }}
+                        >
+                          <button
+                            onClick={() => {
+                              const a = music.audioRef.current;
+                              if (!a) return;
+                              if (a.paused) a.play().catch(() => undefined);
+                              else a.pause();
+                            }}
+                            className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-all hover:scale-105"
+                            style={{ background: 'rgba(92,158,83,0.2)', border: '1px solid rgba(92,158,83,0.3)' }}
+                          >
+                            <Play className="w-3 h-3 text-[#7ab872]" />
+                          </button>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs text-[#7ab872] font-medium truncate">
+                              {MUSIC_PRESETS.find((p) => p.id === music.selectedPresetId)?.label ?? 'Music'}
+                            </p>
+                            <p className="text-[10px] text-[#3a3a38] mt-0.5">background.mp3 · loops</p>
+                          </div>
+                          <a
+                            href={music.audioUrl}
+                            download="background-music.mp3"
+                            className="p-1.5 rounded-lg text-[#555553] hover:text-[#7ab872] hover:bg-[#5c9e53]/10 transition-all"
+                          >
+                            <Download className="w-3.5 h-3.5" />
+                          </a>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
           </div>

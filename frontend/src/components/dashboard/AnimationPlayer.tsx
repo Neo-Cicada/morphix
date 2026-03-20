@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Player } from '@remotion/player';
+import type { PlayerRef } from '@remotion/player';
 
 interface AnimationPlayerProps {
   Component: React.ComponentType | null;
@@ -11,6 +12,7 @@ interface AnimationPlayerProps {
   isStreaming: boolean;
   streamingChars?: number;
   error: string | null;
+  playerRef?: React.RefObject<PlayerRef | null>;
 }
 
 // ─── Error helpers ─────────────────────────────────────────────────────────────
@@ -65,6 +67,7 @@ export function AnimationPlayer({
   isStreaming,
   streamingChars = 0,
   error,
+  playerRef,
 }: AnimationPlayerProps) {
   const overlay = (() => {
     if (isStreaming) return (
@@ -150,6 +153,7 @@ export function AnimationPlayer({
 
       {Component && !overlay ? (
         <Player
+          ref={playerRef}
           component={Component}
           durationInFrames={Math.max(1, durationInFrames)}
           fps={fps}

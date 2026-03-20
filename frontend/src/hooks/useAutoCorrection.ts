@@ -3,6 +3,7 @@
 import { useCallback, useRef } from 'react';
 import { useAnimationState } from './useAnimationState';
 import { useGenerationApi } from './useGenerationApi';
+import { compile } from '@/remotion/compiler';
 
 const MAX_CORRECTION_ATTEMPTS = 3;
 
@@ -39,28 +40,27 @@ export function useAutoCorrection() {
       await generate({
         ...opts,
         onComplete: async (code) => {
+          // Compile immediately to get the real error (avoids stale closure on animationState.error)
+          const result = compile(code);
           animationState.setCode(code);
           opts.onComplete?.(code);
 
-          // Wait a tick for compile to finish, then check for errors
-          setTimeout(async () => {
-            if (animationState.error && attempt < MAX_CORRECTION_ATTEMPTS) {
-              // Auto-correct: retry with error context
-              await generateWithCorrection(
-                {
-                  ...opts,
-                  currentCode: code,
-                  isFollowUp: true,
-                  errorCorrection: {
-                    error: animationState.error,
-                    attemptNumber: attempt + 1,
-                    maxAttempts: MAX_CORRECTION_ATTEMPTS,
-                  },
+          if (result.error && attempt < MAX_CORRECTION_ATTEMPTS) {
+            // Auto-correct: retry with error context
+            await generateWithCorrection(
+              {
+                ...opts,
+                currentCode: code,
+                isFollowUp: true,
+                errorCorrection: {
+                  error: result.error,
+                  attemptNumber: attempt + 1,
+                  maxAttempts: MAX_CORRECTION_ATTEMPTS,
                 },
-                attempt + 1
-              );
-            }
-          }, 100);
+              },
+              attempt + 1
+            );
+          }
         },
         onError: (error) => {
           opts.onError?.(error);

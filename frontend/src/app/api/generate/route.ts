@@ -13,6 +13,7 @@ RULES:
 - Available globals: React, AbsoluteFill, Sequence, useCurrentFrame, useVideoConfig, spring, interpolate, interpolateColors, Audio, Video, Img, Series, Loop, Freeze, OffthreadVideo, staticFile, RemotionShapes, RemotionTransitions
 - Composition is 1920×1080 at 30fps. Use useVideoConfig() to get width/height/fps/durationInFrames
 - Always declare a top-level constant: const DURATION_IN_FRAMES = <number> (e.g. 180 for 6s, 300 for 10s). Set it to a duration that fits the animation — never hardcode 150 unless the animation is very short
+- CRITICAL: Every Sequence's from + durationInFrames must be <= DURATION_IN_FRAMES. All content must fit within DURATION_IN_FRAMES — never let sections extend beyond it
 - Use spring() for physics-based animations, interpolate() for linear mappings
 - Always set backgroundColor on the root AbsoluteFill
 - Use fontFamily: 'Inter, sans-serif' for all text
@@ -22,6 +23,15 @@ RULES:
 - Add subtle micro-animations to make it feel alive
 
 BANNED: Do not shadow these global names — spring, interpolate, useCurrentFrame, useVideoConfig, AbsoluteFill, Sequence, useFrame
+
+SYNTAX RULES (strictly follow to avoid compile errors):
+- Never use optional chaining on JSX props: use ternary instead (e.g. {arr ? arr.map(...) : null})
+- Never leave trailing commas after the last JSX attribute
+- Always close every JSX tag — self-close void elements (<div /> or <div></div>)
+- Never use TypeScript generics in JSX (e.g. avoid <T> in expressions — use 'as' casting instead)
+- Never declare a variable with the same name as an injected global
+- Ensure all opened parentheses, brackets, and braces are closed
+- Do not use async/await inside React components or hooks
 
 OUTPUT: Only output the raw TSX code with no markdown fences, no imports, no explanations.
 
@@ -140,7 +150,9 @@ export async function POST(req: NextRequest) {
 
 Apply the minimal set of edits needed. Prefer targeted string replacements (type: "edit"). Only use type: "full" if the changes are so extensive that diffs would be unclear.
 
-For each edit, old_string MUST appear exactly once in the current code.`;
+For each edit, old_string MUST appear exactly once in the current code.
+
+CRITICAL: If the animation duration changes, you MUST update DURATION_IN_FRAMES to match the total length. Every Sequence must fit within DURATION_IN_FRAMES. Never let content extend beyond DURATION_IN_FRAMES.`;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const historyMessages: any[] = conversationHistory.map((m: { role: string; content: string }) => ({

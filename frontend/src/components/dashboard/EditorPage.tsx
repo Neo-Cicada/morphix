@@ -208,7 +208,7 @@ export default function EditorPage() {
           ));
           if (!cloud.videoId) {
             const thumbnail = createCodeThumbnail(fullCode, prompt.slice(0, 40));
-            cloud.createDraft(prompt, fullCode, {
+            cloud.createDraft(prompt.slice(0, 200), fullCode, {
               messages: messages.map((m) =>
                 m.id === assistantMsgId ? { ...m, text: 'Animation generated! Refine it by describing changes.' } : m
               ),

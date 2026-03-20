@@ -168,6 +168,25 @@ For each edit, old_string MUST appear exactly once in the current code.`;
       const { code: patchedCode, error } = applyEdits(currentCode, editResult.edits);
 
       if (error) {
+        // Edits failed — fallback to full rewrite
+        const fallback = await generateObject({
+          model: anthropic('claude-sonnet-4-6'),
+          schema: EditSchema,
+          system: SYSTEM_PROMPT,
+          messages: [
+            ...historyMessages,
+            {
+              role: 'user',
+              content: `${editPrompt}\n\nNote: targeted edits failed. Respond with type: "full" and the complete rewritten code.`,
+            },
+          ],
+          providerOptions: {
+            anthropic: { cacheControl: { type: 'ephemeral' } },
+          },
+        });
+        if (fallback.object.type === 'full' && fallback.object.code) {
+          return Response.json({ type: 'full', code: fallback.object.code, summary: fallback.object.summary });
+        }
         return Response.json({ type: 'error', error }, { status: 422 });
       }
 

@@ -124,6 +124,7 @@ export function DashboardHome() {
                                 source={v.source ?? 'form'}
                                 date={new Date(v.created_at).toLocaleDateString()}
                                 thumbnail={v.thumbnail}
+                                outputUrl={v.output_url}
                             />
                         ))}
                     </div>

@@ -12,6 +12,7 @@ interface VideoCardProps {
   source: 'form' | 'editor';
   date: string;
   thumbnail?: string | null;
+  outputUrl?: string | null;
   onDelete?: (id: string) => void;
 }
 
@@ -24,12 +25,14 @@ const statusConfig = {
 
 const draftBadge = { bg: 'rgba(245,158,11,0.08)', color: '#f59e0b', border: 'rgba(245,158,11,0.2)' };
 
-export function VideoCard({ id, title, status, source, date, thumbnail, onDelete }: VideoCardProps) {
+export function VideoCard({ id, title, status, source, date, thumbnail, outputUrl, onDelete }: VideoCardProps) {
   const router = useRouter();
   const isDraft = source === 'editor' && status === 'pending';
+  const isPlayable = status === 'done' && !!outputUrl;
   const s = statusConfig[status];
   const [menuOpen, setMenuOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [playerOpen, setPlayerOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -50,7 +53,7 @@ export function VideoCard({ id, title, status, source, date, thumbnail, onDelete
         </Link>
       )
     : ({ children }: { children: React.ReactNode }) => (
-        <div className="group rounded-2xl overflow-hidden transition-all duration-200 hover:border-[#2a2a2a]" style={{ background: '#1a1a18', border: '1px solid #2e2e2c' }}>
+        <div className={`group rounded-2xl overflow-hidden transition-all duration-200 hover:border-[#2a2a2a] ${isPlayable ? 'cursor-pointer' : ''}`} style={{ background: '#1a1a18', border: '1px solid #2e2e2c' }} onClick={isPlayable ? () => setPlayerOpen(true) : undefined}>
           {children}
         </div>
       );
@@ -176,19 +179,61 @@ export function VideoCard({ id, title, status, source, date, thumbnail, onDelete
               >
                 Resume
               </button>
-            ) : (
-              <button
-                disabled={status !== 'done'}
-                className="inline-flex items-center gap-1.5 text-xs font-medium transition-colors disabled:opacity-25 disabled:cursor-not-allowed cursor-pointer"
-                style={{ color: '#555555' }}
+            ) : outputUrl ? (
+              <a
+                href={outputUrl}
+                download={`${title}.mp4`}
+                onClick={(e) => e.stopPropagation()}
+                className="inline-flex items-center gap-1.5 text-xs font-medium transition-colors cursor-pointer hover:text-[#D4A574]"
+                style={{ color: '#888884' }}
               >
                 <Download className="h-3 w-3" />
                 Download
-              </button>
+              </a>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 text-xs opacity-25" style={{ color: '#555555' }}>
+                <Download className="h-3 w-3" />
+                Download
+              </span>
             )}
           </div>
         </div>
       </Wrapper>
+
+      {/* Video player modal */}
+      {playerOpen && outputUrl && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          onClick={() => setPlayerOpen(false)}
+        >
+          <div className="absolute inset-0 backdrop-blur-sm" style={{ background: 'rgba(0,0,0,0.85)' }} />
+          <div
+            className="relative w-full max-w-4xl rounded-2xl overflow-hidden shadow-2xl"
+            style={{ background: '#0a0a09', border: '1px solid #2e2e2c' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <video
+              src={outputUrl}
+              controls
+              autoPlay
+              className="w-full aspect-video"
+              style={{ display: 'block' }}
+            />
+            <div className="flex items-center justify-between px-4 py-3" style={{ borderTop: '1px solid #2e2e2c' }}>
+              <span className="text-sm font-medium text-zinc-300 truncate">{title}</span>
+              <a
+                href={outputUrl}
+                download={`${title}.mp4`}
+                className="inline-flex items-center gap-1.5 text-xs font-medium transition-colors cursor-pointer hover:text-[#D4A574] ml-4 shrink-0"
+                style={{ color: '#888884' }}
+              >
+                <Download className="h-3 w-3" />
+                Download
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Delete confirmation dialog */}
       {confirmDelete && (

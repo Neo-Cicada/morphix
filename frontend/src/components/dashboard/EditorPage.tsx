@@ -50,8 +50,9 @@ export default function EditorPage() {
   const { generate, isGenerating, isStreaming } = useGenerationApi();
   const { load, save, clear } = useEditorPersistence();
   const cloud = useCloudPersistence();
-  const voice = useVoice();
-  const music = useMusic();
+  const videoId = searchParams.get('videoId') ?? cloud.videoId;
+  const voice = useVoice(videoId);
+  const music = useMusic(videoId);
 
   // Player state
   const [durationInFrames, setDurationInFrames] = useState(180);
@@ -85,6 +86,9 @@ export default function EditorPage() {
   const [showNewModal, setShowNewModal] = useState(false);
   const [isGeneratingScript, setIsGeneratingScript] = useState(false);
   const compileDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Preview audio refs for standalone panel play buttons (separate from Remotion player)
+  const voicePreviewRef = useRef<HTMLAudioElement | null>(null);
+  const musicPreviewRef = useRef<HTMLAudioElement | null>(null);
   const [voiceOpen, setVoiceOpen] = useState(false);
 
   // ── Effects ──────────────────────────────────────────────────────────────────
@@ -189,57 +193,6 @@ export default function EditorPage() {
     }
   }, [voice.audioDurationSeconds, voice.enabled, fps]);
 
-  // Sync audio with Remotion Player when voice is enabled + ready
-  useEffect(() => {
-    const player = playerRef.current;
-    const audio = voice.audioRef.current;
-    if (!player || !audio || !voice.enabled || !voice.audioUrl) return;
-
-    const onPlay = () => { audio.play().catch(() => undefined); };
-    const onPause = () => { audio.pause(); };
-    const onSeeked = (e: { detail: { frame: number } }) => {
-      audio.currentTime = e.detail.frame / fps;
-    };
-    const onEnded = () => { audio.pause(); audio.currentTime = 0; };
-
-    player.addEventListener('play', onPlay);
-    player.addEventListener('pause', onPause);
-    player.addEventListener('seeked', onSeeked);
-    player.addEventListener('ended', onEnded);
-
-    return () => {
-      player.removeEventListener('play', onPlay);
-      player.removeEventListener('pause', onPause);
-      player.removeEventListener('seeked', onSeeked);
-      player.removeEventListener('ended', onEnded);
-    };
-  }, [voice.enabled, voice.audioUrl, voice.audioRef, fps]);
-
-  // Sync music with Remotion Player
-  useEffect(() => {
-    const player = playerRef.current;
-    const audio = music.audioRef.current;
-    if (!player || !audio || !music.enabled || !music.audioUrl) return;
-
-    const onPlay = () => { audio.play().catch(() => undefined); };
-    const onPause = () => { audio.pause(); };
-    const onSeeked = (e: { detail: { frame: number } }) => {
-      audio.currentTime = e.detail.frame / fps;
-    };
-    const onEnded = () => { audio.pause(); audio.currentTime = 0; };
-
-    player.addEventListener('play', onPlay);
-    player.addEventListener('pause', onPause);
-    player.addEventListener('seeked', onSeeked);
-    player.addEventListener('ended', onEnded);
-
-    return () => {
-      player.removeEventListener('play', onPlay);
-      player.removeEventListener('pause', onPause);
-      player.removeEventListener('seeked', onSeeked);
-      player.removeEventListener('ended', onEnded);
-    };
-  }, [music.enabled, music.audioUrl, music.audioRef, fps]);
 
   // ── Handlers ─────────────────────────────────────────────────────────────────
 
@@ -554,15 +507,9 @@ export default function EditorPage() {
             isStreaming={isStreaming}
             streamingChars={streamingCode.length}
             error={animationState.error}
+            audioUrl={music.enabled ? music.audioUrl : null}
+            voiceUrl={voice.enabled ? voice.audioUrl : null}
           />
-          {/* Hidden audio element for voice narration sync */}
-          {voice.enabled && voice.audioUrl && (
-            <audio ref={voice.audioRef} src={voice.audioUrl} preload="auto" className="hidden" />
-          )}
-          {/* Hidden audio element for background music sync */}
-          {music.enabled && music.audioUrl && (
-            <audio ref={music.audioRef} src={music.audioUrl} preload="auto" loop className="hidden" />
-          )}
         </div>
 
         {/* Right panel */}
@@ -928,14 +875,17 @@ export default function EditorPage() {
                         >
                           <button
                             onClick={() => {
-                              const a = voice.audioRef.current;
-                              if (!a) return;
-                              if (a.paused) {
-                                a.play().catch(() => undefined);
-                                setVoiceOpen(true);
-                              } else {
+                              if (!voice.audioUrl) return;
+                              const a = voicePreviewRef.current;
+                              if (a && !a.paused) {
                                 a.pause();
                                 setVoiceOpen(false);
+                              } else {
+                                const audio = new Audio(voice.audioUrl);
+                                voicePreviewRef.current = audio;
+                                audio.onended = () => setVoiceOpen(false);
+                                audio.play().catch(() => undefined);
+                                setVoiceOpen(true);
                               }
                             }}
                             className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-all hover:scale-105"
@@ -1128,10 +1078,15 @@ export default function EditorPage() {
                         >
                           <button
                             onClick={() => {
-                              const a = music.audioRef.current;
-                              if (!a) return;
-                              if (a.paused) a.play().catch(() => undefined);
-                              else a.pause();
+                              if (!music.audioUrl) return;
+                              const a = musicPreviewRef.current;
+                              if (a && !a.paused) {
+                                a.pause();
+                              } else {
+                                const audio = new Audio(music.audioUrl);
+                                musicPreviewRef.current = audio;
+                                audio.play().catch(() => undefined);
+                              }
                             }}
                             className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-all hover:scale-105"
                             style={{ background: 'rgba(92,158,83,0.2)', border: '1px solid rgba(92,158,83,0.3)' }}

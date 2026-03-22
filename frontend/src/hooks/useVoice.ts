@@ -36,7 +36,10 @@ export interface UseVoiceReturn {
   reset: () => void;
 }
 
-const STORAGE_KEY = 'morphix_voice';
+const BASE_KEY = 'morphix_voice';
+function storageKey(videoId: string | null) {
+  return videoId ? `${BASE_KEY}_${videoId}` : BASE_KEY;
+}
 
 interface PersistedVoice {
   enabled: boolean;
@@ -46,44 +49,77 @@ interface PersistedVoice {
   audioDurationSeconds: number | null;
 }
 
-function loadFromStorage(): Partial<PersistedVoice> {
+function blobToDataUrl(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+function loadFromStorage(key: string): Partial<PersistedVoice> {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(key);
     return raw ? JSON.parse(raw) : {};
   } catch {
     return {};
   }
 }
 
-export function useVoice(): UseVoiceReturn {
-  const stored = useRef(loadFromStorage());
-
-  const [enabled, setEnabledState] = useState(() => stored.current.enabled ?? false);
+export function useVoice(videoId: string | null = null): UseVoiceReturn {
+  const key = storageKey(videoId);
+  // All state starts with SSR-safe defaults — localStorage is restored in useEffect after mount
+  const [enabled, setEnabledState] = useState(false);
   const [voices, setVoices] = useState<ElevenLabsVoice[]>([]);
-  const [selectedVoiceId, setSelectedVoiceId] = useState(() => stored.current.selectedVoiceId ?? '');
-  const [script, setScript] = useState(() => stored.current.script ?? '');
-  const [status, setStatus] = useState<VoiceStatus>(() => stored.current.audioUrl ? 'ready' : 'idle');
+  const [selectedVoiceId, setSelectedVoiceId] = useState('');
+  const [script, setScript] = useState('');
+  const [status, setStatus] = useState<VoiceStatus>('idle');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [audioUrl, setAudioUrl] = useState<string | null>(() => stored.current.audioUrl ?? null);
-  const [audioDurationSeconds, setAudioDurationSeconds] = useState<number | null>(() => stored.current.audioDurationSeconds ?? null);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [audioDurationSeconds, setAudioDurationSeconds] = useState<number | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const prevBlobUrl = useRef<string | null>(null);
+  // skipFirstPersistRef: the persist effect's first run fires before restore state
+  // lands, so skip it to avoid overwriting localStorage with defaults.
+  const skipFirstPersistRef = useRef(true);
 
-  // Persist settings whenever they change
+  // Restore from localStorage after mount (client only — avoids SSR hydration mismatch)
   useEffect(() => {
+    const stored = loadFromStorage(key);
+    if (stored.enabled) setEnabledState(stored.enabled);
+    if (stored.selectedVoiceId) setSelectedVoiceId(stored.selectedVoiceId);
+    if (stored.script) setScript(stored.script);
+    if (stored.audioDurationSeconds) setAudioDurationSeconds(stored.audioDurationSeconds);
+    // Restore HTTPS or base64 data URLs (both survive refresh); skip stale blob:// URLs
+    if (stored.audioUrl?.startsWith('http') || stored.audioUrl?.startsWith('data:')) {
+      setAudioUrl(stored.audioUrl);
+      setStatus('ready');
+    }
+    // Fetch voices if previously enabled
+    if (stored.enabled) fetchVoices();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Persist settings to localStorage whenever they change (only save HTTPS audio URLs)
+  useEffect(() => {
+    if (skipFirstPersistRef.current) {
+      skipFirstPersistRef.current = false;
+      return; // skip initial run — state is still defaults, restore hasn't landed yet
+    }
     try {
-      const data: PersistedVoice = { enabled, selectedVoiceId, script, audioUrl, audioDurationSeconds };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      const data: PersistedVoice = {
+        enabled,
+        selectedVoiceId,
+        script,
+        audioUrl: (audioUrl?.startsWith('http') || audioUrl?.startsWith('data:')) ? audioUrl : null,
+        audioDurationSeconds,
+      };
+      localStorage.setItem(key, JSON.stringify(data));
     } catch {
       // quota — ignore
     }
   }, [enabled, selectedVoiceId, script, audioUrl, audioDurationSeconds]);
-
-  // Auto-fetch voices on mount if voice was previously enabled (restored from localStorage)
-  useEffect(() => {
-    if (enabled) fetchVoices();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   // Revoke blob URL on unmount
   useEffect(() => {
@@ -107,7 +143,8 @@ export function useVoice(): UseVoiceReturn {
       if (data.voices?.length > 0 && !selectedVoiceId) {
         setSelectedVoiceId(data.voices[0].id);
       }
-      setStatus(audioUrl ? 'ready' : 'idle');
+      // Use functional update to avoid stale closure — don't override 'ready' (restored audio)
+      setStatus(prev => prev === 'ready' ? 'ready' : 'idle');
     } catch (err) {
       setErrorMessage(err instanceof Error ? err.message : 'Failed to load voices');
       setStatus('error');
@@ -138,32 +175,18 @@ export function useVoice(): UseVoiceReturn {
 
       const blob = await res.blob();
 
-      // Detect duration from blob before uploading
-      const blobUrl = URL.createObjectURL(blob);
+      // Convert to base64 data URL — survives page refresh without external storage
+      const dataUrl = await blobToDataUrl(blob);
+
+      // Detect duration
       const duration = await new Promise<number>((resolve) => {
-        const tmp = new Audio(blobUrl);
+        const tmp = new Audio(dataUrl);
         tmp.addEventListener('loadedmetadata', () => resolve(tmp.duration), { once: true });
         tmp.addEventListener('error', () => resolve(0), { once: true });
       });
-      URL.revokeObjectURL(blobUrl);
 
-      // Upload to Supabase Storage for a persistent public URL
-      const form = new FormData();
-      form.append('audio', new File([blob], 'narration.mp3', { type: 'audio/mpeg' }));
-      const uploadRes = await fetch('/api/upload-audio', { method: 'POST', body: form });
-
-      if (uploadRes.ok) {
-        const { url } = await uploadRes.json();
-        if (prevBlobUrl.current) URL.revokeObjectURL(prevBlobUrl.current);
-        setAudioUrl(url);
-      } else {
-        // Fallback: blob URL
-        if (prevBlobUrl.current) URL.revokeObjectURL(prevBlobUrl.current);
-        const fallback = URL.createObjectURL(blob);
-        prevBlobUrl.current = fallback;
-        setAudioUrl(fallback);
-      }
-
+      if (prevBlobUrl.current) URL.revokeObjectURL(prevBlobUrl.current);
+      setAudioUrl(dataUrl);
       setAudioDurationSeconds(duration > 0 ? duration : null);
       setStatus('ready');
     } catch (err) {
@@ -187,7 +210,7 @@ export function useVoice(): UseVoiceReturn {
     clearAudio();
     setEnabledState(false);
     setScript('');
-    try { localStorage.removeItem(STORAGE_KEY); } catch {}
+    try { localStorage.removeItem(key); } catch {}
   }, [clearAudio]);
 
   return {

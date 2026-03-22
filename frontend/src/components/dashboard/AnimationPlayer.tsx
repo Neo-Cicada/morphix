@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Player } from '@remotion/player';
+import { Audio } from 'remotion';
 import type { PlayerRef } from '@remotion/player';
 
 interface AnimationPlayerProps {
@@ -13,6 +14,8 @@ interface AnimationPlayerProps {
   streamingChars?: number;
   error: string | null;
   playerRef?: React.RefObject<PlayerRef | null>;
+  audioUrl?: string | null;
+  voiceUrl?: string | null;
 }
 
 // ─── Error helpers ─────────────────────────────────────────────────────────────
@@ -68,7 +71,24 @@ export function AnimationPlayer({
   streamingChars = 0,
   error,
   playerRef,
+  audioUrl,
+  voiceUrl,
 }: AnimationPlayerProps) {
+  // Wrap the animation with audio — same pattern as DynamicComposition on Lambda
+  const CompositionWithAudio = React.useMemo(() => {
+    if (!Component) return null;
+    const hasAudio = audioUrl || voiceUrl;
+    if (!hasAudio) return Component;
+    return function AudioWrapper() {
+      return (
+        <>
+          {audioUrl && <Audio src={audioUrl} loop />}
+          {voiceUrl && <Audio src={voiceUrl} />}
+          <Component />
+        </>
+      );
+    };
+  }, [Component, audioUrl, voiceUrl]);
   const overlay = (() => {
     if (isStreaming) return (
       <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-[#111110] rounded-xl">
@@ -129,7 +149,7 @@ export function AnimationPlayer({
       );
     }
 
-    if (!Component) return (
+    if (!CompositionWithAudio) return (
       <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 text-center px-8 bg-[#111110] rounded-xl">
         <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl" style={{
           background: 'rgba(193,123,79,0.12)',
@@ -151,10 +171,10 @@ export function AnimationPlayer({
     <div className="relative w-full h-full rounded-xl overflow-hidden">
       <div className="absolute inset-0 rounded-xl ring-1 ring-inset ring-white/5 pointer-events-none z-10" />
 
-      {Component && !overlay ? (
+      {CompositionWithAudio && !overlay ? (
         <Player
           ref={playerRef}
-          component={Component}
+          component={CompositionWithAudio}
           durationInFrames={Math.max(1, durationInFrames)}
           fps={fps}
           compositionWidth={1920}

@@ -70,6 +70,7 @@ export default function MyVideosPage() {
                 source={v.source}
                 date={new Date(v.created_at).toLocaleDateString()}
                 thumbnail={v.thumbnail}
+                outputUrl={v.output_url}
                 onDelete={handleDelete}
               />
             ))}

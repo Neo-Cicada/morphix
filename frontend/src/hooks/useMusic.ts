@@ -23,7 +23,10 @@ export interface UseMusicReturn {
   reset: () => void;
 }
 
-const STORAGE_KEY = 'morphix_music';
+const BASE_KEY = 'morphix_music';
+function storageKey(videoId: string | null) {
+  return videoId ? `${BASE_KEY}_${videoId}` : BASE_KEY;
+}
 
 interface PersistedMusic {
   enabled: boolean;
@@ -33,33 +36,70 @@ interface PersistedMusic {
   volume: number;
 }
 
-function loadFromStorage(): Partial<PersistedMusic> {
+function blobToDataUrl(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+function loadFromStorage(key: string): Partial<PersistedMusic> {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(key);
     return raw ? JSON.parse(raw) : {};
   } catch {
     return {};
   }
 }
 
-export function useMusic(): UseMusicReturn {
-  const stored = useRef(loadFromStorage());
-
-  const [enabled, setEnabledState] = useState(() => stored.current.enabled ?? false);
-  const [selectedPresetId, setSelectedPresetIdState] = useState(() => stored.current.selectedPresetId ?? 'saas');
-  const [customPrompt, setCustomPromptState] = useState(() => stored.current.customPrompt ?? '');
-  const [status, setStatus] = useState<MusicStatus>(() => stored.current.audioUrl ? 'ready' : 'idle');
+export function useMusic(videoId: string | null = null): UseMusicReturn {
+  const key = storageKey(videoId);
+  // All state starts with SSR-safe defaults — localStorage is restored in useEffect after mount
+  const [enabled, setEnabledState] = useState(false);
+  const [selectedPresetId, setSelectedPresetIdState] = useState('saas');
+  const [customPrompt, setCustomPromptState] = useState('');
+  const [status, setStatus] = useState<MusicStatus>('idle');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [audioUrl, setAudioUrl] = useState<string | null>(() => stored.current.audioUrl ?? null);
-  const [volume, setVolumeState] = useState(() => stored.current.volume ?? 0.4);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [volume, setVolumeState] = useState(0.4);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const prevBlobUrl = useRef<string | null>(null);
+  // skipFirstPersistRef: the persist effect's first run fires before restore state
+  // lands, so skip it to avoid overwriting localStorage with defaults.
+  const skipFirstPersistRef = useRef(true);
 
-  // Persist settings whenever they change
+  // Restore from localStorage after mount (client only — avoids SSR hydration mismatch)
   useEffect(() => {
+    const stored = loadFromStorage(key);
+    if (stored.enabled) setEnabledState(stored.enabled);
+    if (stored.selectedPresetId) setSelectedPresetIdState(stored.selectedPresetId);
+    if (stored.customPrompt) setCustomPromptState(stored.customPrompt);
+    if (stored.volume != null) setVolumeState(stored.volume);
+    // Restore HTTPS or base64 data URLs (both survive refresh); skip stale blob:// URLs
+    if (stored.audioUrl?.startsWith('http') || stored.audioUrl?.startsWith('data:')) {
+      setAudioUrl(stored.audioUrl);
+      setStatus('ready');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Persist settings to localStorage whenever they change (only save HTTPS audio URLs)
+  useEffect(() => {
+    if (skipFirstPersistRef.current) {
+      skipFirstPersistRef.current = false;
+      return; // skip initial run — state is still defaults, restore hasn't landed yet
+    }
     try {
-      const data: PersistedMusic = { enabled, selectedPresetId, customPrompt, audioUrl, volume };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      const data: PersistedMusic = {
+        enabled,
+        selectedPresetId,
+        customPrompt,
+        audioUrl: (audioUrl?.startsWith('http') || audioUrl?.startsWith('data:')) ? audioUrl : null,
+        volume,
+      };
+      localStorage.setItem(key, JSON.stringify(data));
     } catch {
       // quota — ignore
     }
@@ -110,22 +150,11 @@ export function useMusic(): UseMusicReturn {
 
       const blob = await res.blob();
 
-      // Upload to Supabase Storage for a persistent public URL
-      const form = new FormData();
-      form.append('audio', new File([blob], 'music.mp3', { type: 'audio/mpeg' }));
-      const uploadRes = await fetch('/api/upload-audio', { method: 'POST', body: form });
+      // Convert to base64 data URL — survives page refresh without external storage
+      const dataUrl = await blobToDataUrl(blob);
 
-      if (uploadRes.ok) {
-        const { url } = await uploadRes.json();
-        setAudioUrl(url);
-      } else {
-        // Fallback: blob URL (not persistent across refresh, but works for current session)
-        if (prevBlobUrl.current) URL.revokeObjectURL(prevBlobUrl.current);
-        const blobUrl = URL.createObjectURL(blob);
-        prevBlobUrl.current = blobUrl;
-        setAudioUrl(blobUrl);
-      }
-
+      if (prevBlobUrl.current) URL.revokeObjectURL(prevBlobUrl.current);
+      setAudioUrl(dataUrl);
       setStatus('ready');
     } catch (err) {
       setErrorMessage(err instanceof Error ? err.message : 'Failed to generate music');
@@ -149,7 +178,7 @@ export function useMusic(): UseMusicReturn {
     setSelectedPresetIdState('saas');
     setCustomPromptState('');
     setVolumeState(0.4);
-    try { localStorage.removeItem(STORAGE_KEY); } catch {}
+    try { localStorage.removeItem(key); } catch {}
   }, [clearMusic]);
 
   return {

@@ -7,6 +7,7 @@ import * as RemotionTransitions from '@remotion/transitions';
 interface Props extends Record<string, unknown> {
   code: string;
   audioUrl?: string;
+  voiceUrl?: string;
 }
 
 // Minimal globals for server-side compilation (no Three.js / R3F — not available in Lambda)
@@ -71,7 +72,7 @@ function compileCode(code: string): React.ComponentType | null {
   }
 }
 
-export function DynamicComposition({ code, audioUrl }: Props) {
+export function DynamicComposition({ code, audioUrl, voiceUrl }: Props) {
   const Component = React.useMemo(() => compileCode(code), [code]);
 
   if (!Component) {
@@ -86,7 +87,8 @@ export function DynamicComposition({ code, audioUrl }: Props) {
 
   return (
     <>
-      {audioUrl && <Remotion.Audio src={audioUrl} />}
+      {audioUrl && <Remotion.Audio src={audioUrl} loop />}
+      {voiceUrl && <Remotion.Audio src={voiceUrl} />}
       <Component />
     </>
   );

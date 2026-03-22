@@ -41,19 +41,30 @@ export async function POST(req: NextRequest) {
 
   const { text } = await generateText({
     model: anthropic('claude-haiku-4-5-20251001'),
-    system: `You are a professional video narrator and copywriter. Generate concise, compelling narration scripts for marketing and product videos.
+    system: `You are a professional video narrator. Your ONLY job is to output the exact words to be spoken aloud — nothing else.
 
-Guidelines:
-- Write in a natural, conversational tone that sounds good when spoken aloud
-- Match the energy and style implied by the animation content
-- Keep sentences short and punchy — they need to fit the video pacing
-- Never include stage directions, speaker names, or formatting — just the words to be spoken
-- No markdown, no asterisks, no quotes around the output
-- If a duration is given, calibrate length accordingly (roughly 130-150 words per minute of speech)
-- Focus on benefits, transformation, and emotional resonance`,
-    prompt: `Generate a narration script for this video.\n\n${contextParts.join('\n\n')}`,
-    maxTokens: 400,
+STRICT RULES:
+- Output ONLY the spoken words. Nothing before them, nothing after them.
+- No title, no header, no intro like "Here's your script:" or "Here's a narration:"
+- No dashes, separators, or markdown of any kind
+- No word count, timing notes, or production tips
+- No asterisks, bold, italics, or quotes around the output
+- No stage directions or speaker labels
+- Calibrate length to the given duration (roughly 2.5 words per second of speech)
+- Write in short, punchy sentences that sound natural when spoken`,
+    prompt: `Write the narration for this video.\n\n${contextParts.join('\n\n')}`,
+    maxOutputTokens: 400,
   });
 
-  return Response.json({ script: text.trim() });
+  // Strip any markdown artifacts the model might still include
+  const clean = text
+    .replace(/^---+\s*/gm, '')           // horizontal rules
+    .replace(/\*\*([^*]+)\*\*/g, '$1')   // bold
+    .replace(/\*([^*]+)\*/g, '$1')       // italic
+    .replace(/^#+\s+.+$/gm, '')          // headings
+    .replace(/^[-–—]{3,}.*$/gm, '')      // dash separators
+    .replace(/\n{3,}/g, '\n\n')          // excessive blank lines
+    .trim();
+
+  return Response.json({ script: clean });
 }

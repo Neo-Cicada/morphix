@@ -381,23 +381,27 @@ export default function EditorPage() {
     setExportState('rendering');
     setExportUrl(null);
     try {
-      // Upload music to storage if enabled, so Lambda can access it via public URL
-      let audioUrl: string | undefined;
-      if (music.enabled && music.audioUrl) {
-        const blob = await fetch(music.audioUrl).then((r) => r.blob());
+      // Upload music and voice to Supabase Storage in parallel so Lambda can access them
+      const uploadAudio = async (url: string, filename: string) => {
+        // If already a public HTTPS URL (persisted from previous session), use directly
+        if (url.startsWith('http')) return url;
+        const blob = await fetch(url).then((r) => r.blob());
         const form = new FormData();
-        form.append('audio', new File([blob], 'music.mp3', { type: 'audio/mpeg' }));
-        const uploadRes = await fetch('/api/upload-audio', { method: 'POST', body: form });
-        if (uploadRes.ok) {
-          const uploadData = await uploadRes.json();
-          audioUrl = uploadData.url;
-        }
-      }
+        form.append('audio', new File([blob], filename, { type: 'audio/mpeg' }));
+        const res = await fetch('/api/upload-audio', { method: 'POST', body: form });
+        if (res.ok) return (await res.json()).url as string;
+        return undefined;
+      };
+
+      const [audioUrl, voiceUrl] = await Promise.all([
+        music.enabled && music.audioUrl ? uploadAudio(music.audioUrl, 'music.mp3') : Promise.resolve(undefined),
+        voice.enabled && voice.audioUrl ? uploadAudio(voice.audioUrl, 'narration.mp3') : Promise.resolve(undefined),
+      ]);
 
       const res = await fetch('/api/render', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: animationState.code, durationInFrames, fps, audioUrl }),
+        body: JSON.stringify({ code: animationState.code, durationInFrames, fps, audioUrl, voiceUrl }),
       });
       if (!res.ok) throw new Error(`Render failed: ${res.status}`);
       const data = await res.json();

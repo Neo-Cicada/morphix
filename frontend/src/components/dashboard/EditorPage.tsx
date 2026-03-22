@@ -4,7 +4,7 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import {
   Send, Download, Loader2, ImagePlus, Code2, Sparkles,
   PanelRightClose, PanelRightOpen, MessageSquare, FilePlus,
-  Mic, Volume2, Play, Square, ChevronDown, RefreshCw, Music2,
+  Mic, Volume2, Play, Square, ChevronDown, RefreshCw, Music2, Wand2,
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useSearchParams } from 'next/navigation';
@@ -83,6 +83,7 @@ export default function EditorPage() {
 
   // New animation modal
   const [showNewModal, setShowNewModal] = useState(false);
+  const [isGeneratingScript, setIsGeneratingScript] = useState(false);
   const compileDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [voiceOpen, setVoiceOpen] = useState(false);
 
@@ -180,6 +181,13 @@ export default function EditorPage() {
     return () => window.removeEventListener('storage', handleStorage);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Auto-set video duration to match narration length
+  useEffect(() => {
+    if (voice.enabled && voice.audioDurationSeconds) {
+      setDurationInFrames(Math.ceil(voice.audioDurationSeconds * fps));
+    }
+  }, [voice.audioDurationSeconds, voice.enabled, fps]);
 
   // Sync audio with Remotion Player when voice is enabled + ready
   useEffect(() => {
@@ -345,15 +353,51 @@ export default function EditorPage() {
     e.target.value = '';
   };
 
+  const handleGenerateScript = async () => {
+    setIsGeneratingScript(true);
+    try {
+      const userPrompt = messages.filter((m) => m.role === 'user').map((m) => m.text).join(' ');
+      const res = await fetch('/api/generate-narration', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          animationCode: animationState.code || undefined,
+          userPrompt: userPrompt || undefined,
+          durationSeconds: durationInFrames / fps,
+        }),
+      });
+      if (res.ok) {
+        const { script } = await res.json();
+        voice.setScript(script);
+        if (voice.audioUrl) voice.clearAudio();
+      }
+    } finally {
+      setIsGeneratingScript(false);
+    }
+  };
+
   const handleExport = async () => {
     if (!animationState.code) return;
     setExportState('rendering');
     setExportUrl(null);
     try {
+      // Upload music to storage if enabled, so Lambda can access it via public URL
+      let audioUrl: string | undefined;
+      if (music.enabled && music.audioUrl) {
+        const blob = await fetch(music.audioUrl).then((r) => r.blob());
+        const form = new FormData();
+        form.append('audio', new File([blob], 'music.mp3', { type: 'audio/mpeg' }));
+        const uploadRes = await fetch('/api/upload-audio', { method: 'POST', body: form });
+        if (uploadRes.ok) {
+          const uploadData = await uploadRes.json();
+          audioUrl = uploadData.url;
+        }
+      }
+
       const res = await fetch('/api/render', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: animationState.code, durationInFrames, fps }),
+        body: JSON.stringify({ code: animationState.code, durationInFrames, fps, audioUrl }),
       });
       if (!res.ok) throw new Error(`Render failed: ${res.status}`);
       const data = await res.json();
@@ -368,13 +412,15 @@ export default function EditorPage() {
     animationState.reset();
     clear();
     cloud.clearVideoId();
+    voice.reset();
+    music.reset();
     setMessages([{ id: '0', role: 'assistant', text: "Hi! Describe an animation and I'll generate it for you. You can also follow up to refine it." }]);
     conversationHistory.current = [];
     setDurationInFrames(180);
     setExportState('idle');
     setExportUrl(null);
     setShowNewModal(false);
-  }, [animationState, clear, cloud]);
+  }, [animationState, clear, cloud, voice, music]);
 
   // ── Render ───────────────────────────────────────────────────────────────────
 
@@ -788,9 +834,24 @@ export default function EditorPage() {
                     <div className="space-y-1.5">
                       <div className="flex items-center justify-between">
                         <label className="text-[11px] font-medium text-[#888884] uppercase tracking-wider">Narration Script</label>
-                        <span className={`text-[10px] tabular-nums ${voice.script.length > 4800 ? 'text-amber-400' : 'text-[#3a3a38]'}`}>
-                          {voice.script.length}/5000
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className={`text-[10px] tabular-nums ${voice.script.length > 4800 ? 'text-amber-400' : 'text-[#3a3a38]'}`}>
+                            {voice.script.length}/5000
+                          </span>
+                          <button
+                            onClick={handleGenerateScript}
+                            disabled={isGeneratingScript || (!animationState.code && messages.filter(m => m.role === 'user').length === 0)}
+                            title="Generate script with AI based on your animation"
+                            className="flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed bg-[#C17B4F]/15 text-[#D4A574] hover:bg-[#C17B4F]/25 border border-[#C17B4F]/20"
+                          >
+                            {isGeneratingScript ? (
+                              <Loader2 className="w-2.5 h-2.5 animate-spin" />
+                            ) : (
+                              <Wand2 className="w-2.5 h-2.5" />
+                            )}
+                            {isGeneratingScript ? 'Writing…' : 'AI Write'}
+                          </button>
+                        </div>
                       </div>
                       <textarea
                         value={voice.script}
@@ -798,7 +859,7 @@ export default function EditorPage() {
                           voice.setScript(e.target.value);
                           if (voice.audioUrl) voice.clearAudio();
                         }}
-                        placeholder="Write the narration that will be read aloud alongside your animation..."
+                        placeholder="Write the narration yourself, or click AI Write to generate one from your animation..."
                         rows={6}
                         maxLength={5000}
                         className="w-full bg-[#1a1a18] border border-[#2e2e2c] rounded-xl px-3 py-2.5 text-sm text-[#FAFAF7] placeholder-[#555553] focus:outline-none focus:border-[#C17B4F]/50 focus:ring-1 focus:ring-[#C17B4F]/15 resize-none transition-all leading-relaxed"

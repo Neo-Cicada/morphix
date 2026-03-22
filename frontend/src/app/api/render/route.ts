@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
   const rl = checkRateLimit(`render:${session.user.id}`, RENDER_LIMIT, RENDER_WINDOW_MS)
   if (!rl.allowed) return rateLimitResponse(rl.resetAt)
 
-  const { code, durationInFrames, fps } = await req.json();
+  const { code, durationInFrames, fps, audioUrl } = await req.json();
 
   if (!code || !durationInFrames || !fps) {
     return Response.json({ error: 'Missing required fields: code, durationInFrames, fps' }, { status: 400 });
@@ -55,6 +55,7 @@ export async function POST(req: NextRequest) {
         code,
         durationInFrames,
         fps,
+        ...(audioUrl ? { audioUrl } : {}),
       },
       codec: 'h264',
       framesPerLambda: 60,

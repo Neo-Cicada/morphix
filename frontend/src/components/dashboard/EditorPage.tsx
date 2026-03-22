@@ -796,6 +796,14 @@ export default function EditorPage() {
                           <Loader2 className="w-3.5 h-3.5 text-[#D4A574] animate-spin shrink-0" />
                           <span className="text-xs text-[#555553]">Loading voices...</span>
                         </div>
+                      ) : voice.voices.length === 0 ? (
+                        <button
+                          onClick={() => voice.setEnabled(true)}
+                          className="flex items-center gap-2 w-full h-9 px-3 bg-[#1a1a18] border border-[#2e2e2c] rounded-lg text-xs text-[#D4A574] hover:border-[#C17B4F]/40 transition-all"
+                        >
+                          <RefreshCw className="w-3.5 h-3.5 shrink-0" />
+                          Retry loading voices
+                        </button>
                       ) : (
                         <div className="relative">
                           <select

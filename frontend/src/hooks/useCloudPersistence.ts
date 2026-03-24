@@ -5,11 +5,25 @@ import { api } from '@/lib/api';
 
 export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
 
-interface ProductionDoc {
+export interface ProductionDoc {
   messages: { id: string; role: 'user' | 'assistant'; text: string }[];
   history: { role: 'user' | 'assistant'; content: string }[];
   duration: number;
   thumbnail?: string;
+  voiceState?: {
+    enabled?: boolean;
+    selectedVoiceId?: string;
+    script?: string;
+    audioUrl?: string | null;
+    audioDurationSeconds?: number | null;
+  };
+  musicState?: {
+    enabled?: boolean;
+    selectedPresetId?: string;
+    customPrompt?: string;
+    audioUrl?: string | null;
+    volume?: number;
+  };
 }
 
 const VIDEO_ID_KEY = 'morphix_editor_video_id';

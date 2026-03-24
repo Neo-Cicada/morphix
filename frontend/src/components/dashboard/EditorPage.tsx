@@ -119,6 +119,8 @@ export default function EditorPage() {
             if (doc.messages && doc.messages.length > 0) setMessages(doc.messages);
             if (doc.history) conversationHistory.current = doc.history;
             if (doc.duration) setDurationInFrames(doc.duration);
+            if (doc.voiceState) voice.restoreFromDoc(doc.voiceState);
+            if (doc.musicState) music.restoreFromDoc(doc.musicState);
           }
           return;
         }
@@ -159,9 +161,23 @@ export default function EditorPage() {
       messages,
       history: conversationHistory.current,
       duration: durationInFrames,
+      voiceState: voice.enabled ? {
+        enabled: voice.enabled,
+        selectedVoiceId: voice.selectedVoiceId,
+        script: voice.script,
+        audioUrl: voice.audioUrl?.startsWith('http') ? voice.audioUrl : null,
+        audioDurationSeconds: voice.audioDurationSeconds,
+      } : undefined,
+      musicState: music.enabled ? {
+        enabled: music.enabled,
+        selectedPresetId: music.selectedPresetId,
+        customPrompt: music.customPrompt,
+        audioUrl: music.audioUrl?.startsWith('http') ? music.audioUrl : null,
+        volume: music.volume,
+      } : undefined,
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [animationState.code, messages, durationInFrames, cloud.videoId]);
+  }, [animationState.code, messages, durationInFrames, cloud.videoId, voice.audioUrl, music.audioUrl]);
 
   // Sync state from other tabs
   useEffect(() => {

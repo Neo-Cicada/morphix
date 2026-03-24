@@ -34,6 +34,7 @@ export interface UseVoiceReturn {
   generateAudio: () => Promise<void>;
   clearAudio: () => void;
   reset: () => void;
+  restoreFromDoc: (data: Partial<PersistedVoice>) => void;
 }
 
 const BASE_KEY = 'morphix_voice';
@@ -41,7 +42,7 @@ function storageKey(videoId: string | null) {
   return videoId ? `${BASE_KEY}_${videoId}` : BASE_KEY;
 }
 
-interface PersistedVoice {
+export interface PersistedVoice {
   enabled: boolean;
   selectedVoiceId: string;
   script: string;
@@ -130,7 +131,8 @@ export function useVoice(videoId: string | null = null): UseVoiceReturn {
 
   const fetchVoices = useCallback(async () => {
     if (voices.length > 0) return;
-    setStatus('loading-voices');
+    // Don't override 'ready' status if audio is already loaded
+    setStatus(prev => prev === 'ready' ? prev : 'loading-voices');
     setErrorMessage(null);
     try {
       const res = await fetch('/api/voice');
@@ -143,8 +145,8 @@ export function useVoice(videoId: string | null = null): UseVoiceReturn {
       if (data.voices?.length > 0 && !selectedVoiceId) {
         setSelectedVoiceId(data.voices[0].id);
       }
-      // Use functional update to avoid stale closure — don't override 'ready' (restored audio)
-      setStatus(prev => prev === 'ready' ? 'ready' : 'idle');
+      // Go idle after loading voices, but don't touch 'ready' (audio already loaded)
+      setStatus(prev => prev === 'loading-voices' ? 'idle' : prev);
     } catch (err) {
       setErrorMessage(err instanceof Error ? err.message : 'Failed to load voices');
       setStatus('error');
@@ -175,7 +177,7 @@ export function useVoice(videoId: string | null = null): UseVoiceReturn {
 
       const blob = await res.blob();
 
-      // Convert to base64 data URL — survives page refresh without external storage
+      // Convert to base64 data URL for immediate playback
       const dataUrl = await blobToDataUrl(blob);
 
       // Detect duration
@@ -186,9 +188,23 @@ export function useVoice(videoId: string | null = null): UseVoiceReturn {
       });
 
       if (prevBlobUrl.current) URL.revokeObjectURL(prevBlobUrl.current);
+      // Set data URL immediately so playback works right away
       setAudioUrl(dataUrl);
       setAudioDurationSeconds(duration > 0 ? duration : null);
       setStatus('ready');
+
+      // Upload to Supabase Storage in the background — swap to HTTPS URL for reliable persistence
+      try {
+        const formData = new FormData();
+        formData.append('audio', blob, 'voice.mp3');
+        const uploadRes = await fetch('/api/upload-audio', { method: 'POST', body: formData });
+        if (uploadRes.ok) {
+          const { url } = await uploadRes.json();
+          if (url) setAudioUrl(url);
+        }
+      } catch {
+        // Upload failed — data URL already set, will work until next refresh
+      }
     } catch (err) {
       setErrorMessage(err instanceof Error ? err.message : 'Failed to generate audio');
       setStatus('error');
@@ -213,6 +229,18 @@ export function useVoice(videoId: string | null = null): UseVoiceReturn {
     try { localStorage.removeItem(key); } catch {}
   }, [clearAudio]);
 
+  const restoreFromDoc = useCallback((data: Partial<PersistedVoice>) => {
+    if (data.enabled != null) setEnabledState(data.enabled);
+    if (data.selectedVoiceId) setSelectedVoiceId(data.selectedVoiceId);
+    if (data.script) setScript(data.script);
+    if (data.audioDurationSeconds) setAudioDurationSeconds(data.audioDurationSeconds);
+    if (data.audioUrl?.startsWith('http') || data.audioUrl?.startsWith('data:')) {
+      setAudioUrl(data.audioUrl);
+      setStatus('ready');
+    }
+    if (data.enabled) fetchVoices();
+  }, [fetchVoices]);
+
   return {
     enabled,
     voices,
@@ -229,5 +257,6 @@ export function useVoice(videoId: string | null = null): UseVoiceReturn {
     generateAudio,
     clearAudio,
     reset,
+    restoreFromDoc,
   };
 }

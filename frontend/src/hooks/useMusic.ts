@@ -21,6 +21,7 @@ export interface UseMusicReturn {
   generateMusic: (durationMs: number) => Promise<void>;
   clearMusic: () => void;
   reset: () => void;
+  restoreFromDoc: (data: Partial<PersistedMusic>) => void;
 }
 
 const BASE_KEY = 'morphix_music';
@@ -28,7 +29,7 @@ function storageKey(videoId: string | null) {
   return videoId ? `${BASE_KEY}_${videoId}` : BASE_KEY;
 }
 
-interface PersistedMusic {
+export interface PersistedMusic {
   enabled: boolean;
   selectedPresetId: string;
   customPrompt: string;
@@ -150,12 +151,26 @@ export function useMusic(videoId: string | null = null): UseMusicReturn {
 
       const blob = await res.blob();
 
-      // Convert to base64 data URL — survives page refresh without external storage
+      // Convert to base64 data URL for immediate playback
       const dataUrl = await blobToDataUrl(blob);
 
       if (prevBlobUrl.current) URL.revokeObjectURL(prevBlobUrl.current);
+      // Set data URL immediately so playback works right away
       setAudioUrl(dataUrl);
       setStatus('ready');
+
+      // Upload to Supabase Storage in the background — swap to HTTPS URL for reliable persistence
+      try {
+        const formData = new FormData();
+        formData.append('audio', blob, 'music.mp3');
+        const uploadRes = await fetch('/api/upload-audio', { method: 'POST', body: formData });
+        if (uploadRes.ok) {
+          const { url } = await uploadRes.json();
+          if (url) setAudioUrl(url);
+        }
+      } catch {
+        // Upload failed — data URL already set, will work until next refresh
+      }
     } catch (err) {
       setErrorMessage(err instanceof Error ? err.message : 'Failed to generate music');
       setStatus('error');
@@ -181,6 +196,17 @@ export function useMusic(videoId: string | null = null): UseMusicReturn {
     try { localStorage.removeItem(key); } catch {}
   }, [clearMusic]);
 
+  const restoreFromDoc = useCallback((data: Partial<PersistedMusic>) => {
+    if (data.enabled != null) setEnabledState(data.enabled);
+    if (data.selectedPresetId) setSelectedPresetIdState(data.selectedPresetId);
+    if (data.customPrompt) setCustomPromptState(data.customPrompt);
+    if (data.volume != null) setVolumeState(data.volume);
+    if (data.audioUrl?.startsWith('http') || data.audioUrl?.startsWith('data:')) {
+      setAudioUrl(data.audioUrl);
+      setStatus('ready');
+    }
+  }, []);
+
   return {
     enabled,
     selectedPresetId,
@@ -197,5 +223,6 @@ export function useMusic(videoId: string | null = null): UseMusicReturn {
     generateMusic,
     clearMusic,
     reset,
+    restoreFromDoc,
   };
 }

@@ -161,23 +161,27 @@ export default function EditorPage() {
       messages,
       history: conversationHistory.current,
       duration: durationInFrames,
-      voiceState: voice.enabled ? {
+      voiceState: {
         enabled: voice.enabled,
         selectedVoiceId: voice.selectedVoiceId,
         script: voice.script,
-        audioUrl: voice.audioUrl?.startsWith('http') ? voice.audioUrl : null,
-        audioDurationSeconds: voice.audioDurationSeconds,
-      } : undefined,
-      musicState: music.enabled ? {
+        ...(voice.audioUrl?.startsWith('http') ? {
+          audioUrl: voice.audioUrl,
+          audioDurationSeconds: voice.audioDurationSeconds,
+        } : {}),
+      },
+      musicState: {
         enabled: music.enabled,
         selectedPresetId: music.selectedPresetId,
         customPrompt: music.customPrompt,
-        audioUrl: music.audioUrl?.startsWith('http') ? music.audioUrl : null,
         volume: music.volume,
-      } : undefined,
+        ...(music.audioUrl?.startsWith('http') ? {
+          audioUrl: music.audioUrl,
+        } : {}),
+      },
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [animationState.code, messages, durationInFrames, cloud.videoId, voice.audioUrl, music.audioUrl]);
+  }, [animationState.code, messages, durationInFrames, cloud.videoId, voice.audioUrl, music.audioUrl, voice.enabled, music.enabled]);
 
   // Sync state from other tabs
   useEffect(() => {
@@ -253,6 +257,22 @@ export default function EditorPage() {
               history: conversationHistory.current,
               duration: durationInFrames,
               ...(thumbnail ? { thumbnail } : {}),
+              voiceState: {
+                enabled: voice.enabled,
+                selectedVoiceId: voice.selectedVoiceId,
+                script: voice.script,
+                ...(voice.audioUrl?.startsWith('http') ? {
+                  audioUrl: voice.audioUrl,
+                  audioDurationSeconds: voice.audioDurationSeconds,
+                } : {}),
+              },
+              musicState: {
+                enabled: music.enabled,
+                selectedPresetId: music.selectedPresetId,
+                customPrompt: music.customPrompt,
+                volume: music.volume,
+                ...(music.audioUrl?.startsWith('http') ? { audioUrl: music.audioUrl } : {}),
+              },
             });
           }
         },

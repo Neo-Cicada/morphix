@@ -186,9 +186,37 @@ export async function updateDraftCode(req: AuthenticatedRequest, res: Response, 
             return;
         }
 
-        // Merge new production_doc with existing to preserve fields like thumbnail
+        // Deep-merge production_doc so nested objects (voiceState, musicState) preserve existing fields
+        function mergeProductionDoc(
+            existing: Record<string, unknown>,
+            incoming: Record<string, unknown>,
+        ): Record<string, unknown> {
+            const result: Record<string, unknown> = { ...existing };
+            for (const [key, value] of Object.entries(incoming)) {
+                if (
+                    value !== null &&
+                    typeof value === 'object' &&
+                    !Array.isArray(value) &&
+                    result[key] !== null &&
+                    typeof result[key] === 'object' &&
+                    !Array.isArray(result[key])
+                ) {
+                    result[key] = mergeProductionDoc(
+                        result[key] as Record<string, unknown>,
+                        value as Record<string, unknown>,
+                    );
+                } else {
+                    result[key] = value;
+                }
+            }
+            return result;
+        }
+
         const mergedDoc = parsed.data.production_doc
-            ? { ...(existing.production_doc as object ?? {}), ...parsed.data.production_doc }
+            ? mergeProductionDoc(
+                (existing.production_doc as Record<string, unknown>) ?? {},
+                parsed.data.production_doc as Record<string, unknown>,
+            )
             : existing.production_doc ?? undefined;
 
         await prisma.videoJob.update({

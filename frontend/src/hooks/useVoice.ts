@@ -85,10 +85,12 @@ export function useVoice(videoId: string | null = null): UseVoiceReturn {
   // lands, so skip it to avoid overwriting localStorage with defaults.
   const skipFirstPersistRef = useRef(true);
 
-  // Restore from localStorage after mount (client only — avoids SSR hydration mismatch)
+  // Restore from localStorage when key changes (covers mount + when videoId loads from cloud)
   useEffect(() => {
     const stored = loadFromStorage(key);
-    if (stored.enabled) setEnabledState(stored.enabled);
+    // Skip if nothing stored for this key — avoids overwriting restoreFromDoc data with empty defaults
+    if (Object.keys(stored).length === 0) return;
+    if (stored.enabled != null) setEnabledState(stored.enabled);
     if (stored.selectedVoiceId) setSelectedVoiceId(stored.selectedVoiceId);
     if (stored.script) setScript(stored.script);
     if (stored.audioDurationSeconds) setAudioDurationSeconds(stored.audioDurationSeconds);
@@ -100,7 +102,7 @@ export function useVoice(videoId: string | null = null): UseVoiceReturn {
     // Fetch voices if previously enabled
     if (stored.enabled) fetchVoices();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [key]);
 
   // Persist settings to localStorage whenever they change (only save HTTPS audio URLs)
   useEffect(() => {
@@ -120,7 +122,7 @@ export function useVoice(videoId: string | null = null): UseVoiceReturn {
     } catch {
       // quota — ignore
     }
-  }, [enabled, selectedVoiceId, script, audioUrl, audioDurationSeconds]);
+  }, [key, enabled, selectedVoiceId, script, audioUrl, audioDurationSeconds]);
 
   // Revoke blob URL on unmount
   useEffect(() => {

@@ -71,10 +71,12 @@ export function useMusic(videoId: string | null = null): UseMusicReturn {
   // lands, so skip it to avoid overwriting localStorage with defaults.
   const skipFirstPersistRef = useRef(true);
 
-  // Restore from localStorage after mount (client only — avoids SSR hydration mismatch)
+  // Restore from localStorage when key changes (covers mount + when videoId loads from cloud)
   useEffect(() => {
     const stored = loadFromStorage(key);
-    if (stored.enabled) setEnabledState(stored.enabled);
+    // Skip if nothing stored for this key — avoids overwriting restoreFromDoc data with empty defaults
+    if (Object.keys(stored).length === 0) return;
+    if (stored.enabled != null) setEnabledState(stored.enabled);
     if (stored.selectedPresetId) setSelectedPresetIdState(stored.selectedPresetId);
     if (stored.customPrompt) setCustomPromptState(stored.customPrompt);
     if (stored.volume != null) setVolumeState(stored.volume);
@@ -84,7 +86,7 @@ export function useMusic(videoId: string | null = null): UseMusicReturn {
       setStatus('ready');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [key]);
 
   // Persist settings to localStorage whenever they change (only save HTTPS audio URLs)
   useEffect(() => {
@@ -104,7 +106,7 @@ export function useMusic(videoId: string | null = null): UseMusicReturn {
     } catch {
       // quota — ignore
     }
-  }, [enabled, selectedPresetId, customPrompt, audioUrl, volume]);
+  }, [key, enabled, selectedPresetId, customPrompt, audioUrl, volume]);
 
   // Sync volume to audio element
   useEffect(() => {

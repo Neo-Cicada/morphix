@@ -11,6 +11,13 @@ export interface VideoFormData {
     videoLength: 30 | 60 | 90;
     tone: string;
     musicVibe: string;
+    // Music panel
+    musicEnabled: boolean;
+    musicPresetId: string;
+    musicCustomPrompt: string;
+    // Voice panel
+    voiceEnabled: boolean;
+    voiceScript: string;
 }
 
 export const initialVideoFormData: VideoFormData = {
@@ -26,4 +33,9 @@ export const initialVideoFormData: VideoFormData = {
     videoLength: 60,
     tone: 'Clean & Premium',
     musicVibe: 'Upbeat Tech',
+    musicEnabled: false,
+    musicPresetId: 'saas',
+    musicCustomPrompt: '',
+    voiceEnabled: false,
+    voiceScript: '',
 };

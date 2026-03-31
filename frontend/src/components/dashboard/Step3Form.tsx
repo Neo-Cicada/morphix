@@ -1,7 +1,8 @@
 'use client';
 
 import { VideoFormData } from '@/types/video';
-import { Zap, PlayCircle, Film, Sparkles, AlertCircle, Loader2 } from 'lucide-react';
+import { MUSIC_PRESETS } from '@/lib/musicPresets';
+import { Zap, PlayCircle, Film, Sparkles, AlertCircle, Loader2, Music, Mic, ChevronDown } from 'lucide-react';
 import { useState } from 'react';
 import { api } from '@/lib/api';
 import { createCodeThumbnail, createScreenshotThumbnail } from '@/lib/thumbnail';
@@ -38,10 +39,13 @@ function buildPrompt(formData: VideoFormData): string {
     lines.push(`Key features to highlight: ${formData.features}`);
   }
 
+  const musicPreset = MUSIC_PRESETS.find((p) => p.id === formData.musicPresetId);
+  const musicLabel = musicPreset?.label ?? formData.musicVibe;
+
   lines.push(
     ``,
     `Style: ${formData.tone}`,
-    `Music vibe: ${formData.musicVibe}`,
+    `Music vibe: ${musicLabel}`,
     ``,
     `Technical requirements:`,
     `- Duration: exactly ${durationFrames} frames (set DURATION_IN_FRAMES = ${durationFrames})`,
@@ -60,6 +64,24 @@ function buildPrompt(formData: VideoFormData): string {
   }
 
   return lines.join('\n');
+}
+
+function ToggleSwitch({ enabled, onToggle }: { enabled: boolean; onToggle: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+        enabled ? 'bg-[#C17B4F]' : 'bg-[#333333]'
+      }`}
+    >
+      <span
+        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+          enabled ? 'translate-x-6' : 'translate-x-1'
+        }`}
+      />
+    </button>
+  );
 }
 
 export function Step3Form({ formData, onChange, onBack }: Step3FormProps) {
@@ -82,19 +104,12 @@ export function Step3Form({ formData, onChange, onBack }: Step3FormProps) {
     { value: 'Friendly & Approachable', emoji: '😊', subtitle: 'Warm, conversational, relatable' },
   ];
 
-  const musicOptions = [
-    { value: 'Cinematic', emoji: '🎬', subtitle: 'Epic, emotional, powerful' },
-    { value: 'Upbeat Tech', emoji: '⚡', subtitle: 'Modern, energetic, forward-moving' },
-    { value: 'Minimal & Ambient', emoji: '🌊', subtitle: 'Calm, focused, understated' },
-  ];
-
   const handleGenerate = async () => {
     setError('');
     setPhase('generating');
     setStreamedLines(0);
 
     try {
-      // Convert screenshots to base64 if any
       let frameImages: string[] = [];
       let thumbnail: string | undefined;
       if (formData.screenshots.length > 0) {
@@ -106,7 +121,6 @@ export function Step3Form({ formData, onChange, onBack }: Step3FormProps) {
 
       const prompt = buildPrompt(formData);
 
-      // Stream animation code from /api/generate
       const res = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -121,7 +135,6 @@ export function Step3Form({ formData, onChange, onBack }: Step3FormProps) {
         throw new Error(body.message ?? `Generation failed (${res.status})`);
       }
 
-      // Collect streamed response
       const reader = res.body!.getReader();
       const decoder = new TextDecoder();
       let code = '';
@@ -131,7 +144,6 @@ export function Step3Form({ formData, onChange, onBack }: Step3FormProps) {
         if (done) break;
         const chunk = decoder.decode(value, { stream: true });
         code += chunk;
-        // Count newlines to show progress
         setStreamedLines(code.split('\n').length);
       }
 
@@ -139,13 +151,26 @@ export function Step3Form({ formData, onChange, onBack }: Step3FormProps) {
         throw new Error('No animation code was generated');
       }
 
-      // Fall back to code-based thumbnail if no screenshot was provided
       if (!thumbnail) {
         const generated = createCodeThumbnail(code, formData.appName);
         if (generated) thumbnail = generated;
       }
 
-      // Save as draft
+      // Build voice/music state to pre-populate editor
+      const musicPreset = MUSIC_PRESETS.find((p) => p.id === formData.musicPresetId);
+      const voiceState = formData.voiceEnabled
+        ? { enabled: true, selectedVoiceId: '', script: formData.voiceScript, audioUrl: null, audioDurationSeconds: null }
+        : undefined;
+      const musicState = formData.musicEnabled
+        ? {
+            enabled: true,
+            selectedPresetId: formData.musicPresetId,
+            customPrompt: formData.musicPresetId === 'custom' ? formData.musicCustomPrompt : (musicPreset?.prompt ?? ''),
+            audioUrl: null,
+            volume: 0.4,
+          }
+        : undefined;
+
       setPhase('saving');
       const draft = await api.post<{ id: string }>('/videos/draft', {
         title: formData.appName,
@@ -155,6 +180,8 @@ export function Step3Form({ formData, onChange, onBack }: Step3FormProps) {
           music_vibe: formData.musicVibe,
           video_length: formData.videoLength,
           ...(thumbnail ? { thumbnail } : {}),
+          ...(voiceState ? { voiceState } : {}),
+          ...(musicState ? { musicState } : {}),
         },
       });
 
@@ -165,7 +192,6 @@ export function Step3Form({ formData, onChange, onBack }: Step3FormProps) {
     }
   };
 
-  // Generation overlay
   if (phase === 'generating' || phase === 'saving') {
     return (
       <div className="morphix-card rounded-2xl border border-[#222222] bg-[#161616] flex flex-col w-full">
@@ -200,7 +226,6 @@ export function Step3Form({ formData, onChange, onBack }: Step3FormProps) {
 
   return (
     <div className="morphix-card rounded-2xl border border-[#222222] bg-[#161616] flex flex-col w-full relative">
-      {/* Error notification */}
       {error && (
         <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-[#1a0a0a] border border-red-500/40 text-white px-6 py-3 rounded-xl shadow-2xl z-50 flex items-center gap-3">
           <AlertCircle className="h-5 w-5 text-red-400 shrink-0" />
@@ -272,30 +297,97 @@ export function Step3Form({ formData, onChange, onBack }: Step3FormProps) {
           </div>
         </div>
 
-        {/* SECTION 3 - Music */}
+        {/* SECTION 3 - Background Music */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold gradient-text">Background music style</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {musicOptions.map((opt) => {
-              const isSelected = formData.musicVibe === opt.value;
-              return (
-                <div
-                  key={opt.value}
-                  onClick={() => onChange('musicVibe', opt.value)}
-                  className={`relative p-5 rounded-xl border transition-all cursor-pointer ${
-                    isSelected
-                      ? 'border-[#C17B4F] bg-[#0d1829]'
-                      : 'border-[#222222] bg-[#161616] hover:border-[#444444]'
-                  }`}
-                  style={isSelected ? { boxShadow: '0 0 20px rgba(193, 123, 79, 0.15), inset 0 0 15px rgba(193, 123, 79, 0.05)' } : undefined}
-                >
-                  <div className="text-3xl mb-3">{opt.emoji}</div>
-                  <h4 className="text-white font-medium mb-1">{opt.value}</h4>
-                  <p className="text-sm text-[#666666] leading-snug">{opt.subtitle}</p>
-                </div>
-              );
-            })}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Music className="h-5 w-5 text-[#C17B4F]" />
+              <h3 className="text-lg font-semibold gradient-text">Background Music</h3>
+            </div>
+            <ToggleSwitch
+              enabled={formData.musicEnabled}
+              onToggle={() => onChange('musicEnabled', !formData.musicEnabled)}
+            />
           </div>
+
+          {formData.musicEnabled && (
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {MUSIC_PRESETS.map((preset) => {
+                  const isSelected = formData.musicPresetId === preset.id;
+                  return (
+                    <div
+                      key={preset.id}
+                      onClick={() => onChange('musicPresetId', preset.id)}
+                      className={`relative p-4 rounded-xl border transition-all cursor-pointer ${
+                        isSelected
+                          ? 'border-[#C17B4F] bg-[#0d1829]'
+                          : 'border-[#222222] bg-[#111111] hover:border-[#444444]'
+                      }`}
+                      style={isSelected ? { boxShadow: '0 0 16px rgba(193, 123, 79, 0.12)' } : undefined}
+                    >
+                      <div className="text-2xl mb-2">{preset.emoji}</div>
+                      <h4 className="text-white text-sm font-medium leading-tight mb-1">{preset.label}</h4>
+                      <p className="text-[10px] text-[#666666] leading-snug">{preset.description}</p>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {formData.musicPresetId === 'custom' && (
+                <div className="space-y-2">
+                  <label className="text-xs text-[#888888] font-medium uppercase tracking-wider">Music prompt</label>
+                  <textarea
+                    value={formData.musicCustomPrompt}
+                    onChange={(e) => onChange('musicCustomPrompt', e.target.value)}
+                    placeholder="Describe the music you want, e.g. 'Chill lo-fi hip-hop with jazzy chords and soft drums…'"
+                    maxLength={1000}
+                    rows={3}
+                    className="w-full bg-[#111111] border border-[#333333] rounded-xl px-4 py-3 text-sm text-white placeholder-[#555555] focus:outline-none focus:border-[#C17B4F]/60 resize-none"
+                  />
+                  <p className="text-right text-[10px] text-[#555555]">{formData.musicCustomPrompt.length}/1000</p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* SECTION 4 - Voice Narration */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Mic className="h-5 w-5 text-[#C17B4F]" />
+              <h3 className="text-lg font-semibold gradient-text">Voice Narration</h3>
+            </div>
+            <ToggleSwitch
+              enabled={formData.voiceEnabled}
+              onToggle={() => onChange('voiceEnabled', !formData.voiceEnabled)}
+            />
+          </div>
+
+          {formData.voiceEnabled && (
+            <div className="space-y-3">
+              <div className="bg-[#111111] border border-[#222222] rounded-xl px-4 py-3 flex items-center gap-2">
+                <ChevronDown className="h-4 w-4 text-[#555555] shrink-0" />
+                <span className="text-sm text-[#888888]">Voice will be selected in the editor</span>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs text-[#888888] font-medium uppercase tracking-wider">
+                  Narration script <span className="text-[#555555] normal-case">(optional — AI can write it for you in the editor)</span>
+                </label>
+                <textarea
+                  value={formData.voiceScript}
+                  onChange={(e) => onChange('voiceScript', e.target.value)}
+                  placeholder={`Write the narration for your ${formData.videoLength}-second video…`}
+                  maxLength={5000}
+                  rows={4}
+                  className="w-full bg-[#111111] border border-[#333333] rounded-xl px-4 py-3 text-sm text-white placeholder-[#555555] focus:outline-none focus:border-[#C17B4F]/60 resize-none"
+                />
+                <p className="text-right text-[10px] text-[#555555]">{formData.voiceScript.length}/5000</p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

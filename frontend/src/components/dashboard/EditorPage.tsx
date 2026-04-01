@@ -402,6 +402,11 @@ export default function EditorPage() {
   };
 
   const handleNewConfirm = useCallback(() => {
+    // Cancel Monaco debounce so stale setCode call can't fire after reset
+    if (compileDebounceRef.current) {
+      clearTimeout(compileDebounceRef.current);
+      compileDebounceRef.current = null;
+    }
     animationState.reset();
     clear();
     cloud.clearVideoId();
@@ -413,6 +418,8 @@ export default function EditorPage() {
     setExportState('idle');
     setExportUrl(null);
     setShowNewModal(false);
+    // Update URL without navigation/remount — avoids re-triggering the restoration useEffect
+    window.history.replaceState(null, '', '/dashboard/editor');
   }, [animationState, clear, cloud, voice, music]);
 
   // ── Render ───────────────────────────────────────────────────────────────────

@@ -60,6 +60,11 @@ export function useEditorPersistence() {
   }, []);
 
   const clear = useCallback(() => {
+    // Cancel any pending debounced save so it cannot re-write after the clear
+    if (saveTimerRef.current) {
+      clearTimeout(saveTimerRef.current);
+      saveTimerRef.current = null;
+    }
     try {
       Object.values(KEYS).forEach((k) => localStorage.removeItem(k));
     } catch {

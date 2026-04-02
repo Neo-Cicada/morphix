@@ -212,14 +212,6 @@ export default function EditorPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Auto-set video duration to match narration length
-  useEffect(() => {
-    if (voice.enabled && voice.audioDurationSeconds) {
-      setDurationInFrames(Math.ceil(voice.audioDurationSeconds * fps));
-    }
-  }, [voice.audioDurationSeconds, voice.enabled, fps]);
-
-
   // ── Handlers ─────────────────────────────────────────────────────────────────
 
   const handleSend = useCallback(async () => {
@@ -368,6 +360,49 @@ export default function EditorPage() {
       }
     } finally {
       setIsGeneratingScript(false);
+    }
+  };
+
+  const handleGenerateVoiceFitted = async () => {
+    const targetSeconds = durationInFrames / fps;
+    const TOLERANCE = 0.5;
+    const MAX_ATTEMPTS = 3;
+    let lastAudioDuration = targetSeconds + 1;
+
+    for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+      // On first attempt with no script, generate one
+      if (attempt === 0 && !voice.script.trim()) {
+        await handleGenerateScript();
+      }
+
+      // On retries, ask Claude to shorten the script
+      if (attempt > 0) {
+        const excessSeconds = (lastAudioDuration - targetSeconds).toFixed(1);
+        const fewerWords = Math.ceil((lastAudioDuration - targetSeconds) * 2.2);
+        const userPrompt = messages.filter((m) => m.role === 'user').map((m) => m.text).join(' ');
+        const res = await fetch('/api/generate-narration', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            animationCode: animationState.code || undefined,
+            userPrompt: userPrompt || undefined,
+            durationSeconds: targetSeconds,
+            shorteningContext: `Previous script ran ${excessSeconds}s too long. Remove ~${fewerWords} words while keeping the same tone and key message. Previous script: "${voice.script}"`,
+          }),
+        });
+        if (res.ok) {
+          const { script } = await res.json();
+          voice.setScript(script);
+          if (voice.audioUrl) voice.clearAudio();
+        }
+      }
+
+      // Generate TTS and get actual duration back
+      const { audioDurationSeconds } = await voice.generateAudio();
+      lastAudioDuration = audioDurationSeconds ?? targetSeconds + 1;
+
+      // Fits within tolerance → done
+      if (lastAudioDuration <= targetSeconds + TOLERANCE) break;
     }
   };
 
@@ -559,6 +594,8 @@ export default function EditorPage() {
             audioUrl={music.enabled ? music.audioUrl : null}
             voiceUrl={voice.enabled ? voice.audioUrl : null}
             musicVolume={music.volume}
+            voiceScript={voice.enabled && voice.audioUrl ? voice.script : null}
+            voiceDurationSeconds={voice.enabled ? voice.audioDurationSeconds : null}
           />
         </div>
 
@@ -884,7 +921,7 @@ export default function EditorPage() {
 
                     {/* Generate button */}
                     <button
-                      onClick={voice.generateAudio}
+                      onClick={handleGenerateVoiceFitted}
                       disabled={!voice.script.trim() || !voice.selectedVoiceId || voice.status === 'generating' || voice.status === 'loading-voices'}
                       className={`flex items-center justify-center gap-2 w-full py-2 rounded-xl text-sm font-medium transition-all ${
                         !voice.script.trim() || !voice.selectedVoiceId || voice.status === 'generating' || voice.status === 'loading-voices'

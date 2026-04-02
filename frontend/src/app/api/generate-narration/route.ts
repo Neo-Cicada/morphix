@@ -13,13 +13,19 @@ export async function POST(req: NextRequest) {
     return new Response('Unauthorized', { status: 401 });
   }
 
-  const { animationCode, userPrompt, durationSeconds, instructions } = await req.json();
+  const { animationCode, userPrompt, durationSeconds, instructions, shorteningContext } = await req.json();
 
-  if (!animationCode && !userPrompt) {
+  if (!animationCode && !userPrompt && !shorteningContext) {
     return Response.json({ error: 'Provide animationCode or userPrompt' }, { status: 400 });
   }
 
+  const maxWords = durationSeconds ? Math.floor(durationSeconds * 2.2) : null;
+
   const contextParts: string[] = [];
+
+  if (shorteningContext) {
+    contextParts.push(shorteningContext);
+  }
 
   if (userPrompt) {
     contextParts.push(`User's animation description:\n"${userPrompt}"`);
@@ -39,6 +45,10 @@ export async function POST(req: NextRequest) {
     contextParts.push(`Additional instructions from user: "${instructions}"`);
   }
 
+  const hardLimitRule = maxWords
+    ? `- HARD LIMIT: ${maxWords} words maximum (${durationSeconds}s × 2.2 words/sec, conservative)`
+    : '- Calibrate length to the given duration (roughly 2.2 words per second of speech)';
+
   const { text } = await generateText({
     model: anthropic('claude-haiku-4-5-20251001'),
     system: `You are a professional video narrator. Your ONLY job is to output the exact words to be spoken aloud — nothing else.
@@ -50,7 +60,7 @@ STRICT RULES:
 - No word count, timing notes, or production tips
 - No asterisks, bold, italics, or quotes around the output
 - No stage directions or speaker labels
-- Calibrate length to the given duration (roughly 2.5 words per second of speech)
+${hardLimitRule}
 - Write in short, punchy sentences that sound natural when spoken`,
     prompt: `Write the narration for this video.\n\n${contextParts.join('\n\n')}`,
     maxOutputTokens: 400,

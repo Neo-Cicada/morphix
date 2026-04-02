@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Player } from '@remotion/player';
-import { Audio } from 'remotion';
+import { Audio, useCurrentFrame, useVideoConfig } from 'remotion';
 import type { PlayerRef } from '@remotion/player';
 
 interface AnimationPlayerProps {
@@ -17,6 +17,8 @@ interface AnimationPlayerProps {
   audioUrl?: string | null;
   voiceUrl?: string | null;
   musicVolume?: number;
+  voiceScript?: string | null;
+  voiceDurationSeconds?: number | null;
 }
 
 // ─── Error helpers ─────────────────────────────────────────────────────────────
@@ -63,6 +65,54 @@ function cleanMessage(error: string): string {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
+function SubtitleOverlay({ script, voiceDurationSeconds }: { script: string; voiceDurationSeconds: number }) {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const words = script.trim().split(/\s+/);
+  const totalVoiceFrames = voiceDurationSeconds * fps;
+  const progress = Math.min(frame / totalVoiceFrames, 1);
+  // Show ~5 words at a time around the current position
+  const activeIndex = Math.min(Math.floor(progress * words.length), words.length - 1);
+  const windowStart = Math.max(0, activeIndex - 2);
+  const windowEnd = Math.min(words.length, windowStart + 7);
+  const visibleWords = words.slice(windowStart, windowEnd);
+
+  return (
+    <div style={{
+      position: 'absolute',
+      bottom: 48,
+      left: 0,
+      right: 0,
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      flexWrap: 'wrap',
+      gap: '0 10px',
+      padding: '0 80px',
+      pointerEvents: 'none',
+    }}>
+      {visibleWords.map((word, i) => {
+        const globalIndex = windowStart + i;
+        const isActive = globalIndex === activeIndex;
+        return (
+          <span key={globalIndex} style={{
+            fontSize: 48,
+            fontFamily: 'Inter, system-ui, sans-serif',
+            fontWeight: isActive ? 700 : 400,
+            color: isActive ? '#ffffff' : 'rgba(255,255,255,0.55)',
+            textShadow: isActive
+              ? '0 2px 12px rgba(0,0,0,0.9), 0 0 2px rgba(0,0,0,1)'
+              : '0 1px 6px rgba(0,0,0,0.8)',
+            transition: 'color 0.1s, font-weight 0.1s',
+          }}>
+            {word}
+          </span>
+        );
+      })}
+    </div>
+  );
+}
+
 export function AnimationPlayer({
   Component,
   durationInFrames,
@@ -75,22 +125,28 @@ export function AnimationPlayer({
   audioUrl,
   voiceUrl,
   musicVolume = 0.4,
+  voiceScript,
+  voiceDurationSeconds,
 }: AnimationPlayerProps) {
   // Wrap the animation with audio — same pattern as DynamicComposition on Lambda
   const CompositionWithAudio = React.useMemo(() => {
     if (!Component) return null;
     const hasAudio = audioUrl || voiceUrl;
-    if (!hasAudio) return Component;
+    const hasSubtitle = voiceUrl && voiceScript && voiceDurationSeconds;
+    if (!hasAudio && !hasSubtitle) return Component;
     return function AudioWrapper() {
       return (
         <>
           {audioUrl && <Audio src={audioUrl} volume={musicVolume} crossOrigin="anonymous" />}
           {voiceUrl && <Audio src={voiceUrl} crossOrigin="anonymous" />}
           <Component />
+          {hasSubtitle && (
+            <SubtitleOverlay script={voiceScript!} voiceDurationSeconds={voiceDurationSeconds!} />
+          )}
         </>
       );
     };
-  }, [Component, audioUrl, voiceUrl, musicVolume]);
+  }, [Component, audioUrl, voiceUrl, musicVolume, voiceScript, voiceDurationSeconds]);
   const overlay = (() => {
     if (isStreaming) return (
       <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-[#111110] rounded-xl">

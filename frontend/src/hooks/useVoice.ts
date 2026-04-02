@@ -31,7 +31,7 @@ export interface UseVoiceReturn {
   setEnabled: (v: boolean) => void;
   setSelectedVoiceId: (id: string) => void;
   setScript: (s: string) => void;
-  generateAudio: () => Promise<void>;
+  generateAudio: () => Promise<{ audioDurationSeconds: number | null }>;
   clearAudio: () => void;
   reset: () => void;
   restoreFromDoc: (data: Partial<PersistedVoice>) => void;
@@ -160,8 +160,8 @@ export function useVoice(videoId: string | null = null): UseVoiceReturn {
     if (v) fetchVoices();
   }, [fetchVoices]);
 
-  const generateAudio = useCallback(async () => {
-    if (!script.trim() || !selectedVoiceId) return;
+  const generateAudio = useCallback(async (): Promise<{ audioDurationSeconds: number | null }> => {
+    if (!script.trim() || !selectedVoiceId) return { audioDurationSeconds: null };
     setStatus('generating');
     setErrorMessage(null);
 
@@ -207,9 +207,12 @@ export function useVoice(videoId: string | null = null): UseVoiceReturn {
       } catch {
         // Upload failed — data URL already set, will work until next refresh
       }
+
+      return { audioDurationSeconds: duration > 0 ? duration : null };
     } catch (err) {
       setErrorMessage(err instanceof Error ? err.message : 'Failed to generate audio');
       setStatus('error');
+      return { audioDurationSeconds: null };
     }
   }, [script, selectedVoiceId]);
 

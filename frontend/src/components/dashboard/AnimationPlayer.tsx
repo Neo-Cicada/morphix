@@ -16,6 +16,7 @@ interface AnimationPlayerProps {
   playerRef?: React.RefObject<PlayerRef | null>;
   audioUrl?: string | null;
   voiceUrl?: string | null;
+  musicVolume?: number;
 }
 
 // ─── Error helpers ─────────────────────────────────────────────────────────────
@@ -73,6 +74,7 @@ export function AnimationPlayer({
   playerRef,
   audioUrl,
   voiceUrl,
+  musicVolume = 0.4,
 }: AnimationPlayerProps) {
   // Wrap the animation with audio — same pattern as DynamicComposition on Lambda
   const CompositionWithAudio = React.useMemo(() => {
@@ -82,13 +84,13 @@ export function AnimationPlayer({
     return function AudioWrapper() {
       return (
         <>
-          {audioUrl && <Audio src={audioUrl} loop />}
-          {voiceUrl && <Audio src={voiceUrl} />}
+          {audioUrl && <Audio src={audioUrl} volume={musicVolume} crossOrigin="anonymous" />}
+          {voiceUrl && <Audio src={voiceUrl} crossOrigin="anonymous" />}
           <Component />
         </>
       );
     };
-  }, [Component, audioUrl, voiceUrl]);
+  }, [Component, audioUrl, voiceUrl, musicVolume]);
   const overlay = (() => {
     if (isStreaming) return (
       <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-[#111110] rounded-xl">
@@ -180,8 +182,8 @@ export function AnimationPlayer({
           compositionWidth={1920}
           compositionHeight={1080}
           controls
-          autoPlay
           loop
+          numberOfSharedAudioTags={5}
           style={{ width: '100%', borderRadius: '12px' }}
         />
       ) : overlay}

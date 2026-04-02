@@ -32,6 +32,7 @@ export function useCloudPersistence() {
   const [videoId, setVideoId] = useState<string | null>(null);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingSaveRef = useRef<{ id: string; animationCode: string; productionDoc: ProductionDoc } | null>(null);
 
   const loadStoredVideoId = useCallback((): string | null => {
     try {
@@ -89,6 +90,7 @@ export function useCloudPersistence() {
     animationCode: string,
     productionDoc: ProductionDoc,
   ) => {
+    pendingSaveRef.current = { id, animationCode, productionDoc };
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     setSaveStatus('saving');
     saveTimerRef.current = setTimeout(async () => {
@@ -97,11 +99,31 @@ export function useCloudPersistence() {
           animation_code: animationCode,
           production_doc: productionDoc,
         });
+        pendingSaveRef.current = null;
         setSaveStatus('saved');
       } catch {
         setSaveStatus('error');
       }
     }, 3000);
+  }, []);
+
+  const flushSave = useCallback(async () => {
+    if (saveTimerRef.current) {
+      clearTimeout(saveTimerRef.current);
+      saveTimerRef.current = null;
+    }
+    const pending = pendingSaveRef.current;
+    if (!pending) return;
+    pendingSaveRef.current = null;
+    try {
+      await api.patch(`/videos/${pending.id}/code`, {
+        animation_code: pending.animationCode,
+        production_doc: pending.productionDoc,
+      });
+      setSaveStatus('saved');
+    } catch {
+      setSaveStatus('error');
+    }
   }, []);
 
   const fetchVideo = useCallback(async (id: string): Promise<{
@@ -126,6 +148,7 @@ export function useCloudPersistence() {
     initVideoId,
     createDraft,
     scheduleSave,
+    flushSave,
     clearVideoId,
     fetchVideo,
   };

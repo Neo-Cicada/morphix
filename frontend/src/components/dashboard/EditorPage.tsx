@@ -183,6 +183,12 @@ export default function EditorPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [animationState.code, messages, durationInFrames, cloud.videoId, voice.audioUrl, music.audioUrl, voice.enabled, music.enabled]);
 
+  // Flush any pending debounced cloud save on unmount so audio URLs are never lost
+  useEffect(() => {
+    return () => { cloud.flushSave(); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Sync state from other tabs
   useEffect(() => {
     const handleStorage = (e: StorageEvent) => {
@@ -552,6 +558,7 @@ export default function EditorPage() {
             error={animationState.error}
             audioUrl={music.enabled ? music.audioUrl : null}
             voiceUrl={voice.enabled ? voice.audioUrl : null}
+            musicVolume={music.volume}
           />
         </div>
 

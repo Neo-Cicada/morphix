@@ -62,9 +62,9 @@ function stripTypeScriptAnnotations(code: string): string {
   return (
     code
       // interface declarations (handles multiline)
-      .replace(/\binterface\s+\w+(\s*<[^>]*>)?(\s*extends\s+[^{]+)?\s*\{[^}]*\}/gs, '')
+      .replace(/\binterface\s+\w+(\s*<[^>]*>)?(\s*extends\s+[^{]+)?\s*\{[\s\S]*?\}/g, '')
       // type alias declarations: type Foo = ...;
-      .replace(/\btype\s+\w+(\s*<[^>]*>)?\s*=[^;]+;/gs, '')
+      .replace(/\btype\s+\w+(\s*<[^>]*>)?\s*=[\s\S]*?;/g, '')
       // generic type parameters on function/method calls: fn<Type>( → fn(
       // careful not to eat JSX like <Comp>
       .replace(/\b(\w+)\s*<([A-Za-z][A-Za-z0-9,. <>\[\]{} |&?]*)>\s*\(/g, '$1(')

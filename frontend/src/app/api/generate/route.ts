@@ -32,6 +32,8 @@ SYNTAX RULES (strictly follow to avoid compile errors):
 - Never declare a variable with the same name as an injected global
 - Ensure all opened parentheses, brackets, and braces are closed
 - Do not use async/await inside React components or hooks
+- SEMICOLONS: Never place a semicolon after a JSX closing tag inside a return() expression. Semicolons belong only after statements, not after JSX elements. Never write double semicolons (;;). Never put a semicolon before a closing brace/paren of a JSX block.
+- NO TYPESCRIPT: Do NOT use TypeScript type annotations anywhere — no interface declarations, no type aliases, no variable/parameter/return type annotations (e.g. avoid `: number`, `: string[]`, `: React.CSSProperties`), no TypeScript generics on function calls (e.g. write `useMemo(` not `useMemo<Type>(`). Generated code runs as plain JavaScript at runtime — type annotations only cause parse errors.
 
 OUTPUT: Only output the raw TSX code with no markdown fences, no imports, no explanations.
 

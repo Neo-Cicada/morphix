@@ -79,7 +79,8 @@ function stripTypeScriptAnnotations(code: string): string {
   );
 }
 
-function babelTransform(code: string, presets: unknown[]): string {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function babelTransform(code: string, presets: any[]): string {
   const result = Babel.transform(code, {
     presets,
     filename: 'animation.tsx',

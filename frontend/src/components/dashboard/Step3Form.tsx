@@ -25,42 +25,220 @@ async function fileToBase64(file: File): Promise<string> {
   });
 }
 
-function buildPrompt(formData: VideoFormData): string {
-  const durationFrames = formData.videoLength * 30;
-  const lines = [
-    `Create a ${formData.videoLength}-second product demo video animation for "${formData.appName}".`,
-    ``,
-    `Product: ${formData.description}`,
-    `Target audience: ${formData.audience.join(', ')}`,
-    `Call to action: ${formData.ctaGoal}`,
-  ];
+function getScenePlan(durationSec: number, formData: VideoFormData): string {
+  const { appName, primaryBenefit, features, ctaGoal } = formData;
+  const benefit = primaryBenefit || appName;
+  const featureList = features.trim() ? features.split(/[,\n]/).map((f) => f.trim()).filter(Boolean) : [];
+  const f1 = featureList[0] ?? 'core feature';
+  const f2 = featureList[1] ?? 'key benefit';
+  const f3 = featureList[2] ?? 'workflow integration';
 
-  if (formData.features.trim()) {
-    lines.push(`Key features to highlight: ${formData.features}`);
+  if (durationSec <= 30) {
+    return `**Scene 1 — Hook (0–6s, frames 0–180)**
+- Open with "${appName}" name reveal, hero message: "${benefit}"
+- Bold typography, product logo if available
+
+**Scene 2 — Demo (6–22s, frames 180–660)**
+- Show ${f1} in action with UI callouts
+- Highlight ${f2} with animated annotations
+- Keep energy high, text minimal
+
+**Scene 3 — CTA (22–30s, frames 660–900)**
+- Brand sign-off with product name large
+- End card: "${ctaGoal}"`;
   }
 
+  if (durationSec <= 60) {
+    return `**Scene 1 — Hook (0–8s, frames 0–240)**
+- Product name reveal, tagline, hook question for target audience
+- Establish visual identity immediately
+
+**Scene 2 — Problem (8–16s, frames 240–480)**
+- Animate the pain point relevant to "${formData.audience.join(' / ')}"
+- Build empathy before showing solution
+
+**Scene 3 — Solution / Demo (16–40s, frames 480–1200)**
+- Show ${f1} in action
+- Highlight ${f2} with UI callouts
+- Reinforce: "${benefit}"
+
+**Scene 4 — Social Proof (40–48s, frames 1200–1440)**
+- Numbers, logos, or stats callout
+- Visual credibility beat
+
+**Scene 5 — CTA (48–60s, frames 1440–1800)**
+- Full brand close, product name prominent
+- End card: "${ctaGoal}"`;
+  }
+
+  // 90s
+  return `**Scene 1 — Hook (0–10s, frames 0–300)**
+- "${appName}" reveal, hero message: "${benefit}"
+- Establish visual identity and tone
+
+**Scene 2 — Problem (10–20s, frames 300–600)**
+- Animate pain point for "${formData.audience.join(' / ')}"
+- Build tension before the solution reveal
+
+**Scene 3 — Feature 1 (20–35s, frames 600–1050)**
+- Deep dive: ${f1}
+- UI walkthrough with animated callouts
+
+**Scene 4 — Feature 2 (35–50s, frames 1050–1500)**
+- Deep dive: ${f2}
+- Show the workflow transformation
+
+**Scene 5 — Feature 3 (50–65s, frames 1500–1950)**
+- Showcase: ${f3}
+- Reinforce the hero benefit: "${benefit}"
+
+**Scene 6 — CTA / Wrap (65–90s, frames 1950–2700)**
+- Social proof beat (numbers/logos)
+- Full brand close, product name large
+- End card: "${ctaGoal}"`;
+}
+
+function getVisualLanguage(formData: VideoFormData): string {
+  const { tone, colorStyle, industry } = formData;
+
+  // Base palette from tone × colorStyle
+  let palette = '';
+  if (tone === 'Clean & Premium' && colorStyle === 'Dark & Sleek') {
+    palette = 'Dark charcoal background (#0d0d0d–#1a1a1a), white typography, subtle glassmorphism panels, cool neutral accents';
+  } else if (tone === 'Clean & Premium' && colorStyle === 'Light & Clean') {
+    palette = 'Off-white background (#f8f7f4), dark charcoal text, clean sans-serif, generous whitespace, minimal shadows';
+  } else if (tone === 'Energetic & Bold' && colorStyle === 'Vibrant & Colorful') {
+    palette = 'Bold saturated gradients, kinetic motion, high contrast colors, fast-cut visual rhythm';
+  } else if (tone === 'Energetic & Bold' && colorStyle === 'Dark & Sleek') {
+    palette = 'Deep dark background with electric neon accent pops, fast motion, bold weight typography';
+  } else if (tone === 'Friendly & Approachable' && colorStyle === 'Light & Clean') {
+    palette = 'Warm off-white (#fafaf8), rounded elements, soft drop shadows, playful but professional typography';
+  } else if (tone === 'Friendly & Approachable' && colorStyle === 'Vibrant & Colorful') {
+    palette = 'Warm pastels with bright accent pops, rounded shapes, soft gradients, inviting visual language';
+  } else {
+    palette = `${colorStyle} aesthetic with ${tone.toLowerCase()} energy`;
+  }
+
+  // Industry accent
+  const accentMap: Record<string, string> = {
+    'Developer Tools': 'Accent: green/cyan (#00d4aa / #06b6d4), monospace code font for UI elements',
+    'Fintech': 'Accent: electric blue / emerald (#3b82f6 / #10b981), trust-building visual weight',
+    'Health / Medical': 'Accent: soft teal / mint (#14b8a6 / #a7f3d0), clean clinical feel',
+    'Creative / Design': 'Accent: purple → pink → orange gradient (#8b5cf6 → #ec4899 → #f97316)',
+    'E-commerce': 'Accent: warm brand-dependent tones, product-forward composition',
+    'SaaS / B2B': 'Accent: warm amber (#C17B4F / #f59e0b), professional authority',
+    'Education': 'Accent: indigo / sky blue (#6366f1 / #0ea5e9), approachable and focused',
+    'Other': 'Accent: brand-derived colors from screenshots if available',
+  };
+  const accent = accentMap[industry] ?? 'Accent: derive from provided screenshots or brand materials';
+
+  // Motion style from tone
+  let motion = '';
+  if (tone === 'Energetic & Bold') {
+    motion = 'Fast cuts (1–3s per beat), kinetic typography, scale/rotate transitions, high frame energy';
+  } else if (tone === 'Clean & Premium') {
+    motion = 'Smooth cubic easing, generous whitespace, fade-and-slide transitions, deliberate pacing';
+  } else {
+    motion = 'Bouncy spring motion (stiffness ~80, damping ~12), warm transitions, playful entry animations';
+  }
+
+  return `- Palette: ${palette}
+- ${accent}
+- Motion: ${motion}
+- Typography: strong hierarchy — hero headline large (80–120px), subtext 24–32px, labels 14–16px`;
+}
+
+function getNarrativeGuidance(formData: VideoFormData): string {
+  const { audience, ctaGoal, platform, videoLength } = formData;
+  const audienceStr = audience.join(', ');
+
+  // Audience × CTA → narrative focus
+  let narrativeFocus = '';
+  if (audience.includes('Developers')) {
+    narrativeFocus = 'Lead with code/API demos; technical specifics earn credibility; show the "aha" moment fast';
+  } else if (audience.includes('Enterprise Teams')) {
+    narrativeFocus = 'ROI framing; security and scale callouts; professional pacing; avoid hype language';
+  } else if (audience.includes('Consumers')) {
+    narrativeFocus = 'Desire/lifestyle framing; emotion over features; FOMO close; aspirational visuals';
+  } else if (audience.includes('Startups')) {
+    narrativeFocus = 'Speed and growth framing; founder energy; social proof via logos; bias-to-action';
+  } else {
+    narrativeFocus = `Speak directly to "${audienceStr}"; lead with their core problem, close with the solution`;
+  }
+
+  if (ctaGoal === 'Book a Demo') {
+    narrativeFocus += '. End with urgency: "See it live" framing.';
+  } else if (ctaGoal === 'Sign Up Free') {
+    narrativeFocus += '. End with low-friction invite: "Start free today".';
+  } else if (ctaGoal === 'Join Waitlist') {
+    narrativeFocus += '. End with exclusivity/FOMO: "Get early access".';
+  }
+
+  // Platform overrides
+  const platformOverrides: Record<string, string> = {
+    'Twitter / X': `PLATFORM OVERRIDE (Twitter/X): Ultra-punchy — hook must land in first 2 seconds. Prefer text-heavy kinetic design. 30s max recommended. No long intros.`,
+    'LinkedIn': `PLATFORM OVERRIDE (LinkedIn): Professional tone, text must be readable at 50% video size. No more than 3 features. Avoid flashy effects.`,
+    'Product Hunt': `PLATFORM OVERRIDE (Product Hunt): Playful energy, show product name large throughout, end with "we're live!" energy. Celebrate the launch.`,
+    'YouTube Ads': `PLATFORM OVERRIDE (YouTube Ads): 5-second hook MUST land before skip button. Direct address language ("You've been wasting time on..."). Value prop in first 5s.`,
+    'App Store': `PLATFORM OVERRIDE (App Store): Feature the UI prominently. Vertical composition preferred. Show the core loop quickly.`,
+    'Landing Page': `PLATFORM NOTE (Landing Page): Can be more deliberate — viewers chose to watch. Full story arc works well. ${videoLength}s is appropriate.`,
+  };
+  const override = platformOverrides[platform] ?? '';
+
+  return `- Audience: ${audienceStr}
+- Narrative focus: ${narrativeFocus}
+${override ? `- ${override}` : ''}`.trim();
+}
+
+function buildPrompt(formData: VideoFormData): string {
+  const durationFrames = formData.videoLength * 30;
   const musicPreset = MUSIC_PRESETS.find((p) => p.id === formData.musicPresetId);
   const musicLabel = musicPreset?.label ?? formData.musicVibe;
 
-  lines.push(
-    ``,
-    `Style: ${formData.tone}`,
-    `Music vibe: ${musicLabel}`,
-    ``,
-    `Technical requirements:`,
-    `- Duration: exactly ${durationFrames} frames (set DURATION_IN_FRAMES = ${durationFrames})`,
-    `- Resolution: 1920x1080`,
-    `- Show the product name "${formData.appName}" prominently`,
-    `- End with the call-to-action: "${formData.ctaGoal}"`,
-    `- Make it feel cinematic and polished`,
-  );
+  const scenePlan = getScenePlan(formData.videoLength, formData);
+  const visualLanguage = getVisualLanguage(formData);
+  const narrativeGuidance = getNarrativeGuidance(formData);
 
-  if (formData.screenshots.length > 0) {
-    lines.push(`- I've attached ${formData.screenshots.length} screenshot(s) of the product — use them as visual reference for colors, UI style, and branding`);
-  }
+  const lines: string[] = [
+    `## CREATIVE BRIEF: ${formData.appName} — ${formData.videoLength}s Video`,
+    ``,
+    `### Product`,
+    `- Name: ${formData.appName}`,
+    `- Description: ${formData.description}`,
+    `- Primary benefit (hero message): ${formData.primaryBenefit || formData.description}`,
+    `- Industry: ${formData.industry || 'Not specified'}`,
+    `- Key features: ${formData.features.trim() || 'Derive from screenshots/description'}`,
+    ``,
+    `### Target & Platform`,
+    `- Audience: ${formData.audience.join(', ')}`,
+    `- Platform: ${formData.platform || 'Not specified'}`,
+    `- CTA: ${formData.ctaGoal}`,
+    ``,
+    `### Visual Identity`,
+    visualLanguage,
+    ``,
+    `### Narrative Direction`,
+    narrativeGuidance,
+    ``,
+    `### Scene-by-Scene Blueprint`,
+    scenePlan,
+    ``,
+    `### Technical Requirements`,
+    `- DURATION_IN_FRAMES = ${durationFrames}`,
+    `- Resolution: 1920×1080`,
+    `- Show "${formData.appName}" prominently in opening`,
+    `- End with CTA: "${formData.ctaGoal}"`,
+    `- Music vibe: ${musicLabel}`,
+  ];
 
-  if (formData.websiteUrl) {
-    lines.push(`- Website: ${formData.websiteUrl}`);
+  if (formData.screenshots.length > 0 || formData.websiteUrl) {
+    lines.push(``, `### Reference Materials`);
+    if (formData.screenshots.length > 0) {
+      lines.push(`- ${formData.screenshots.length} screenshot(s) attached — extract colors, UI style, and branding`);
+    }
+    if (formData.websiteUrl) {
+      lines.push(`- Website: ${formData.websiteUrl}`);
+    }
   }
 
   return lines.join('\n');

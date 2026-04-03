@@ -18,6 +18,11 @@ export interface VideoFormData {
     // Voice panel
     voiceEnabled: boolean;
     voiceScript: string;
+    // Creative context
+    industry: string;
+    platform: string;
+    primaryBenefit: string;
+    colorStyle: string;
 }
 
 export const initialVideoFormData: VideoFormData = {
@@ -38,4 +43,8 @@ export const initialVideoFormData: VideoFormData = {
     musicCustomPrompt: '',
     voiceEnabled: false,
     voiceScript: '',
+    industry: '',
+    platform: '',
+    primaryBenefit: '',
+    colorStyle: '',
 };

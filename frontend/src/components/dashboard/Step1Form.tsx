@@ -30,13 +30,44 @@ export function Step1Form({ formData, onChange, onNext }: Step1FormProps) {
     'Follow on X',
   ];
 
+  const industryOptions = [
+    'SaaS / B2B',
+    'Developer Tools',
+    'Fintech',
+    'Health / Medical',
+    'E-commerce',
+    'Creative / Design',
+    'Education',
+    'Other',
+  ];
+
+  const platformOptions = [
+    'Landing Page',
+    'LinkedIn',
+    'Twitter / X',
+    'YouTube Ads',
+    'Product Hunt',
+    'App Store',
+  ];
+
+  const colorStyleOptions = [
+    'Dark & Sleek',
+    'Light & Clean',
+    'Vibrant & Colorful',
+    'Follow my brand',
+  ];
+
   const validate = () => {
     const newErrors: Record<string, string> = {};
     if (!formData.appName.trim()) newErrors.appName = 'App name is required';
     if (!formData.description.trim()) newErrors.description = 'Description is required';
     if (formData.audience.length === 0) newErrors.audience = 'Select at least one audience';
     if (!formData.ctaGoal) newErrors.ctaGoal = 'Select a call to action';
-    
+    if (!formData.industry) newErrors.industry = 'Select an industry';
+    if (!formData.primaryBenefit.trim()) newErrors.primaryBenefit = 'Enter your primary benefit';
+    if (!formData.platform) newErrors.platform = 'Select a platform';
+    if (!formData.colorStyle) newErrors.colorStyle = 'Select a visual style';
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -175,6 +206,109 @@ export function Step1Form({ formData, onChange, onNext }: Step1FormProps) {
             onChange={(e) => handleChange('features', e.target.value)}
             className="w-full bg-[#0a0a0a] border border-[#333333] rounded-xl px-4 py-3 text-white placeholder:text-[#555555] focus:outline-none focus:border-[#C17B4F] transition-colors resize-none mt-3"
           />
+        </div>
+
+        {/* Field 6: Industry */}
+        <div className="space-y-3">
+          <label className="block gradient-text font-medium text-base">What industry are you in?</label>
+          <div className="flex flex-wrap gap-2.5">
+            {industryOptions.map((option) => {
+              const isSelected = formData.industry === option;
+              return (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => {
+                    handleChange('industry', option);
+                  }}
+                  className={`px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-200 ${
+                    isSelected
+                      ? 'pill-selected text-white'
+                      : 'bg-transparent border border-[#333333] text-[#888888] hover:border-[#555555] hover:text-gray-200'
+                  }`}
+                >
+                  {option}
+                </button>
+              );
+            })}
+          </div>
+          {errors.industry && <p className="text-red-500 text-sm">{errors.industry}</p>}
+        </div>
+
+        {/* Field 7: Primary Benefit */}
+        <div className="space-y-3">
+          <div className="flex justify-between items-end">
+            <label className="block gradient-text font-medium text-base">What&apos;s the #1 thing users gain?</label>
+            <span className={`text-sm ${formData.primaryBenefit.length > 90 ? 'text-red-500' : 'text-[#888888]'}`}>
+              {formData.primaryBenefit.length}/100
+            </span>
+          </div>
+          <input
+            type="text"
+            placeholder={`Ship 3x faster · Save 10hrs/week · Never miss a deadline`}
+            value={formData.primaryBenefit}
+            onChange={(e) => {
+              if (e.target.value.length <= 100) {
+                handleChange('primaryBenefit', e.target.value);
+              }
+            }}
+            className="w-full bg-[#0a0a0a] border border-[#333333] rounded-xl px-4 py-3 text-white placeholder:text-[#555555] focus:outline-none focus:border-[#C17B4F] transition-colors"
+          />
+          {errors.primaryBenefit && <p className="text-red-500 text-sm">{errors.primaryBenefit}</p>}
+        </div>
+
+        {/* Field 8: Platform */}
+        <div className="space-y-3">
+          <label className="block gradient-text font-medium text-base">Where will this video be shown?</label>
+          <div className="flex flex-wrap gap-2.5">
+            {platformOptions.map((option) => {
+              const isSelected = formData.platform === option;
+              return (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => {
+                    handleChange('platform', option);
+                  }}
+                  className={`px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-200 ${
+                    isSelected
+                      ? 'pill-selected text-white'
+                      : 'bg-transparent border border-[#333333] text-[#888888] hover:border-[#555555] hover:text-gray-200'
+                  }`}
+                >
+                  {option}
+                </button>
+              );
+            })}
+          </div>
+          {errors.platform && <p className="text-red-500 text-sm">{errors.platform}</p>}
+        </div>
+
+        {/* Field 9: Color / Visual Style */}
+        <div className="space-y-3">
+          <label className="block gradient-text font-medium text-base">Color / Visual Style</label>
+          <div className="flex flex-wrap gap-2.5">
+            {colorStyleOptions.map((option) => {
+              const isSelected = formData.colorStyle === option;
+              return (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => {
+                    handleChange('colorStyle', option);
+                  }}
+                  className={`px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-200 ${
+                    isSelected
+                      ? 'pill-selected text-white'
+                      : 'bg-transparent border border-[#333333] text-[#888888] hover:border-[#555555] hover:text-gray-200'
+                  }`}
+                >
+                  {option}
+                </button>
+              );
+            })}
+          </div>
+          {errors.colorStyle && <p className="text-red-500 text-sm">{errors.colorStyle}</p>}
         </div>
 
       </div>

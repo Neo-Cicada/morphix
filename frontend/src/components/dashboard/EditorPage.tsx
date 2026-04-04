@@ -72,6 +72,7 @@ export default function EditorPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [attachedImages, setAttachedImages] = useState<string[]>([]);
   const [streamingCode, setStreamingCode] = useState('');
+  const [isFixingError, setIsFixingError] = useState(false);
   const conversationHistory = useRef<{ role: 'user' | 'assistant'; content: string }[]>([]);
   const streamBufferRef = useRef('');
 
@@ -213,6 +214,29 @@ export default function EditorPage() {
   }, []);
 
   // ── Handlers ─────────────────────────────────────────────────────────────────
+
+  const handleFixError = useCallback(async () => {
+    if (!animationState.error || isFixingError) return;
+    setIsFixingError(true);
+    await generate({
+      prompt: 'Fix the compilation error in the animation code.',
+      conversationHistory: conversationHistory.current,
+      currentCode: animationState.code,
+      isFollowUp: true,
+      errorCorrection: {
+        error: animationState.error,
+        attemptNumber: 1,
+        maxAttempts: 3,
+      },
+      onComplete: (patchedCode) => {
+        animationState.setCode(patchedCode);
+        setIsFixingError(false);
+      },
+      onError: () => {
+        setIsFixingError(false);
+      },
+    });
+  }, [animationState, generate, isFixingError]);
 
   const handleSend = useCallback(async () => {
     const prompt = input.trim();
@@ -591,6 +615,8 @@ export default function EditorPage() {
             isStreaming={isStreaming}
             streamingChars={streamingCode.length}
             error={animationState.error}
+            onFixError={handleFixError}
+            isFixingError={isFixingError}
             audioUrl={music.enabled ? music.audioUrl : null}
             voiceUrl={voice.enabled ? voice.audioUrl : null}
             musicVolume={music.volume}

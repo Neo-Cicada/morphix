@@ -31,6 +31,14 @@ interface ChatMessage {
 
 type ExportState = 'idle' | 'rendering' | 'done' | 'error';
 type RightPanel = 'chat' | 'code' | 'voice' | 'music';
+type AspectRatioKey = '16:9' | '9:16' | '1:1' | '4:5';
+
+const ASPECT_RATIOS: Record<AspectRatioKey, { width: number; height: number; label: string; platform: string }> = {
+  '16:9': { width: 1920, height: 1080, label: '16:9', platform: 'YouTube' },
+  '9:16': { width: 1080, height: 1920, label: '9:16', platform: 'TikTok / Reels' },
+  '1:1':  { width: 1080, height: 1080, label: '1:1',  platform: 'Instagram' },
+  '4:5':  { width: 1080, height: 1350, label: '4:5',  platform: 'Feed' },
+};
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -57,6 +65,8 @@ export default function EditorPage() {
   // Player state
   const [durationInFrames, setDurationInFrames] = useState(180);
   const [fps] = useState(30);
+  const [aspectRatio, setAspectRatio] = useState<AspectRatioKey>('16:9');
+  const { width: compositionWidth, height: compositionHeight } = ASPECT_RATIOS[aspectRatio];
   const playerRef = useRef<PlayerRef | null>(null);
 
   // UI state
@@ -511,6 +521,24 @@ export default function EditorPage() {
           <span className="text-[#555553]">{fps} fps</span>
           <span className="text-[#3a3a38]">·</span>
           <span className="text-[#888884] tabular-nums">{(durationInFrames / fps).toFixed(1)}s</span>
+          <span className="text-[#3a3a38]">·</span>
+          {/* Aspect ratio presets */}
+          <div className="flex items-center gap-0.5 bg-[#1a1a18] border border-[#2e2e2c] rounded-md p-0.5">
+            {(Object.keys(ASPECT_RATIOS) as AspectRatioKey[]).map((key) => (
+              <button
+                key={key}
+                title={ASPECT_RATIOS[key].platform}
+                onClick={() => setAspectRatio(key)}
+                className={`px-2 py-0.5 rounded text-[11px] font-medium transition-all ${
+                  aspectRatio === key
+                    ? 'bg-[#C17B4F]/20 text-[#C17B4F] border border-[#C17B4F]/30'
+                    : 'text-[#555553] hover:text-[#888884] border border-transparent'
+                }`}
+              >
+                {key}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="flex items-center gap-2">
@@ -611,6 +639,8 @@ export default function EditorPage() {
             Component={animationState.Component}
             durationInFrames={durationInFrames}
             fps={fps}
+            compositionWidth={compositionWidth}
+            compositionHeight={compositionHeight}
             isCompiling={animationState.isCompiling}
             isStreaming={isStreaming}
             streamingChars={streamingCode.length}

@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { Player } from '@remotion/player';
 import { Audio, useCurrentFrame, useVideoConfig } from 'remotion';
 import type { PlayerRef } from '@remotion/player';
@@ -9,6 +9,8 @@ interface AnimationPlayerProps {
   Component: React.ComponentType | null;
   durationInFrames: number;
   fps: number;
+  compositionWidth?: number;
+  compositionHeight?: number;
   isCompiling: boolean;
   isStreaming: boolean;
   streamingChars?: number;
@@ -125,6 +127,8 @@ export function AnimationPlayer({
   error,
   onFixError,
   isFixingError = false,
+  compositionWidth = 1920,
+  compositionHeight = 1080,
   playerRef,
   audioUrl,
   voiceUrl,
@@ -253,24 +257,56 @@ export function AnimationPlayer({
     return null;
   })();
 
-  return (
-    <div className="relative w-full h-full rounded-xl overflow-hidden">
-      <div className="absolute inset-0 rounded-xl ring-1 ring-inset ring-white/5 pointer-events-none z-10" />
+  // Measure container so we can "contain" any aspect ratio within available space
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const [containerSize, setContainerSize] = useState({ w: 0, h: 0 });
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([entry]) => {
+      const { width, height } = entry.contentRect;
+      setContainerSize({ w: width, h: height });
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
-      {CompositionWithAudio && !overlay ? (
-        <Player
-          ref={playerRef}
-          component={CompositionWithAudio}
-          durationInFrames={Math.max(1, durationInFrames)}
-          fps={fps}
-          compositionWidth={1920}
-          compositionHeight={1080}
-          controls
-          loop
-          numberOfSharedAudioTags={5}
-          style={{ width: '100%', borderRadius: '12px' }}
-        />
-      ) : overlay}
+  // Compute pixel dimensions that fit inside the container while preserving aspect ratio
+  const ratio = compositionWidth / compositionHeight;
+  let playerW = containerSize.w;
+  let playerH = containerSize.w / ratio;
+  if (playerH > containerSize.h) {
+    playerH = containerSize.h;
+    playerW = containerSize.h * ratio;
+  }
+
+  return (
+    <div ref={wrapRef} className="w-full h-full flex items-center justify-center">
+      <div
+        className="relative rounded-xl overflow-hidden shrink-0"
+        style={{ width: playerW || '100%', height: playerH || 'auto' }}
+      >
+        <div className="absolute inset-0 rounded-xl ring-1 ring-inset ring-white/5 pointer-events-none z-10" />
+
+        {CompositionWithAudio && !overlay ? (
+          <Player
+            ref={playerRef}
+            component={CompositionWithAudio}
+            durationInFrames={Math.max(1, durationInFrames)}
+            fps={fps}
+            compositionWidth={compositionWidth}
+            compositionHeight={compositionHeight}
+            controls
+            loop
+            numberOfSharedAudioTags={5}
+            style={{ width: '100%', height: '100%', borderRadius: '12px' }}
+          />
+        ) : (
+          <div className="absolute inset-0">
+            {overlay}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

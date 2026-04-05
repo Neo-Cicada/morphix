@@ -4,6 +4,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { Player } from '@remotion/player';
 import { Audio, useCurrentFrame, useVideoConfig } from 'remotion';
 import type { PlayerRef } from '@remotion/player';
+import { HiddenLayersContext } from '@/remotion/layerContext';
 
 interface AnimationPlayerProps {
   Component: React.ComponentType | null;
@@ -17,6 +18,7 @@ interface AnimationPlayerProps {
   error: string | null;
   onFixError?: () => void;
   isFixingError?: boolean;
+  hiddenLayers?: Set<string>;
   playerRef?: React.RefObject<PlayerRef | null>;
   audioUrl?: string | null;
   voiceUrl?: string | null;
@@ -127,6 +129,7 @@ export function AnimationPlayer({
   error,
   onFixError,
   isFixingError = false,
+  hiddenLayers,
   compositionWidth = 1920,
   compositionHeight = 1080,
   playerRef,
@@ -289,18 +292,20 @@ export function AnimationPlayer({
         <div className="absolute inset-0 rounded-xl ring-1 ring-inset ring-white/5 pointer-events-none z-10" />
 
         {CompositionWithAudio && !overlay ? (
-          <Player
-            ref={playerRef}
-            component={CompositionWithAudio}
-            durationInFrames={Math.max(1, durationInFrames)}
-            fps={fps}
-            compositionWidth={compositionWidth}
-            compositionHeight={compositionHeight}
-            controls
-            loop
-            numberOfSharedAudioTags={5}
-            style={{ width: '100%', height: '100%', borderRadius: '12px' }}
-          />
+          <HiddenLayersContext.Provider value={hiddenLayers ?? new Set()}>
+            <Player
+              ref={playerRef}
+              component={CompositionWithAudio}
+              durationInFrames={Math.max(1, durationInFrames)}
+              fps={fps}
+              compositionWidth={compositionWidth}
+              compositionHeight={compositionHeight}
+              controls
+              loop
+              numberOfSharedAudioTags={5}
+              style={{ width: '100%', height: '100%', borderRadius: '12px' }}
+            />
+          </HiddenLayersContext.Provider>
         ) : (
           <div className="absolute inset-0">
             {overlay}

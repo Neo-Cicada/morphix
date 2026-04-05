@@ -4,12 +4,14 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import {
   Send, Download, Loader2, ImagePlus, Code2, Sparkles,
   PanelRightClose, PanelRightOpen, MessageSquare, FilePlus,
-  Mic, Volume2, Play, Square, ChevronDown, RefreshCw, Music2, Wand2,
+  Mic, Volume2, Play, Square, ChevronDown, RefreshCw, Music2, Wand2, Layers,
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import type { PlayerRef } from '@remotion/player';
 import { AnimationPlayer } from './AnimationPlayer';
+import { AnimationTimeline } from './AnimationTimeline';
+import { LayerPanel } from './LayerPanel';
 import { useAnimationState } from '@/hooks/useAnimationState';
 import { useGenerationApi } from '@/hooks/useGenerationApi';
 import { useEditorPersistence } from '@/hooks/useEditorPersistence';
@@ -30,7 +32,7 @@ interface ChatMessage {
 }
 
 type ExportState = 'idle' | 'rendering' | 'done' | 'error';
-type RightPanel = 'chat' | 'code' | 'voice' | 'music';
+type RightPanel = 'chat' | 'code' | 'voice' | 'music' | 'layers';
 type AspectRatioKey = '16:9' | '9:16' | '1:1' | '4:5';
 
 const ASPECT_RATIOS: Record<AspectRatioKey, { width: number; height: number; label: string; platform: string }> = {
@@ -54,6 +56,7 @@ function extractDuration(code: string): number {
 
 export default function EditorPage() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const animationState = useAnimationState();
   const { generate, isGenerating, isStreaming } = useGenerationApi();
   const { load, save, clear } = useEditorPersistence();
@@ -83,8 +86,12 @@ export default function EditorPage() {
   const [attachedImages, setAttachedImages] = useState<string[]>([]);
   const [streamingCode, setStreamingCode] = useState('');
   const [isFixingError, setIsFixingError] = useState(false);
+  const [hiddenLayers, setHiddenLayers] = useState<Set<string>>(new Set());
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const monacoEditorRef = useRef<any>(null);
   const conversationHistory = useRef<{ role: 'user' | 'assistant'; content: string }[]>([]);
   const streamBufferRef = useRef('');
+  const restorationAborted = useRef(false);
 
   // Export state
   const [exportState, setExportState] = useState<ExportState>('idle');
@@ -122,6 +129,7 @@ export default function EditorPage() {
 
     if (idToLoad) {
       cloud.fetchVideo(idToLoad).then((video) => {
+        if (restorationAborted.current) return;
         if (video?.animation_code) {
           cloud.initVideoId(idToLoad);
           animationState.setCode(video.animation_code);
@@ -224,6 +232,26 @@ export default function EditorPage() {
   }, []);
 
   // ── Handlers ─────────────────────────────────────────────────────────────────
+
+  const handleToggleVisibility = useCallback((key: string) => {
+    setHiddenLayers((prev) => {
+      const next = new Set(prev);
+      next.has(key) ? next.delete(key) : next.add(key);
+      return next;
+    });
+  }, []);
+
+  const handleLayerReorder = useCallback((newCode: string) => {
+    animationState.setCode(newCode);
+  }, [animationState]);
+
+  const handleSelectLayer = useCallback((lineNumber: number) => {
+    setRightPanel('code');
+    setTimeout(() => {
+      monacoEditorRef.current?.revealLineInCenter(lineNumber);
+      monacoEditorRef.current?.setPosition({ lineNumber, column: 1 });
+    }, 50);
+  }, []);
 
   const handleFixError = useCallback(async () => {
     if (!animationState.error || isFixingError) return;
@@ -477,25 +505,40 @@ export default function EditorPage() {
   };
 
   const handleNewConfirm = useCallback(() => {
-    // Cancel Monaco debounce so stale setCode call can't fire after reset
+    // Abort any in-flight restoration fetch so its .then() can't overwrite reset state
+    restorationAborted.current = true;
+
+    // Cancel any pending Monaco debounce so stale setCode can't fire after reset
     if (compileDebounceRef.current) {
       clearTimeout(compileDebounceRef.current);
       compileDebounceRef.current = null;
     }
-    animationState.reset();
+
+    // Directly clear the Monaco editor model — the value prop change alone is not
+    // reliable because Monaco models are global singletons and the prop update may
+    // not call editor.setValue() synchronously on re-render.
+    monacoEditorRef.current?.setValue('');
+
+    // Clear persisted storage before navigating so the restoration effect
+    // on re-render finds nothing and starts blank
     clear();
     cloud.clearVideoId();
+
+    animationState.reset();
+    setStreamingCode('');
     voice.reset();
     music.reset();
     setMessages([{ id: '0', role: 'assistant', text: "Hi! Describe an animation and I'll generate it for you. You can also follow up to refine it." }]);
     conversationHistory.current = [];
     setDurationInFrames(180);
+    setHiddenLayers(new Set());
     setExportState('idle');
     setExportUrl(null);
     setShowNewModal(false);
-    // Update URL without navigation/remount — avoids re-triggering the restoration useEffect
-    window.history.replaceState(null, '', '/dashboard/editor');
-  }, [animationState, clear, cloud, voice, music]);
+
+    // Use Next.js router so useSearchParams() updates and videoId goes stale-free
+    router.replace('/dashboard/editor');
+  }, [animationState, clear, cloud, voice, music, router]);
 
   // ── Render ───────────────────────────────────────────────────────────────────
 
@@ -633,26 +676,37 @@ export default function EditorPage() {
       <div className="flex flex-1 min-h-0">
 
         {/* Preview */}
-        <div className="flex-1 min-h-0 p-3 noise-overlay">
-          <AnimationPlayer
-            playerRef={playerRef}
-            Component={animationState.Component}
-            durationInFrames={durationInFrames}
-            fps={fps}
-            compositionWidth={compositionWidth}
-            compositionHeight={compositionHeight}
-            isCompiling={animationState.isCompiling}
-            isStreaming={isStreaming}
-            streamingChars={streamingCode.length}
-            error={animationState.error}
-            onFixError={handleFixError}
-            isFixingError={isFixingError}
-            audioUrl={music.enabled ? music.audioUrl : null}
-            voiceUrl={voice.enabled ? voice.audioUrl : null}
-            musicVolume={music.volume}
-            voiceScript={voice.enabled && voice.audioUrl ? voice.script : null}
-            voiceDurationSeconds={voice.enabled ? voice.audioDurationSeconds : null}
-          />
+        <div className="flex-1 min-h-0 flex flex-col noise-overlay">
+          <div className="flex-1 min-h-0 p-3">
+            <AnimationPlayer
+              playerRef={playerRef}
+              Component={animationState.Component}
+              durationInFrames={durationInFrames}
+              fps={fps}
+              compositionWidth={compositionWidth}
+              compositionHeight={compositionHeight}
+              isCompiling={animationState.isCompiling}
+              isStreaming={isStreaming}
+              streamingChars={streamingCode.length}
+              error={animationState.error}
+              onFixError={handleFixError}
+              isFixingError={isFixingError}
+              hiddenLayers={hiddenLayers}
+              audioUrl={music.enabled ? music.audioUrl : null}
+              voiceUrl={voice.enabled ? voice.audioUrl : null}
+              musicVolume={music.volume}
+              voiceScript={voice.enabled && voice.audioUrl ? voice.script : null}
+              voiceDurationSeconds={voice.enabled ? voice.audioDurationSeconds : null}
+            />
+          </div>
+          {animationState.Component && (
+            <AnimationTimeline
+              playerRef={playerRef}
+              durationInFrames={durationInFrames}
+              fps={fps}
+              code={animationState.code}
+            />
+          )}
         </div>
 
         {/* Right panel */}
@@ -712,6 +766,20 @@ export default function EditorPage() {
                 Music
                 {music.enabled && music.audioUrl && (
                   <div className="w-1.5 h-1.5 rounded-full bg-[#5c9e53]/70 ml-0.5" />
+                )}
+              </button>
+              <button
+                onClick={() => setRightPanel('layers')}
+                className={`flex items-center gap-1.5 px-3 py-2 text-xs font-medium border-b-2 -mb-px transition-all ${
+                  rightPanel === 'layers'
+                    ? 'text-white border-[#C17B4F]'
+                    : 'text-[#888884] border-transparent hover:text-[#bbb]'
+                }`}
+              >
+                <Layers className="w-3.5 h-3.5" />
+                Layers
+                {animationState.Component && (
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#C17B4F]/60 ml-0.5" />
                 )}
               </button>
             </div>
@@ -825,6 +893,7 @@ export default function EditorPage() {
                     theme="vs-dark"
                     value={streamingCode || animationState.code}
                     onChange={handleMonacoChange}
+                    onMount={(editor) => { monacoEditorRef.current = editor; }}
                     options={{
                       minimap: { enabled: false },
                       fontSize: 12,
@@ -1254,6 +1323,32 @@ export default function EditorPage() {
                     )}
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* ── Layers ── */}
+            {rightPanel === 'layers' && (
+              <div className="flex-1 flex flex-col min-h-0">
+                <div className="flex items-center gap-2 px-4 py-2 border-b border-[#2e2e2c]/40 shrink-0">
+                  <Layers className="w-3 h-3 text-[#D4A574]" />
+                  <span className="text-xs font-medium text-[#888884]">Scene Layers</span>
+                  {hiddenLayers.size > 0 && (
+                    <button
+                      onClick={() => setHiddenLayers(new Set())}
+                      className="ml-auto text-[10px] text-[#555553] hover:text-[#888884] transition-colors"
+                    >
+                      Show all
+                    </button>
+                  )}
+                </div>
+                <LayerPanel
+                  code={animationState.code}
+                  fps={fps}
+                  hiddenLayers={hiddenLayers}
+                  onToggleVisibility={handleToggleVisibility}
+                  onReorder={handleLayerReorder}
+                  onSelectLayer={handleSelectLayer}
+                />
               </div>
             )}
           </div>

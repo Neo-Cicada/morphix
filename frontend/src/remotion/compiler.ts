@@ -3,6 +3,7 @@
 import * as Babel from '@babel/standalone';
 import React from 'react';
 import * as Remotion from 'remotion';
+import { SequenceProxy } from './layerContext';
 import * as RemotionShapes from '@remotion/shapes';
 import * as RemotionTransitions from '@remotion/transitions';
 import * as THREE from 'three';
@@ -19,6 +20,7 @@ export interface CompileResult {
 const GLOBALS = {
   React,
   ...Remotion,
+  Sequence: SequenceProxy, // proxy reads HiddenLayersContext for layer visibility
   RemotionShapes,
   RemotionTransitions,
   THREE,

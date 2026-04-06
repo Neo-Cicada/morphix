@@ -59,7 +59,9 @@ export async function POST(req: NextRequest) {
         ...(voiceUrl ? { voiceUrl } : {}),
       },
       codec: 'h264',
-      framesPerLambda: 60,
+      framesPerLambda: 40,
+      maxRetries: 1,
+      concurrencyPerLambda: 1,
       downloadBehavior: {
         type: 'download',
         fileName: 'animation.mp4',
@@ -91,6 +93,10 @@ export async function POST(req: NextRequest) {
     }
 
     return Response.json({ error: 'Render timed out after 5 minutes' }, { status: 504 });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error('[render]', message);
+    return Response.json({ error: message }, { status: 500 });
   } finally {
     await fs.rm(tmpDir, { recursive: true }).catch(() => {});
   }

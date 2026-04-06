@@ -1,4 +1,4 @@
-import { createClient } from '@/utils/supabase/server';
+import { createClient, createAdminClient } from '@/utils/supabase/server';
 import { NextRequest } from 'next/server';
 
 export async function POST(req: NextRequest) {
@@ -21,7 +21,9 @@ export async function POST(req: NextRequest) {
   const buffer = Buffer.from(await file.arrayBuffer());
   const fileName = `audio/${session.user.id}/${Date.now()}.mp3`;
 
-  const { error } = await supabase.storage
+  // Use admin client for storage — user-session client is blocked by bucket RLS
+  const adminSupabase = createAdminClient();
+  const { error } = await adminSupabase.storage
     .from('renders')
     .upload(fileName, buffer, { contentType: 'audio/mpeg', upsert: true });
 
@@ -29,7 +31,7 @@ export async function POST(req: NextRequest) {
     return Response.json({ error: error.message }, { status: 500 });
   }
 
-  const { data } = supabase.storage.from('renders').getPublicUrl(fileName);
+  const { data } = adminSupabase.storage.from('renders').getPublicUrl(fileName);
 
   return Response.json({ url: data.publicUrl });
 }

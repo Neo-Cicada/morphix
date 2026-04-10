@@ -4,6 +4,19 @@ import { NextRequest } from 'next/server';
 const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
 const ELEVENLABS_BASE = 'https://api.elevenlabs.io/v1';
 
+async function elevenLabsError(res: Response) {
+  const text = await res.text();
+  let message = text;
+  try {
+    const json = JSON.parse(text);
+    message = json?.detail?.message ?? json?.message ?? json?.error ?? text;
+  } catch {
+    // plain text — use as-is
+  }
+  const status = res.status === 401 || res.status === 403 ? 503 : res.status;
+  return Response.json({ error: message }, { status });
+}
+
 // POST /api/music — generate background music via ElevenLabs
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
@@ -38,8 +51,7 @@ export async function POST(req: NextRequest) {
   });
 
   if (!res.ok) {
-    const text = await res.text();
-    return Response.json({ error: `ElevenLabs error: ${text}` }, { status: res.status });
+    return elevenLabsError(res);
   }
 
   const audioBuffer = await res.arrayBuffer();

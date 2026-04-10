@@ -13,7 +13,7 @@ export interface ElevenLabsVoice {
   previewUrl?: string;
 }
 
-type VoiceStatus = 'idle' | 'loading-voices' | 'generating' | 'ready' | 'error';
+type VoiceStatus = 'idle' | 'loading-voices' | 'generating' | 'ready' | 'error' | 'unavailable';
 
 export interface UseVoiceReturn {
   // State
@@ -140,6 +140,11 @@ export function useVoice(videoId: string | null = null): UseVoiceReturn {
       const res = await fetch('/api/voice');
       if (!res.ok) {
         const json = await res.json().catch(() => ({}));
+        if (res.status === 503) {
+          setStatus('unavailable');
+          setErrorMessage(null);
+          return;
+        }
         throw new Error(json.error ?? `HTTP ${res.status}`);
       }
       const data = await res.json();
@@ -174,6 +179,11 @@ export function useVoice(videoId: string | null = null): UseVoiceReturn {
 
       if (!res.ok) {
         const json = await res.json().catch(() => ({}));
+        if (res.status === 503) {
+          setStatus('unavailable');
+          setErrorMessage(null);
+          return { audioDurationSeconds: null };
+        }
         throw new Error(json.error ?? `HTTP ${res.status}`);
       }
 

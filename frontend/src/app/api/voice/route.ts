@@ -8,6 +8,20 @@ function missingKey() {
   return Response.json({ error: 'ElevenLabs API key not configured' }, { status: 503 });
 }
 
+async function elevenLabsError(res: Response) {
+  const text = await res.text();
+  let message = text;
+  try {
+    const json = JSON.parse(text);
+    message = json?.detail?.message ?? json?.message ?? json?.error ?? text;
+  } catch {
+    // plain text — use as-is
+  }
+  // Map auth failures to 503 so the client treats them as a config problem
+  const status = res.status === 401 || res.status === 403 ? 503 : res.status;
+  return Response.json({ error: message }, { status });
+}
+
 async function requireSession() {
   const supabase = await createClient();
   const { data: { session } } = await supabase.auth.getSession();
@@ -26,8 +40,7 @@ export async function GET() {
   });
 
   if (!res.ok) {
-    const text = await res.text();
-    return Response.json({ error: `ElevenLabs error: ${text}` }, { status: res.status });
+    return elevenLabsError(res);
   }
 
   const data = await res.json();
@@ -88,8 +101,7 @@ export async function POST(req: NextRequest) {
   });
 
   if (!res.ok) {
-    const text = await res.text();
-    return Response.json({ error: `ElevenLabs error: ${text}` }, { status: res.status });
+    return elevenLabsError(res);
   }
 
   const audioBuffer = await res.arrayBuffer();

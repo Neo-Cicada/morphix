@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { MUSIC_PRESETS } from '@/lib/musicPresets';
 
-type MusicStatus = 'idle' | 'generating' | 'ready' | 'error';
+type MusicStatus = 'idle' | 'generating' | 'ready' | 'error' | 'unavailable';
 
 export interface UseMusicReturn {
   enabled: boolean;
@@ -148,6 +148,11 @@ export function useMusic(videoId: string | null = null): UseMusicReturn {
 
       if (!res.ok) {
         const json = await res.json().catch(() => ({}));
+        if (res.status === 503) {
+          setStatus('unavailable');
+          setErrorMessage(null);
+          return;
+        }
         throw new Error(json.error ?? `HTTP ${res.status}`);
       }
 

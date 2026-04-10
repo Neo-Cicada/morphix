@@ -4,7 +4,7 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import {
   Send, Download, Loader2, ImagePlus, Code2, Sparkles,
   PanelRightClose, PanelRightOpen, MessageSquare, FilePlus,
-  Mic, Volume2, Play, Square, ChevronDown, RefreshCw, Music2, Wand2, Layers,
+  Mic, Volume2, Play, Square, ChevronDown, RefreshCw, Music2, Wand2, Layers, KeyRound,
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -949,6 +949,28 @@ export default function EditorPage() {
                       Enable Voice
                     </button>
                   </div>
+                ) : voice.status === 'unavailable' ? (
+                  <div className="flex-1 flex flex-col items-center justify-center gap-3 px-6 py-8 text-center">
+                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{
+                      background: 'rgba(100,100,100,0.1)',
+                      border: '1px solid rgba(100,100,100,0.2)',
+                    }}>
+                      <KeyRound className="w-5 h-5 text-[#555553]" />
+                    </div>
+                    <div>
+                      <p className="text-[#bbb] text-sm font-medium mb-1">Voice not available</p>
+                      <p className="text-[#555553] text-xs leading-relaxed">
+                        Voice generation requires an ElevenLabs API key.<br />
+                        Add <code className="text-[#888884] bg-[#1a1a18] px-1 py-0.5 rounded text-[10px]">ELEVENLABS_API_KEY</code> to your environment variables to enable this feature.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => voice.setEnabled(false)}
+                      className="mt-1 px-4 py-1.5 rounded-lg text-xs font-medium text-[#555553] hover:text-[#888884] border border-[#2e2e2c] transition-all"
+                    >
+                      Dismiss
+                    </button>
+                  </div>
                 ) : (
                   <div className="flex flex-col gap-4 p-4">
                     {/* Voice selector */}
@@ -1163,6 +1185,28 @@ export default function EditorPage() {
                       className="mt-1 px-4 py-1.5 rounded-lg text-xs font-medium btn-gradient text-white transition-all"
                     >
                       Enable Music
+                    </button>
+                  </div>
+                ) : music.status === 'unavailable' ? (
+                  <div className="flex-1 flex flex-col items-center justify-center gap-3 px-6 py-8 text-center">
+                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{
+                      background: 'rgba(100,100,100,0.1)',
+                      border: '1px solid rgba(100,100,100,0.2)',
+                    }}>
+                      <KeyRound className="w-5 h-5 text-[#555553]" />
+                    </div>
+                    <div>
+                      <p className="text-[#bbb] text-sm font-medium mb-1">Music not available</p>
+                      <p className="text-[#555553] text-xs leading-relaxed">
+                        Music generation requires an ElevenLabs API key.<br />
+                        Add <code className="text-[#888884] bg-[#1a1a18] px-1 py-0.5 rounded text-[10px]">ELEVENLABS_API_KEY</code> to your environment variables to enable this feature.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => music.setEnabled(false)}
+                      className="mt-1 px-4 py-1.5 rounded-lg text-xs font-medium text-[#555553] hover:text-[#888884] border border-[#2e2e2c] transition-all"
+                    >
+                      Dismiss
                     </button>
                   </div>
                 ) : (

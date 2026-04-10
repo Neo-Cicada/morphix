@@ -45,28 +45,45 @@ export async function POST(req: NextRequest) {
   const codePath = path.join(tmpDir, 'animation.tsx');
   await fs.writeFile(codePath, code, 'utf-8');
 
+  const isRateLimitError = (err: unknown) =>
+    err instanceof Error && err.message.toLowerCase().includes('rate exceeded');
+
+  const renderWithRetry = async (attempt = 0): Promise<{ renderId: string; bucketName: string }> => {
+    try {
+      return await renderMediaOnLambda({
+        region,
+        functionName: functionName!,
+        serveUrl: serveUrl!,
+        composition: 'MorphixVideo',
+        inputProps: {
+          code,
+          durationInFrames,
+          fps,
+          ...(audioUrl ? { audioUrl } : {}),
+          ...(voiceUrl ? { voiceUrl } : {}),
+        },
+        codec: 'h264',
+        framesPerLambda: 120,
+        maxRetries: 2,
+        concurrencyPerLambda: 1,
+        downloadBehavior: {
+          type: 'download',
+          fileName: 'animation.mp4',
+        },
+      });
+    } catch (err) {
+      if (isRateLimitError(err) && attempt < 3) {
+        const delay = Math.min(5000 * 2 ** attempt, 30_000);
+        console.warn(`[render] AWS concurrency limit hit, retrying in ${delay}ms (attempt ${attempt + 1})`);
+        await new Promise((r) => setTimeout(r, delay));
+        return renderWithRetry(attempt + 1);
+      }
+      throw err;
+    }
+  };
+
   try {
-    const { renderId, bucketName } = await renderMediaOnLambda({
-      region,
-      functionName,
-      serveUrl,
-      composition: 'MorphixVideo',
-      inputProps: {
-        code,
-        durationInFrames,
-        fps,
-        ...(audioUrl ? { audioUrl } : {}),
-        ...(voiceUrl ? { voiceUrl } : {}),
-      },
-      codec: 'h264',
-      framesPerLambda: 40,
-      maxRetries: 1,
-      concurrencyPerLambda: 1,
-      downloadBehavior: {
-        type: 'download',
-        fileName: 'animation.mp4',
-      },
-    });
+    const { renderId, bucketName } = await renderWithRetry();
 
     // Poll for completion (max 5 minutes)
     const maxWait = 300_000;

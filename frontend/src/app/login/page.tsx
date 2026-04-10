@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { loginAction } from './actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -11,17 +12,20 @@ import { Loader2, AlertCircle } from 'lucide-react'
 import Link from 'next/link'
 
 export default function LoginPage() {
-  const [error, setError] = useState<string | null>(null)
+  const searchParams = useSearchParams()
+  const urlError = searchParams.get('error')
+  const [formError, setFormError] = useState<string | null>(null)
+  const error = formError ?? urlError
   const [isPending, startTransition] = useTransition()
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    setError(null)
+    setFormError(null)
     const formData = new FormData(e.currentTarget)
     startTransition(async () => {
       const result = await loginAction(formData)
       if (result?.error) {
-        setError(result.error)
+        setFormError(result.error)
       }
     })
   }

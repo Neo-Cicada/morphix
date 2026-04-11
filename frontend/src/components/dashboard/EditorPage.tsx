@@ -714,72 +714,72 @@ export default function EditorPage() {
           <div className="w-[360px] shrink-0 flex flex-col min-h-0 border-l border-[#2e2e2c]/60">
 
             {/* Tabs */}
-            <div className="flex items-center border-b border-[#2e2e2c]/60 shrink-0 px-2 pt-1">
+            <div className="flex items-center border-b border-[#2e2e2c]/60 shrink-0 pt-1">
               <button
                 onClick={() => setRightPanel('chat')}
-                className={`flex items-center gap-1.5 px-3 py-2 text-xs font-medium border-b-2 -mb-px transition-all ${
+                className={`flex-1 flex items-center justify-center gap-1 px-1 py-2 text-xs font-medium border-b-2 -mb-px transition-all ${
                   rightPanel === 'chat'
                     ? 'text-white border-[#C17B4F]'
                     : 'text-[#888884] border-transparent hover:text-[#bbb]'
                 }`}
               >
-                <MessageSquare className="w-3.5 h-3.5" />
-                AI Chat
+                <MessageSquare className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">Chat</span>
               </button>
               <button
                 onClick={() => setRightPanel('code')}
-                className={`flex items-center gap-1.5 px-3 py-2 text-xs font-medium border-b-2 -mb-px transition-all ${
+                className={`flex-1 flex items-center justify-center gap-1 px-1 py-2 text-xs font-medium border-b-2 -mb-px transition-all ${
                   rightPanel === 'code'
                     ? 'text-white border-[#C17B4F]'
                     : 'text-[#888884] border-transparent hover:text-[#bbb]'
                 }`}
               >
-                <Code2 className="w-3.5 h-3.5" />
-                Code
+                <Code2 className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">Code</span>
                 {(isStreaming || animationState.isCompiling) && (
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#C17B4F] animate-pulse ml-0.5" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#C17B4F] animate-pulse shrink-0" />
                 )}
               </button>
               <button
                 onClick={() => setRightPanel('voice')}
-                className={`flex items-center gap-1.5 px-3 py-2 text-xs font-medium border-b-2 -mb-px transition-all ${
+                className={`flex-1 flex items-center justify-center gap-1 px-1 py-2 text-xs font-medium border-b-2 -mb-px transition-all ${
                   rightPanel === 'voice'
                     ? 'text-white border-[#C17B4F]'
                     : 'text-[#888884] border-transparent hover:text-[#bbb]'
                 }`}
               >
-                <Mic className="w-3.5 h-3.5" />
-                Voice
+                <Mic className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">Voice</span>
                 {voice.enabled && voice.audioUrl && (
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#5c9e53]/70 ml-0.5" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#5c9e53]/70 shrink-0" />
                 )}
               </button>
               <button
                 onClick={() => setRightPanel('music')}
-                className={`flex items-center gap-1.5 px-3 py-2 text-xs font-medium border-b-2 -mb-px transition-all ${
+                className={`flex-1 flex items-center justify-center gap-1 px-1 py-2 text-xs font-medium border-b-2 -mb-px transition-all ${
                   rightPanel === 'music'
                     ? 'text-white border-[#C17B4F]'
                     : 'text-[#888884] border-transparent hover:text-[#bbb]'
                 }`}
               >
-                <Music2 className="w-3.5 h-3.5" />
-                Music
+                <Music2 className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">Music</span>
                 {music.enabled && music.audioUrl && (
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#5c9e53]/70 ml-0.5" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#5c9e53]/70 shrink-0" />
                 )}
               </button>
               <button
                 onClick={() => setRightPanel('layers')}
-                className={`flex items-center gap-1.5 px-3 py-2 text-xs font-medium border-b-2 -mb-px transition-all ${
+                className={`flex-1 flex items-center justify-center gap-1 px-1 py-2 text-xs font-medium border-b-2 -mb-px transition-all ${
                   rightPanel === 'layers'
                     ? 'text-white border-[#C17B4F]'
                     : 'text-[#888884] border-transparent hover:text-[#bbb]'
                 }`}
               >
-                <Layers className="w-3.5 h-3.5" />
-                Layers
+                <Layers className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">Layers</span>
                 {animationState.Component && (
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#C17B4F]/60 ml-0.5" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#C17B4F]/60 shrink-0" />
                 )}
               </button>
             </div>

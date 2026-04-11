@@ -200,7 +200,7 @@ export function useMusic(videoId: string | null = null): UseMusicReturn {
     setSelectedPresetIdState('saas');
     setCustomPromptState('');
     setVolumeState(0.4);
-    try { localStorage.removeItem(key); } catch {}
+    try { localStorage.removeItem(key); } catch { }
   }, [clearMusic]);
 
   const restoreFromDoc = useCallback((data: Partial<PersistedMusic>) => {

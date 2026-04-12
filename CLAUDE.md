@@ -41,12 +41,16 @@ npx prisma studio          # Open Prisma Studio GUI
 
 ### Frontend
 - **App Router** at `src/app/` — pages: landing (`/`), auth (`/login`, `/signup`), dashboard (`/dashboard`, `/dashboard/editor`, `/dashboard/videos`, `/dashboard/billing`, `/dashboard/settings`, `/dashboard/new`)
-- **Editor** at `src/components/dashboard/EditorPage.tsx` — AI chat panel, Monaco code editor, animation preview, export. Uses `useAnimationState`, `useGenerationApi` hooks.
+- **Editor** at `src/components/dashboard/EditorPage.tsx` — AI chat panel, Monaco code editor, animation preview, export. Uses `useAnimationState`, `useGenerationApi`, `useCloudPersistence`, `useEditorPersistence`, `useVoice`, `useMusic` hooks.
 - **AnimationPlayer** at `src/components/dashboard/AnimationPlayer.tsx` — wraps `@remotion/player` for compiled components
 - **In-browser compiler** at `src/remotion/compiler.ts` — strips imports, replaces exports, runs Babel (TSX→JS) via `@babel/standalone`, executes via `new Function()` with injected Remotion globals
 - **Next.js API routes** at `src/app/api/`:
   - `POST /api/generate` — AI code generation via Vercel AI SDK (`ai` + `@ai-sdk/anthropic`); initial generation streams TSX, follow-ups use `generateObject` for structured edits
   - `POST /api/render` — triggers Remotion Lambda render (`@remotion/lambda/client`)
+  - `GET/POST /api/voice` — ElevenLabs TTS: list voices or generate audio (returns `audio/mpeg`); requires `ELEVENLABS_API_KEY`
+  - `POST /api/music` — ElevenLabs background music generation via `music_v1` model; requires `ELEVENLABS_API_KEY`
+  - `POST /api/generate-narration` — generates spoken narration script via `claude-haiku-4-5-20251001`; calibrates word count to `durationSeconds`
+  - `POST /api/upload-audio` — uploads user-provided audio to Supabase Storage
 - **API client** at `src/lib/api.ts` — typed fetch wrapper that auto-attaches Supabase JWT and retries on 401
 - **UserContext** at `src/contexts/UserContext.tsx` — wraps `DashboardLayout`, exposes `useUser()` hook
 - **Supabase helpers** at `src/utils/supabase/` — `client.ts` (browser), `server.ts` (RSC), `middleware.ts` (auth gating)
@@ -59,6 +63,10 @@ npx prisma studio          # Open Prisma Studio GUI
 3. **Follow-up edits**: `generateObject` returns structured `{type: 'edit'|'full', edits: [{old_string, new_string}]}` applied via string replacement
 4. **Auto-correction** (`useAutoCorrection`): on compile error, retries up to 3 times with error context as `isFollowUp`
 5. Compiled `Component` passed to `AnimationPlayer` → `@remotion/player`
+
+### Editor Persistence
+- **Local** (`useEditorPersistence`): debounced localStorage save (500ms) for `code`, `messages`, `history`, `duration` under `morphix_editor_*` keys
+- **Cloud** (`useCloudPersistence`): debounced PATCH to backend (3s) via `POST /api/v1/videos/draft` (create) and `PATCH /api/v1/videos/:id/code` (update); tracks `videoId` in localStorage. `ProductionDoc` type in `useCloudPersistence.ts` is the shape stored in `production_doc` (includes `voiceState` and `musicState`).
 
 **Globals injected into generated code**: `React`, all Remotion exports (`AbsoluteFill`, `useCurrentFrame`, `spring`, `interpolate`, etc.), `RemotionShapes`, `RemotionTransitions`. For 3D: `THREE` (Three.js), `ThreeCanvas` (`@remotion/three`), `useThree`, `extend` (R3F), and Drei components (`Box`, `Sphere`, `Plane`, `Torus`, `Cylinder`, `Cone`, `RoundedBox`, `MeshDistortMaterial`, `MeshWobbleMaterial`, `Environment`, `Stars`, `Float`, `Center`, `Text`, `PerspectiveCamera`). Generated code must NOT write import statements.
 
@@ -108,6 +116,18 @@ Source of truth: `backend/prisma/schema.prisma`
 |--------|------|-------------|
 | POST | `/api/generate` | AI animation code generation (streaming + structured edits) |
 | POST | `/api/render` | Remotion Lambda render trigger |
+| GET | `/api/voice` | List ElevenLabs voices (cached 5min) |
+| POST | `/api/voice` | Generate TTS audio (`audio/mpeg`), max 5000 chars |
+| POST | `/api/music` | Generate background music (`audio/mpeg`), 3s–600s |
+| POST | `/api/generate-narration` | Generate narration script (Haiku model) |
+| POST | `/api/upload-audio` | Upload audio file to Supabase Storage |
+
+**Backend video draft/code endpoints** (used by `useCloudPersistence`):
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/api/v1/videos/draft` | Create draft video job, returns `{ id }` |
+| PATCH | `/api/v1/videos/:id/code` | Save `animation_code` + `production_doc` |
+| GET | `/api/v1/videos/:id` | Fetch video (returns `animation_code`, `production_doc`) |
 
 ## Auth Flow
 
@@ -128,7 +148,8 @@ Source of truth: `backend/prisma/schema.prisma`
 **Frontend** (`.env.local`):
 - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `NEXT_PUBLIC_API_URL` (backend URL, e.g. `http://localhost:8000`)
-- `ANTHROPIC_API_KEY` — used by `/api/generate` route via `@ai-sdk/anthropic`
+- `ANTHROPIC_API_KEY` — used by `/api/generate` and `/api/generate-narration` routes
+- `ELEVENLABS_API_KEY` — for `/api/voice` and `/api/music`; routes return HTTP 503 if missing
 - `REMOTION_REGION`, `REMOTION_FUNCTION_NAME`, `REMOTION_SERVE_URL` — for Lambda rendering
 
 **Backend** (`.env`):
